@@ -89,6 +89,21 @@ async def run_agent(payload: dict):
         raise HTTPException(502, f"Meta API error: {e.response.text[:300]}")
 
 
+@app.get("/api/models")
+async def list_models():
+    """Debug helper: list model ids the configured provider accepts (ids only, no secrets)."""
+    if not config.CHAT_KEY:
+        raise HTTPException(503, "API key for the selected PROVIDER not set")
+    async with httpx.AsyncClient(timeout=config.REQUEST_TIMEOUT) as client:
+        r = await client.get(
+            f"{config.CHAT_BASE}/models", headers={"Authorization": f"Bearer {config.CHAT_KEY}"}
+        )
+    if r.status_code != 200:
+        raise HTTPException(502, f"models list failed: {r.status_code} {r.text[:200]}")
+    data = r.json().get("data", [])
+    return {"configured": config.CHAT_MODEL, "available": [m.get("id") for m in data]}
+
+
 # Serve the built React app (frontend/dist) from the same service in production.
 _DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 if _DIST.exists():
