@@ -1,6 +1,9 @@
+from pathlib import Path
+
 import httpx
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from . import agent, config, meta_client
 
@@ -84,3 +87,9 @@ async def run_agent(payload: dict):
         return await agent.run_agent(question, bool(payload.get("use_open_model")))
     except httpx.HTTPStatusError as e:
         raise HTTPException(502, f"Meta API error: {e.response.text[:300]}")
+
+
+# Serve the built React app (frontend/dist) from the same service in production.
+_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+if _DIST.exists():
+    app.mount("/", StaticFiles(directory=_DIST, html=True), name="frontend")

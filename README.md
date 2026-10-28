@@ -11,6 +11,9 @@ A Telugu voice + photo farming agent built for the Meta Global AI Developer Hack
 - Multi-step agent (tool calling): mandi rates, scheme eligibility, next steps
 - Optional switch to **Muse Spark Open** (Baseten) for open-weights
 
+## Deploy (Render)
+Docker web service: build uses the root `Dockerfile`. Set env vars `PROVIDER=baseten`, `BASETEN_API_KEY`, `OPEN_MODEL=meta-models/muse-spark-open-1026`.
+
 ## Run locally
 
 Backend:
