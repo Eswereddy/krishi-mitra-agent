@@ -6,11 +6,13 @@ export default function App() {
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const [steps, setSteps] = useState([]);
+  const [verification, setVerification] = useState(null);
   const recorder = useRef(null);
   const chunks = useRef([]);
 
   async function ask(text) {
     setSteps([]);
+    setVerification(null);
     const r = await fetch("/api/agent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -20,6 +22,7 @@ export default function App() {
     const data = await r.json();
     setAnswer(data.answer);
     setSteps(data.steps || []);
+    setVerification(data.verification || null);
   }
 
   async function start() {
@@ -109,6 +112,13 @@ export default function App() {
       {answer && (
         <p>
           <b>Krishi Mitra:</b> {answer}
+        </p>
+      )}
+      {verification && (
+        <p style={{ fontSize: 14, color: verification.passed ? "green" : "darkorange" }}>
+          {verification.passed
+            ? "✅ Figures verified against tool results"
+            : "⚠️ Some figures could not be verified: " + (verification.unverified || []).join(", ")}
         </p>
       )}
     </main>

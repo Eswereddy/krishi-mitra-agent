@@ -37,3 +37,4 @@ npm run dev
 - Day 1 (Oct 27): crop photo upload (`/api/diagnose`, Muse Spark vision) + UI.
 - Day 2 (Oct 28): agent loop (`/api/agent`) with tools `get_mandi_price` (sample data for now) and `check_schemes`; mock mode for key-less dev; agent steps shown in UI.
 - Day 2 (Oct 28): provider switch (`PROVIDER=baseten` -> Muse Spark Open `meta-models/muse-spark-open-1026`, or `meta`).
+- Day 2 (Oct 28): verification layer (`backend/app/verify.py`): every figure in the final answer must come from a tool result, else rewrite or show a warning (idea from Meta Agents 102 workshop). Offline tests: `python backend/tests/test_verify.py`.
