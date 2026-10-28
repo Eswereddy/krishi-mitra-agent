@@ -1,0 +1,9 @@
+{
+  "_note": "SAMPLE DATA for development only. Replace with live data (data.gov.in Agmarknet API) before demo.",
+  "prices": [
+    {"commodity": "Paddy", "market": "Kurnool", "state": "Andhra Pradesh", "modal_price_per_quintal": 2300},
+    {"commodity": "Groundnut", "market": "Kurnool", "state": "Andhra Pradesh", "modal_price_per_quintal": 6200},
+    {"commodity": "Cotton", "market": "Adoni", "state": "Andhra Pradesh", "modal_price_per_quintal": 7000},
+    {"commodity": "Tomato", "market": "Kurnool", "state": "Andhra Pradesh", "modal_price_per_quintal": 1800}
+  ]
+}
