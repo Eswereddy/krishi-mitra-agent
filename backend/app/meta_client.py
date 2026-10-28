@@ -18,10 +18,10 @@ async def chat(messages: list[dict], use_open_model: bool = False, **extra) -> s
 
 async def chat_message(messages: list[dict], use_open_model: bool = False, **extra) -> dict:
     """Chat completion returning the full assistant message (needed for tool calls)."""
-    if use_open_model and config.BASETEN_BASE_URL:
+    if use_open_model and config.BASETEN_API_KEY:
         base, key, model = config.BASETEN_BASE_URL, config.BASETEN_API_KEY, config.OPEN_MODEL
     else:
-        base, key, model = config.META_BASE_URL, config.META_API_KEY, config.META_CHAT_MODEL
+        base, key, model = config.CHAT_BASE, config.CHAT_KEY, config.CHAT_MODEL
 
     payload = {"model": model, "messages": messages, **extra}
     async with httpx.AsyncClient(timeout=config.REQUEST_TIMEOUT) as client:
@@ -40,6 +40,8 @@ async def transcribe(audio_bytes: bytes, filename: str, content_type: str) -> st
     """
     if config.MOCK_MODE:
         return mock.TRANSCRIPT
+    if config.PROVIDER == "baseten":
+        return await _transcribe_via_chat(audio_bytes, filename)
     files = {"file": (filename, audio_bytes, content_type)}
     data = {"language": "te"}  # Telugu
     async with httpx.AsyncClient(timeout=config.REQUEST_TIMEOUT) as client:
@@ -81,4 +83,22 @@ async def diagnose_image(image_bytes: bytes, content_type: str, question: str = 
             ],
         }
     ]
+    return await chat(messages)
+
+
+async def _transcribe_via_chat(audio_bytes: bytes, filename: str) -> str:
+    """Muse Spark Open accepts audio input on Baseten. UNVERIFIED request shape:
+    check Baseten "Vision and Audio" docs once a key is available (browser records
+    webm; the API may require wav/mp3, in which case convert in the frontend/ffmpeg)."""
+    import base64
+
+    fmt = filename.rsplit(".", 1)[-1].lower() if "." in filename else "wav"
+    b64 = base64.b64encode(audio_bytes).decode()
+    messages = [{
+        "role": "user",
+        "content": [
+            {"type": "text", "text": "Transcribe this Telugu audio exactly. Output only the transcript in Telugu script."},
+            {"type": "input_audio", "input_audio": {"data": b64, "format": fmt}},
+        ],
+    }]
     return await chat(messages)
