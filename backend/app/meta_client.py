@@ -1,4 +1,6 @@
 """Thin client for Meta Model API (chat + Muse Voice Transcribe)."""
+import asyncio
+
 import httpx
 
 from . import config, mock
@@ -86,19 +88,36 @@ async def diagnose_image(image_bytes: bytes, content_type: str, question: str = 
     return await chat(messages)
 
 
+async def _to_wav(audio_bytes: bytes) -> tuple[bytes, str]:
+    """Browsers record WebM/Opus, which Baseten does not list. Convert to 16 kHz mono WAV
+    with ffmpeg. Returns (bytes, mime). Falls back to the original bytes if ffmpeg fails."""
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "ffmpeg", "-loglevel", "error", "-i", "pipe:0", "-ac", "1", "-ar", "16000",
+            "-f", "wav", "pipe:1",
+            stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        out, _err = await proc.communicate(audio_bytes)
+        if proc.returncode == 0 and out:
+            return out, "audio/wav"
+    except FileNotFoundError:
+        pass
+    return audio_bytes, "audio/webm"
+
+
 async def _transcribe_via_chat(audio_bytes: bytes, filename: str) -> str:
-    """Muse Spark Open accepts audio input on Baseten. UNVERIFIED request shape:
-    check Baseten "Vision and Audio" docs once a key is available (browser records
-    webm; the API may require wav/mp3, in which case convert in the frontend/ffmpeg)."""
+    """Muse Spark Open takes audio as an `audio_url` content part (Baseten docs:
+    inference/model-apis/audio). Supported: WAV, MP3, FLAC, OGG, M4A. Not WebM."""
     import base64
 
-    fmt = filename.rsplit(".", 1)[-1].lower() if "." in filename else "wav"
-    b64 = base64.b64encode(audio_bytes).decode()
+    data, mime = await _to_wav(audio_bytes)
+    b64 = base64.b64encode(data).decode()
     messages = [{
         "role": "user",
         "content": [
             {"type": "text", "text": "Transcribe this Telugu audio exactly. Output only the transcript in Telugu script."},
-            {"type": "input_audio", "input_audio": {"data": b64, "format": fmt}},
+            {"type": "audio_url", "audio_url": {"url": f"data:{mime};base64,{b64}"}},
         ],
     }]
     return await chat(messages)
