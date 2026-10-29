@@ -27,6 +27,9 @@ short, practical answer, read aloud if they want.
 React (Vite) frontend → FastAPI backend (`backend/app`) → Muse Spark Open. One Docker service serves both.
 `agent.py` (tool loop) · `tools.py` (4 tools, live data with fallbacks) · `verify.py` (answer verification) · `lang.py` (3 languages) · `meta_client.py` (model client, WebM→WAV conversion for audio).
 
+## Demo and submission
+See [DEMO.md](DEMO.md) for the 3-minute demo script and submission checklist.
+
 ## Tests (offline, no API key needed)
 ```bash
 cd backend && python tests/test_verify.py && python tests/test_tools.py

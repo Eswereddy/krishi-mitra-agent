@@ -3,6 +3,7 @@ from pathlib import Path
 import httpx
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import agent, config, lang as langmod, meta_client
@@ -15,6 +16,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(httpx.HTTPError)
+async def model_service_error(_request, exc: httpx.HTTPError):
+    """Timeouts and connection errors to the model service: friendly 502 instead of a 500 stack trace."""
+    return JSONResponse(
+        status_code=502,
+        content={"detail": f"Model service unavailable ({type(exc).__name__}). Please try again in a moment."},
+    )
 
 
 @app.get("/api/health")
