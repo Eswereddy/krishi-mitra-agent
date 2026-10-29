@@ -86,6 +86,42 @@ function PriceCard({ step, t }) {
   );
 }
 
+
+function TrendCard({ step, t }) {
+  const r = step.result;
+  const pts = r?.series || [];
+  if (pts.length < 2) return null;
+  const vals = pts.map((p) => p.modal_price_per_quintal);
+  const lo = Math.min(...vals), hi = Math.max(...vals), span = Math.max(hi - lo, 1);
+  const W = 260, H = 70, pad = 6;
+  const xy = vals.map((v, i) => [pad + (i / (vals.length - 1)) * (W - 2 * pad), H - pad - ((v - lo) / span) * (H - 2 * pad)]);
+  const line = xy.map((p) => p.join(",")).join(" ");
+  const label = { rising: t.trendRising, falling: t.trendFalling, steady: t.trendSteady }[r.trend];
+  const arrow = { rising: "▲", falling: "▼", steady: "▬" }[r.trend];
+  return (
+    <div className="card">
+      <div className="card-head"><span>📊 {t.trendTool} · {r.commodity}</span><SourceBadge source={r.source} t={t} /></div>
+      <div className="trend">
+        <svg viewBox={`0 0 ${W} ${H}`} className={"spark " + r.trend} role="img" aria-label={label}>
+          <polyline points={`${pad},${H - pad} ${line} ${W - pad},${H - pad}`} className="spark-fill" />
+          <polyline points={line} className="spark-line" />
+          <circle cx={xy[xy.length - 1][0]} cy={xy[xy.length - 1][1]} r="4.5" className="spark-dot" />
+        </svg>
+        <div className={"trend-badge " + r.trend}>
+          <b>{arrow} {r.change_pct > 0 ? "+" : ""}{r.change_pct}%</b>
+          <small>{label}</small>
+        </div>
+      </div>
+      <div className="trend-meta">
+        <span>{r.market}</span>
+        <span>{rupee(vals[0])} → <b>{rupee(vals[vals.length - 1])}</b></span>
+        <span>{pts.length} {t.trendLast}</span>
+      </div>
+      <div className="card-foot">{t.perQ}</div>
+    </div>
+  );
+}
+
 function WeatherCard({ step, t }) {
   const f = step.result?.forecast;
   if (!f?.length) return null;
@@ -165,6 +201,7 @@ export function ToolCards({ steps, t }) {
     switch (s.tool) {
       case "get_mandi_price":
       case "best_markets": return <PriceCard step={s} t={t} />;
+      case "get_price_trend": return <TrendCard step={s} t={t} />;
       case "get_weather": return <WeatherCard step={s} t={t} />;
       case "check_schemes": return <SchemeCard step={s} t={t} />;
       case "calculate_revenue": return <RevenueCard step={s} t={t} />;
@@ -193,6 +230,43 @@ export function StepChips({ steps, t }) {
       )}
     </div>
   );
+}
+
+
+// Live progress shown inside the pending bubble while the agent works (each tool call appears as it starts).
+export function LiveSteps({ live, t }) {
+  return (
+    <div className="bubble typing live">
+      <div className="live-head"><i /><i /><i /><span>{t.thinking}</span></div>
+      {live?.length > 0 && (
+        <ul className="live-list">
+          {live.map((l, i) => (
+            <li key={i} className={l.done ? "done" : "run"}>
+              <span className="live-ico">{l.done ? "✓" : <b className="mini-spin" />}</span>
+              {l.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+const SRC = [
+  [/agmarknet/i, "Agmarknet (data.gov.in)"], [/open-meteo/i, "Open-Meteo"], [/sample/i, null],
+];
+export function SourcesLine({ steps, t }) {
+  const names = new Set();
+  (steps || []).forEach((s) => {
+    const src = s.result?.source;
+    if (!src) return;
+    const hit = SRC.find(([re]) => re.test(src));
+    if (hit?.[1]) names.add(hit[1]);
+  });
+  if ((steps || []).some((s) => s.tool === "check_schemes" && s.result?.matched?.length)) names.add("pmkisan.gov.in · pmfby.gov.in");
+  if ((steps || []).some((s) => s.tool === "get_expert_help")) names.add("Kisan Call Centre");
+  if (!names.size) return null;
+  return <p className="sources">📚 {t.sources}: {[...names].join(" · ")}</p>;
 }
 
 // ---------- icons ----------
