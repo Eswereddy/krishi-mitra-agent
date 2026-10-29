@@ -297,6 +297,45 @@ function DecisionCard({ step, t }) {
   );
 }
 
+const IRR = { skip_rain: "🌧️", wait_light_rain: "🌦️", evening_hot: "🌡️", if_dry: "💧" };
+function IrrigationCard({ step, t }) {
+  const days = step.result?.days;
+  if (!days?.length) return null;
+  return (
+    <div className="card">
+      <div className="card-head"><span>💧 {t.adv.irrTitle} · {step.result.place}</span><SourceBadge source={step.result.source} t={t} /></div>
+      <div className="wx">
+        {days.map((d) => (
+          <div className={"wx-day spray " + (d.irrigate ? "go" : "stop")} key={d.date}>
+            <small>{new Date(d.date).toLocaleDateString(undefined, { weekday: "short", day: "numeric" })}</small>
+            <span className="wx-ico">{IRR[d.code] || "💧"}</span>
+            <small className="wx-rain">{d.rain_chance_pct ?? 0}%</small>
+            <small><b>{d.irrigate ? t.adv.irrGo : t.adv.irrSkip}</b></small>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function KccCard({ step, t }) {
+  const r = step.result;
+  if (!r || r.interest_at_7_pct_rs == null) return null;
+  const ok = r.interest_if_repaid_on_time_rs != null;
+  return (
+    <div className="card">
+      <div className="card-head"><span>🏦 {t.adv.kccTitle}</span></div>
+      <div className="stats">
+        <div><small>{t.adv.loan}</small><b>{rupee(r.loan_amount_rs)}</b></div>
+        <div><small>{t.adv.int7} · {r.months} {t.adv.months}</small><b>{rupee(r.interest_at_7_pct_rs)}</b></div>
+        {ok && <div><small>{t.adv.intPrompt}</small><b>{rupee(r.interest_if_repaid_on_time_rs)}</b></div>}
+        {ok && <div className="stat-profit"><small>{t.adv.saved}</small><b>{rupee(r.interest_saved_rs)}</b></div>}
+      </div>
+      <div className="card-foot">{t.adv.kccNote}</div>
+    </div>
+  );
+}
+
 export function ToolCards({ steps, t }) {
   // show the latest result per tool (the agent may call a tool twice)
   const seen = new Map();
@@ -316,6 +355,8 @@ export function ToolCards({ steps, t }) {
       case "spray_window": return <SprayCard step={s} t={t} />;
       case "lookup_problem": return <ProblemCard step={s} t={t} />;
       case "hold_or_sell": return <DecisionCard step={s} t={t} />;
+      case "irrigation_advice": return <IrrigationCard step={s} t={t} />;
+      case "kcc_interest": return <KccCard step={s} t={t} />;
       default: return null;
     }
   };
