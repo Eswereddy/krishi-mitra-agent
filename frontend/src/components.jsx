@@ -50,7 +50,9 @@ const WX = (mm, pct) => (mm >= 10 || pct >= 80 ? "🌧️" : mm >= 1 || pct >= 5
 function SourceBadge({ source, t }) {
   if (!source) return null;
   const sample = /sample/i.test(source);
-  return <span className={"badge " + (sample ? "badge-warn" : "badge-ok")}>{sample ? t.sample : t.live}</span>;
+  const saved = /snapshot/i.test(source);
+  const cls = sample || saved ? "badge-warn" : "badge-ok";
+  return <span className={"badge " + cls} title={source}>{sample ? t.sample : saved ? t.snapshot : t.live}</span>;
 }
 
 function PriceCard({ step, t }) {

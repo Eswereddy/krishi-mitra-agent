@@ -51,6 +51,45 @@ def _sample_prices(commodity: str, district: str) -> dict:
     return {"source": "sample-data", "note": raw["_note"], "results": rows}
 
 
+SNAPSHOT_PATH = DATA / "mandi_snapshot.json"   # created by scripts/snapshot_mandi.py from real Agmarknet data
+
+
+def _snapshot_rows(state: str, district: str, commodity: str) -> tuple[list[dict], str, str]:
+    """Rows from the saved real-data snapshot (if one exists): (rows, fetched_at, note)."""
+    try:
+        snap = json.loads(Path(SNAPSHOT_PATH).read_text())
+    except (OSError, ValueError):
+        return [], "", ""
+    rows = [r for r in snap.get("records", [])
+            if commodity.lower() in str(_field(r, "commodity") or "").lower()
+            and (not state or state.lower() == str(_field(r, "state") or state).lower())]
+    note = ""
+    if district:
+        near = [r for r in rows if district.lower() in str(_field(r, "district") or "").lower()]
+        if near:
+            rows = near
+        elif rows:
+            note = f"no saved rows for district {district}; showing other markets in {state}"
+    rows.sort(key=lambda rec: _date_key(_field(rec, "arrival_date")), reverse=True)
+    return rows, str(snap.get("fetched_at", "")), note
+
+
+def _snapshot_source(fetched: str) -> str:
+    return f"agmarknet-snapshot (saved {fetched})" if fetched else "agmarknet-snapshot"
+
+
+def _fallback_prices(commodity: str, district: str, state: str, extra: dict) -> dict:
+    """Live source unavailable: use the saved real-data snapshot if we have one, else clearly-labelled SAMPLE data."""
+    rows, fetched, note = _snapshot_rows(state, district, commodity)
+    if rows:
+        out = {"source": _snapshot_source(fetched), "results": _result_rows(rows[:5]),
+               "note": f"Saved data from {fetched or 'an earlier date'}, not today's price. {note}".strip()}
+    else:
+        out = _sample_prices(commodity, district)
+    out.update(extra)
+    return out
+
+
 def _to_int(v) -> int | None:
     try:
         return int(float(str(v).replace(",", "")))
@@ -104,19 +143,13 @@ def get_mandi_price(commodity: str, district: str = "", state: str = "Andhra Pra
     district = district or market  # models sometimes say "market" instead of "district"
     key = os.getenv("DATA_GOV_API_KEY", "")
     if not key:
-        out = _sample_prices(commodity, district)
-        out["live_note"] = "DATA_GOV_API_KEY not set"
-        return out
+        return _fallback_prices(commodity, district, state, {"live_note": "DATA_GOV_API_KEY not set"})
     try:
         rows, note = _fetch_live(key, state, district, commodity)
     except Exception as e:  # network, quota, bad key: fall back, but say so
-        out = _sample_prices(commodity, district)
-        out["live_error"] = type(e).__name__
-        return out
+        return _fallback_prices(commodity, district, state, {"live_error": type(e).__name__})
     if not rows:
-        out = _sample_prices(commodity, district)
-        out["live_note"] = note
-        return out
+        return _fallback_prices(commodity, district, state, {"live_note": note})
     rows.sort(key=lambda rec: _date_key(_field(rec, "arrival_date")), reverse=True)
     results = [{
         "commodity": _field(rec, "commodity"), "market": _field(rec, "market"),
@@ -158,24 +191,45 @@ def best_markets(commodity: str, state: str = "Andhra Pradesh") -> dict:
         except Exception as e:
             note = f"live lookup failed ({type(e).__name__})"
     if not results:
+        srows, fetched, _n = _snapshot_rows(state, "", commodity)
+        latest = {}
+        for rec in srows:                                  # newest record per market
+            latest.setdefault(_field(rec, "market"), rec)
+        results = [r for r in _result_rows(list(latest.values())) if r["modal_price_per_quintal"]]
+        if results:
+            source = _snapshot_source(fetched)
+            note = f"saved data from {fetched or 'an earlier date'}, not today's price ({note})"
+    if not results:
         results = _sample_prices(commodity, "")["results"]
         source = "sample-data"
     results.sort(key=lambda r: r.get("modal_price_per_quintal") or 0, reverse=True)
     out = {"source": source, "highest_first": results[:5]}
     if source == "sample-data":
         out["note"] = f"SAMPLE data ({note}); approximate only"
+    elif "snapshot" in source:
+        out["note"] = note
     return out
 
 
 def get_price_trend(commodity: str, market: str = "", district: str = "", state: str = "Andhra Pradesh") -> dict:
-    """Recent modal price per quintal by date for one market: is the price rising, falling or steady?"""
+    """Recent modal price per quintal by date for one market: is the price rising, falling or steady?
+    Live Agmarknet data first, then the saved real-data snapshot (labelled), never invented numbers."""
     key = os.getenv("DATA_GOV_API_KEY", "")
-    if not key:
-        return {"error": "price history needs live data (DATA_GOV_API_KEY not set)", "source": "sample-data"}
-    try:
-        rows, _note = _fetch_live(key, state, district or market, commodity)
-    except Exception as e:
-        return {"error": f"price history unavailable ({type(e).__name__})"}
+    rows, source, note, err = [], "agmarknet-live (data.gov.in)", "", ""
+    if key:
+        try:
+            rows, _note = _fetch_live(key, state, district or market, commodity)
+        except Exception as e:
+            err = f"price history unavailable ({type(e).__name__})"
+    if not rows:
+        srows, fetched, _n = _snapshot_rows(state, district or market, commodity)
+        if srows:
+            rows, source = srows, _snapshot_source(fetched)
+            note = f"Saved data from {fetched or 'an earlier date'}, not today's price."
+        elif err:
+            return {"error": err}
+        elif not key:
+            return {"error": "price history needs live data (DATA_GOV_API_KEY not set)", "source": "sample-data"}
     if market:
         rows = [r for r in rows if market.lower() in str(_field(r, "market") or "").lower()] or rows
     by_market: dict = {}
@@ -192,9 +246,12 @@ def get_price_trend(commodity: str, market: str = "", district: str = "", state:
     first, last = series[0]["modal_price_per_quintal"], series[-1]["modal_price_per_quintal"]
     change = round((last - first) / first * 100, 1)
     prices = [x["modal_price_per_quintal"] for x in series]
-    return {"source": "agmarknet-live (data.gov.in)", "commodity": commodity, "market": name, "series": series,
-            "change_pct": change, "trend": "rising" if change >= 3 else "falling" if change <= -3 else "steady",
-            "highest": max(prices), "lowest": min(prices)}
+    out = {"source": source, "commodity": commodity, "market": name, "series": series,
+           "change_pct": change, "trend": "rising" if change >= 3 else "falling" if change <= -3 else "steady",
+           "highest": max(prices), "lowest": min(prices)}
+    if note:
+        out["note"] = note
+    return out
 
 
 def calculate_revenue(quintals: float, price_per_quintal: float, expenses: float = 0) -> dict:
