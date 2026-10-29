@@ -142,4 +142,4 @@ def _user_content(text: str, image: tuple[bytes, str] | None):
     return [
         {"type": "text", "text": text},
         {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{base64.b64encode(data).decode()}"}},
-        ]
+                ]
