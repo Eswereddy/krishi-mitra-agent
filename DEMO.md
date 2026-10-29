@@ -11,12 +11,12 @@
 | Time | Show | Say (short) |
 |---|---|---|
 | 0:00-0:20 | Farmer in a field / phone in hand | "Small farmers cannot easily find prices, weather, schemes or expert help, and most apps need typing in English. Krishi Mitra works by voice in Telugu, Hindi and English." |
-| 0:20-0:50 | Tap mic, ask in Telugu: "వరి ధర ఎంత? నాకు ఏ పథకాలు వస్తాయి?" | "Muse Spark Open on Baseten transcribes the speech and the agent decides what to do." |
-| 0:50-1:30 | Answer + **Agent steps** panel (mandi, schemes, weather) + ✅ verified | "It calls tools for live mandi prices, weather and scheme eligibility. Every figure must come from a tool result, so it cannot make up numbers." |
-| 1:30-2:00 | Send a crop photo | "Muse Spark vision looks at the leaf, says what it may be, how sure it is, and safe next steps. No pesticide doses. If unsure it sends the farmer to the Kisan Call Centre." |
-| 2:00-2:20 | Switch to Hindi, ask a question; tap 🔊 Listen | "Same agent in Hindi and English, and it can read the answer aloud." |
-| 2:20-2:45 | Show the ⚠️ case (ask something the tools cannot answer, or show the test) | "If a figure cannot be verified, the farmer sees a warning, not a confident wrong answer. Verification is plain code outside the model." |
-| 2:45-3:00 | Repo page + README | "Built during the hackathon on open-weight Muse Spark Open. Open source on GitHub." |
+| 0:20-0:55 | Tap **Talk** (voice mode). Ask in Telugu: "వేరుశనగ ఇప్పుడే అమ్మాలా లేక వేచి ఉండాలా?" Watch the **live steps** appear, then the answer is spoken | "Muse Spark Open on Baseten transcribes the speech. The agent decides which tools to call, and you can watch each step happen. It answers out loud, then listens again, hands-free." |
+| 0:55-1:30 | Scroll the answer: price-trend chart, best markets, weather cards, ✓ verified + sources line | "Prices come from Agmarknet, weather from Open-Meteo. Every figure must come from a tool result, so it cannot make up numbers." |
+| 1:30-2:00 | Take or drop a crop photo, add a voice question | "Muse Spark vision looks at the leaf, says what it may be and how sure it is, checks the weather for spraying. No pesticide doses. If unsure it shows the Kisan Call Centre call button." |
+| 2:00-2:20 | Switch to Hindi, ask a question; tap 🔊 Listen | "Same agent in Hindi and English. If the phone has no Telugu voice, the server speaks for it." |
+| 2:20-2:40 | Turn on airplane mode: offline banner, open a saved answer, tap Listen | "Rural networks drop. The app opens offline and saved answers still work." |
+| 2:40-3:00 | Repo page + README | "Built during the hackathon on open-weight Muse Spark Open. Open source on GitHub." |
 
 ## What to state clearly (judges look for this)
 - New work only: the repository was created on Oct 27-28, 2026; every commit is during the event.
