@@ -10,7 +10,7 @@ Small farmers in India often cannot type long questions, read English websites, 
 
 ## What Krishi Mitra does
 - **Talk to it.** Tap Talk and have a hands-free conversation: it listens, answers out loud, and listens again. Typing and crop photos work too.
-- **A real agent, not a chatbot.** The model decides which of 7 tools to call, in several steps: mandi price, best markets to sell, price trend (rising or falling), weather forecast, scheme eligibility with documents needed, an exact income calculator, and expert help (Kisan Call Centre).
+- **A real agent, not a chatbot.** The model decides which of 12 tools to call, in several steps: mandi price, best markets to sell, price trend (rising or falling), weather forecast, scheme eligibility with documents needed, an exact income calculator, expert help (Kisan Call Centre), and an advisor set: government MSP, take-home value after transport and fees, spray-day finder, a crop-problem lookup that never names pesticides or doses, and a one-line sell-or-hold recommendation.
 - **Sell now or wait.** It combines the price trend, the best markets and the weather into one clear recommendation, and says it is guidance, not a guarantee.
 - **Photo to action plan.** A crop photo goes through the same agent: likely problem and how sure it is, weather to time spraying, crop insurance if there is real loss, and a call button to a human expert when unsure. It gives no pesticide doses.
 - **You can watch it work.** Each tool call appears live while the answer is being prepared.
@@ -41,6 +41,6 @@ React (Vite) PWA, FastAPI backend, Muse Spark Open on Baseten. Live data: Agmark
 More languages, village-level weather from the farmer's location, a reminder when a price target is reached, and a WhatsApp channel for farmers who do not install apps.
 
 ## Links (fill in before submitting)
-- Live app: <PASTE RENDER URL>
+- Live app: <https://krishi-mitra-agent.onrender.com/>
 - Demo video (3 min): <PASTE VIDEO URL>
 - Code: https://github.com/Eswereddy/krishi-mitra-agent
