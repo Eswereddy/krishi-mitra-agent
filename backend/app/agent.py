@@ -25,6 +25,11 @@ SYSTEM = (
     "For 'sell now or wait' or 'is the price going up', call get_price_trend (and best_markets, get_weather if useful), "
     "then give one clear recommendation with the reason, and say it is guidance, not a guarantee. "
     "Never claim certainty about scheme rules; tell the farmer where to verify. "
+    "For 'what is the MSP' or 'is the price above MSP', call get_msp (say the season; MSP applies only to what government "
+    "buys). For 'sell now or wait' prefer hold_or_sell, then explain its reason. To compare a near and a far market, "
+    "use net_market_value (its commission/loading/transport rates are assumptions: say so and ask for real quotes). "
+    "For spraying, call spray_window (never a dose). For a plant problem described in words, call lookup_problem; "
+    "present it as a likely cause, not a diagnosis, give only the checks and steps returned, never name pesticides or doses. "
     "{lang_instruction}"
 )
 MAX_STEPS = 6
@@ -135,4 +140,4 @@ def _user_content(text: str, image: tuple[bytes, str] | None):
     return [
         {"type": "text", "text": text},
         {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{base64.b64encode(data).decode()}"}},
-    ]
+        ]
