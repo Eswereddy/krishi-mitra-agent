@@ -39,7 +39,7 @@ HELP = (
     "🌾 *Krishi Mitra*\n"
     "Send a question (text or voice note) or a crop photo. / మీ ప్రశ్న (టెక్స్ట్ లేదా వాయిస్) లేదా పంట ఫోటో పంపండి. / "
     "सवाल (टेक्स्ट या वॉइस) या फसल की फोटो भेजें.\n\n"
-    "Commands: /district Kurnool · /crop Groundnut · /land yes|no · /state Andhra Pradesh · /reset"
+    "Commands: /district Kurnool · /crop Groundnut · /brief (today's weather, price, advice) · /land yes|no · /state Andhra Pradesh · /reset"
 )
 SORRY = {
     "te": "క్షమించండి, ఇప్పుడు సమాధానం ఇవ్వలేకపోయాను. కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.",
@@ -295,6 +295,11 @@ async def handle_message(msg: dict) -> None:
     try:
         kind = msg["type"]
         if kind == "text":
+            bm = re.match(r"^/(?:brief|today)\b\s*(te|hi|en)?\s*$", msg["text"].strip(), re.I)
+            if bm:                                       # /brief [te|hi|en]: one-tap daily brief, Telugu by default
+                from . import brief
+                bcode = (bm.group(1) or "te").lower()
+                return await _reply(sender, await brief.build_brief(sess["profile"], bcode), bcode)
             reply = _command(sess, msg["text"])
             if reply is not None:
                 return await _send_text(sender, reply)
