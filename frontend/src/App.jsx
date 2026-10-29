@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { T, LANGS } from "./i18n";
-import { startListening, speak, stopSpeaking, extFor } from "./lib/audio";
-import { Markdown, ToolCards, StepChips, I } from "./components";
+import { startListening, speak, stopSpeaking, extFor, unlockAudio } from "./lib/audio";
+import { Markdown, ToolCards, StepChips, LiveSteps, SourcesLine, I } from "./components";
 
 const DEFAULT_PROFILE = { state: "Andhra Pradesh", district: "", owns_land: false, main_crop: "" };
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -55,6 +55,9 @@ export default function App() {
   const [showAttach, setShowAttach] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [toast, setToast] = useState("");
+  const [big, setBig] = useState(() => load("km-big", false));
+  const [online, setOnline] = useState(() => navigator.onLine !== false);
+  const [installEvt, setInstallEvt] = useState(null);
 
   const t = T[lang === "auto" ? "te" : lang];
   const tRef = useRef(t);
@@ -81,6 +84,22 @@ export default function App() {
   }, [theme]);
   useEffect(() => { document.documentElement.lang = t.code; }, [t.code]);
   useEffect(() => save("km-lang", lang), [lang]);
+  useEffect(() => {
+    document.documentElement.dataset.size = big ? "lg" : "";
+    save("km-big", big);
+  }, [big]);
+  useEffect(() => {
+    const on = () => setOnline(true), off = () => setOnline(false);
+    const beforeInstall = (e) => { e.preventDefault(); setInstallEvt(e); };
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    window.addEventListener("beforeinstallprompt", beforeInstall);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+      window.removeEventListener("beforeinstallprompt", beforeInstall);
+    };
+  }, []);
   useEffect(() => save("km-autospeak", autoSpeak), [autoSpeak]);
   useEffect(() => save("km-profile", profile), [profile]);
   useEffect(() => {
@@ -108,6 +127,7 @@ export default function App() {
     return res;
   }
   function toggleSpeak(m) {
+    unlockAudio();
     if (speakingId === m.id) {
       stopSpeaking();
       setSpeakingId(null);
@@ -115,9 +135,61 @@ export default function App() {
   }
 
   // ---------- sending ----------
+  // Progress events from the streaming endpoints: each tool call shows up in the waiting bubble as it starts.
+  function patchLive(bid, ev) {
+    const tt = tRef.current;
+    setMessages((list) =>
+      list.map((x) => {
+        if (x.id !== bid) return x;
+        let live = [...(x.live || [])];
+        if (ev.type === "status" && ev.key === "reading_photo") live.push({ key: "photo", label: tt.readingPhoto, done: false });
+        else if (ev.type === "tool") {
+          live = live.map((l) => (l.key === "photo" ? { ...l, done: true } : l));
+          live.push({ key: ev.tool, label: tt.tools[ev.tool] || ev.tool, done: false });
+        } else if (ev.type === "tool_done") {
+          for (let k = live.length - 1; k >= 0; k--) {
+            if (live[k].key === ev.tool && !live[k].done) { live[k] = { ...live[k], done: true }; break; }
+          }
+        } else if (ev.type === "verify") live.push({ key: "verify", label: tt.verifying, done: true });
+        return { ...x, live };
+      })
+    );
+  }
+
+  async function readResult(r, bid) {
+    if (!(r.headers.get("content-type") || "").includes("ndjson")) return r.json(); // older backend: plain JSON
+    const reader = r.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "";
+    let data = null;
+    const handle = (ev) => {
+      if (ev.type === "final") data = ev.data;
+      else if (ev.type === "error") throw new Error(ev.detail);
+      else patchLive(bid, ev);
+    };
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, i).trim();
+        buf = buf.slice(i + 1);
+        if (line) handle(JSON.parse(line));
+      }
+    }
+    if (buf.trim()) handle(JSON.parse(buf));
+    if (!data) throw new Error("No answer received");
+    return data;
+  }
+
   async function send({ text: q0, file, speakReply = false, noSpeak = false }) {
     const q = (q0 || "").trim();
     if (busyRef.current || (!q && !file)) return null;
+    if (!navigator.onLine) {
+      setToast(tRef.current.offline);
+      return null;
+    }
     busyRef.current = true;
     setBusy(true);
     stopSpeaking();
@@ -142,9 +214,9 @@ export default function App() {
         form.append("question", q);
         form.append("lang", lang);
         form.append("profile", JSON.stringify(profile));
-        r = await fetch("/api/diagnose", { method: "POST", body: form });
+        r = await fetch("/api/diagnose/stream", { method: "POST", body: form });
       } else {
-        r = await fetch("/api/agent", {
+        r = await fetch("/api/agent/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question: q, lang, profile, history }),
@@ -155,7 +227,7 @@ export default function App() {
         try { d = (await r.json()).detail; } catch { /* not json */ }
         throw new Error(d || `Error ${r.status}`);
       }
-      const data = await r.json();
+      const data = await readResult(r, bid);
       setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", text: data.answer, steps: data.steps || [], verification: data.verification, mock: data.mock } : x)));
       if (!noSpeak && (speakReply || autoSpeakRef.current)) speakMessage(bid, data.answer);
       return { id: bid, answer: data.answer };
@@ -169,6 +241,7 @@ export default function App() {
   }
 
   function submit() {
+    unlockAudio();
     const file = photo?.file;
     const q = text;
     if (!q.trim() && !file) return;
@@ -221,6 +294,7 @@ export default function App() {
   // Microphone button next to the text box: record, auto-stop on silence, transcribe, ask, read the reply aloud.
   async function micToggle() {
     if (rec === "recording") return listenerRef.current?.stop();
+    unlockAudio();
     if (busyRef.current) return;
     stopSpeaking();
     setSpeakingId(null);
@@ -287,6 +361,7 @@ export default function App() {
     if (voiceRef.current) voiceTurn();
   }
   function openVoice() {
+    unlockAudio();
     stopSpeaking();
     setSpeakingId(null);
     voiceRef.current = true;
@@ -322,8 +397,15 @@ export default function App() {
     } catch { /* clipboard blocked */ }
   }
   function quick(q) {
+    unlockAudio();
     if (q.text === "__photo__") return setShowAttach(true);
     send({ text: q.text });
+  }
+  async function installApp() {
+    if (!installEvt) return;
+    installEvt.prompt();
+    try { await installEvt.userChoice; } catch { /* dismissed */ }
+    setInstallEvt(null);
   }
   function onDrop(e) {
     e.preventDefault();
@@ -364,6 +446,7 @@ export default function App() {
           {messages.length > 0 && <button className="icon-btn" aria-label={t.newChat} title={t.newChat} onClick={newChat}><I.plus /></button>}
         </div>
       </header>
+      {!online && <div className="offline" role="status">📡 {t.offline}</div>}
 
       {/* ---------- conversation ---------- */}
       <main className="chat">
@@ -376,6 +459,7 @@ export default function App() {
               <span className="talk-ico"><I.wave /></span>
               <span><b>{t.talkBtn}</b><small>{t.talkSub}</small></span>
             </button>
+            {installEvt && <button className="pill" onClick={installApp}>{t.install}</button>}
             <h4>{t.tryAsk}</h4>
             <div className="quick">
               {t.quick.map((q) => (
@@ -400,7 +484,7 @@ export default function App() {
                   <span className="avatar">🌾</span>
                   <div className="bot-col">
                     {m.pending ? (
-                      <div className="bubble typing"><i /><i /><i /><span>{t.thinking}</span></div>
+                      <LiveSteps live={m.live} t={t} />
                     ) : m.error ? (
                       <div className="bubble error">
                         <p>⚠️ {m.text}</p>
@@ -415,6 +499,7 @@ export default function App() {
                             {m.verification.passed ? "✓ " + t.verified : "⚠ " + t.unverified + (m.verification.unverified || []).join(", ")}
                           </p>
                         )}
+                        <SourcesLine steps={m.steps} t={t} />
                         <StepChips steps={m.steps} t={t} />
                         <div className="actions">
                           <button className={"pill" + (speakingId === m.id ? " live" : "")} onClick={() => toggleSpeak(m)}>
@@ -511,6 +596,7 @@ export default function App() {
             <label>{t.district}<input value={profile.district} onChange={(e) => setProfile({ ...profile, district: e.target.value })} placeholder="Kurnool" /></label>
             <label>{t.crop}<input value={profile.main_crop} onChange={(e) => setProfile({ ...profile, main_crop: e.target.value })} placeholder="Groundnut" /></label>
             <label className="check"><input type="checkbox" checked={profile.owns_land} onChange={(e) => setProfile({ ...profile, owns_land: e.target.checked })} />{t.land}</label>
+            <label className="check"><input type="checkbox" checked={big} onChange={(e) => setBig(e.target.checked)} />{t.bigText}</label>
             <label className="check"><input type="checkbox" checked={autoSpeak} onChange={(e) => setAutoSpeak(e.target.checked)} />{t.autoSpeak}</label>
             <button className="primary" onClick={() => setShowProfile(false)}>{t.save}</button>
           </div>
