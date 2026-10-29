@@ -136,6 +136,36 @@ def best_markets(commodity: str, state: str = "Andhra Pradesh") -> dict:
     return out
 
 
+def get_price_trend(commodity: str, market: str = "", district: str = "", state: str = "Andhra Pradesh") -> dict:
+    """Recent modal price per quintal by date for one market: is the price rising, falling or steady?"""
+    key = os.getenv("DATA_GOV_API_KEY", "")
+    if not key:
+        return {"error": "price history needs live data (DATA_GOV_API_KEY not set)", "source": "sample-data"}
+    try:
+        rows, _note = _fetch_live(key, state, district or market, commodity)
+    except Exception as e:
+        return {"error": f"price history unavailable ({type(e).__name__})"}
+    if market:
+        rows = [r for r in rows if market.lower() in str(_field(r, "market") or "").lower()] or rows
+    by_market: dict = {}
+    for r in rows:
+        by_market.setdefault(_field(r, "market"), []).append(r)
+    if not by_market:
+        return {"error": "no price history found for this crop"}
+    name, recs = max(by_market.items(), key=lambda kv: len({_field(x, "arrival_date") for x in kv[1]}))
+    by_date = {_field(r, "arrival_date"): _to_int(_field(r, "modal_price")) for r in recs}
+    series = [{"date": d, "modal_price_per_quintal": p}
+              for d, p in sorted(by_date.items(), key=lambda kv: _date_key(kv[0])) if p][-14:]
+    if len(series) < 2:
+        return {"error": "not enough price history for this market"}
+    first, last = series[0]["modal_price_per_quintal"], series[-1]["modal_price_per_quintal"]
+    change = round((last - first) / first * 100, 1)
+    prices = [x["modal_price_per_quintal"] for x in series]
+    return {"source": "agmarknet-live (data.gov.in)", "commodity": commodity, "market": name, "series": series,
+            "change_pct": change, "trend": "rising" if change >= 3 else "falling" if change <= -3 else "steady",
+            "highest": max(prices), "lowest": min(prices)}
+
+
 def calculate_revenue(quintals: float, price_per_quintal: float, expenses: float = 0) -> dict:
     """Exact arithmetic for the farmer's expected income (do not let the model do the maths)."""
     revenue = round(float(quintals) * float(price_per_quintal))
@@ -194,6 +224,7 @@ TOOL_FUNCS = {
     "get_mandi_price": get_mandi_price, "get_weather": get_weather,
     "get_expert_help": get_expert_help, "check_schemes": check_schemes,
     "best_markets": best_markets, "calculate_revenue": calculate_revenue,
+    "get_price_trend": get_price_trend,
 }
 
 
@@ -218,6 +249,10 @@ TOOL_SPECS = [
         "Always use this for money maths.",
         {"quintals": {"type": "number"}, "price_per_quintal": {"type": "number"},
          "expenses": {"type": "number"}}, ["quintals", "price_per_quintal"]),
+    _fn("get_price_trend", "Recent price history for a crop in one market: is the price rising, falling or steady? "
+        "Use it for 'should I sell now or wait' questions.",
+        {"commodity": {"type": "string"}, "market": {"type": "string"}, "district": {"type": "string"},
+         "state": {"type": "string"}}, ["commodity"]),
     _fn("get_expert_help", "Get the Kisan Call Centre number and local expert contacts. Use when the problem "
         "is serious, uncertain, or needs a human expert."),
 ]
