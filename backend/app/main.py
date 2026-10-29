@@ -84,7 +84,8 @@ async def run_agent(payload: dict):
     if not config.CHAT_KEY and not config.MOCK_MODE:
         raise HTTPException(503, "API key for the selected PROVIDER not set in backend/.env")
     try:
-        return await agent.run_agent(question, bool(payload.get("use_open_model")), payload.get("lang") or "auto")
+        return await agent.run_agent(question, bool(payload.get("use_open_model")), payload.get("lang") or "auto",
+                                      payload.get("profile") if isinstance(payload.get("profile"), dict) else None)
     except httpx.HTTPStatusError as e:
         raise HTTPException(502, f"Meta API error: {e.response.text[:300]}")
 

@@ -1,41 +1,56 @@
-# Krishi Mitra Agent
+# 🌾 Krishi Mitra: a voice-first farming agent in Telugu, Hindi and English
 
-A Telugu voice + photo farming agent built for the Meta Global AI Developer Hackathon
-(track: Indie Developer, theme: Build for Your World).
+Built for the **Meta Global AI Developer Hackathon** (Indie track, "Build for Your World").
+**Everything in this repository was built during the hackathon window (Oct 27 – Nov 4, 2026).**
 
-> **Everything in this repository was built during the hackathon window (Oct 27 – Nov 4, 2026).**
+## The problem
+Small farmers in India often cannot type long questions, read English websites, or find out which
+government schemes they qualify for. Prices, weather and expert advice live in different places.
+Krishi Mitra lets a farmer **speak** (or type, or send a **photo** of the crop) in their own language and get a
+short, practical answer, read aloud if they want.
 
-## Planned features
-- Telugu voice questions via **Muse Voice Transcribe**
-- Crop photo understanding via **Muse Spark** (vision)
-- Multi-step agent (tool calling): mandi rates, scheme eligibility, next steps
-- Optional switch to **Muse Spark Open** (Baseten) for open-weights
+## What it does
+- **Voice in, in any of 3 languages:** Telugu, Hindi, English (auto-detected, or pick one).
+- **Crop photo understanding:** Muse Spark vision looks at the photo, names the likely problem, how sure it is, and safe next steps.
+- **A real agent, not a chatbot:** the model decides which tools to call, in several steps:
+  `get_mandi_price` (Agmarknet via data.gov.in), `get_weather` (Open-Meteo), `check_schemes` (PM-KISAN, PMFBY, KCC, state support), `get_expert_help` (Kisan Call Centre 1800-180-1551).
+- **Verification layer (idea from Meta's Agents 102 workshop):** every figure in the final answer must come from a tool result.
+  Otherwise the answer is sent back for a rewrite, and if it still fails the farmer sees an explicit "could not verify" warning, never a confident made-up number.
+- **Honest about limits:** no pesticide doses, escalates to a human expert when unsure, says when price data is sample data.
+- **Listen button** (browser speech synthesis), **farmer profile** (state, district, land, crop; saved on the device), typed input fallback.
 
-## Deploy (Render)
-Docker web service: build uses the root `Dockerfile`. Set env vars `PROVIDER=baseten`, `BASETEN_API_KEY`, `OPEN_MODEL=meta-models/muse-spark-open-1026`.
+## How Meta models are used
+- **Muse Spark Open** (`meta-models/muse-spark-open`, open weights, served on Baseten): chat, tool calling, image understanding, and audio understanding for speech transcription.
+- Provider switch in `backend/app/config.py`: `PROVIDER=baseten` (open weights) or `PROVIDER=meta` (Meta Model API).
+
+## Architecture
+React (Vite) frontend → FastAPI backend (`backend/app`) → Muse Spark Open. One Docker service serves both.
+`agent.py` (tool loop) · `tools.py` (4 tools, live data with fallbacks) · `verify.py` (answer verification) · `lang.py` (3 languages) · `meta_client.py` (model client, WebM→WAV conversion for audio).
+
+## Tests (offline, no API key needed)
+```bash
+cd backend && python tests/test_verify.py && python tests/test_tools.py
+```
 
 ## Run locally
-
-Backend:
 ```bash
-cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp ../.env.example .env   # add MODEL_API_KEY
+cd backend && python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt            # ffmpeg must be installed for voice
+cp ../.env.example .env                    # add BASETEN_API_KEY (and optional DATA_GOV_API_KEY)
 uvicorn app.main:app --reload --port 8000
+cd ../frontend && npm install && npm run dev
 ```
+Without an API key the app runs in **mock mode** (fake answers, for UI development only).
 
-Frontend:
-```bash
-cd frontend
-npm install
-npm run dev
-```
+## Deploy (Render)
+Docker web service using the root `Dockerfile`. Environment variables: `PROVIDER=baseten`, `BASETEN_API_KEY`,
+`OPEN_MODEL=meta-models/muse-spark-open`, optional `DATA_GOV_API_KEY` (free key from data.gov.in for live mandi prices).
+
+## Data honesty
+- Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.
+- Scheme details are indicative and must be confirmed with the official office (links are returned by the tool).
 
 ## Progress log
-- Day 1 (Oct 27): repo scaffold, FastAPI backend, Meta API client, `/api/transcribe`, `/api/ask`, voice-record UI.
-- Day 1 (Oct 27): crop photo upload (`/api/diagnose`, Muse Spark vision) + UI.
-- Day 2 (Oct 28): agent loop (`/api/agent`) with tools `get_mandi_price` (sample data for now) and `check_schemes`; mock mode for key-less dev; agent steps shown in UI.
-- Day 2 (Oct 28): provider switch (`PROVIDER=baseten` -> Muse Spark Open `meta-models/muse-spark-open-1026`, or `meta`).
-- Day 2 (Oct 28): verification layer (`backend/app/verify.py`): every figure in the final answer must come from a tool result, else rewrite or show a warning (idea from Meta Agents 102 workshop). Offline tests: `python backend/tests/test_verify.py`.
-- Day 3 (Oct 29): multilingual (Telugu, English, Hindi): language selector, auto-detect, answers and UI in the chosen language; typed input; WebM->WAV conversion for Baseten audio.
+- Day 1 (Oct 27): repo scaffold, FastAPI backend, Meta API client, voice-record UI, crop photo upload.
+- Day 2 (Oct 28): agent loop with tools, mock mode, Baseten provider switch, answer verification layer, Docker deploy.
+- Day 3 (Oct 29): Telugu/English/Hindi, typed input, WebM→WAV audio fix for Baseten, weather + expert-help + live mandi tools, farmer profile, listen button.

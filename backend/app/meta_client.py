@@ -69,7 +69,9 @@ async def diagnose_image(image_bytes: bytes, content_type: str, question: str = 
         "You are Krishi Mitra, a farming assistant. Look at this crop photo. "
         "Identify the crop, any visible disease, pest or nutrient problem, how sure you are, "
         "and simple next steps for a small farmer. {lang_instruction} "
-        "If the photo is unclear, say so and ask for a better photo."
+        "If the photo is unclear, say so and ask for a better photo. Never give exact pesticide doses. "
+        "If the problem looks serious or you are unsure, tell the farmer to call the Kisan Call Centre "
+        "(1800-180-1551) or the local agriculture officer."
     )
     from . import lang as langmod
     prompt = prompt.format(lang_instruction=langmod.instruction(langmod.resolve(lang, question)))
