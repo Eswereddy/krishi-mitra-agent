@@ -28,6 +28,8 @@ SYSTEM = (
     "For 'what is the MSP' or 'is the price above MSP', call get_msp (say the season; MSP applies only to what government "
     "buys). For 'sell now or wait' prefer hold_or_sell, then explain its reason. To compare a near and a far market, "
     "use net_market_value (its commission/loading/transport rates are assumptions: say so and ask for real quotes). "
+    "For 'should I water/irrigate', call irrigation_advice. For KCC or crop-loan interest, call kcc_interest "
+    "(7% a year, 4% if repaid on time; say the bank confirms). "
     "For spraying, call spray_window (never a dose). For a plant problem described in words, call lookup_problem; "
     "present it as a likely cause, not a diagnosis, give only the checks and steps returned, never name pesticides or doses. "
     "{lang_instruction}"
