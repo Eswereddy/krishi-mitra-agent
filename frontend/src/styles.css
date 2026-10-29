@@ -178,3 +178,30 @@ h1, h2, h3, h4, h5, p { margin: 0; }
 @keyframes rot { to { transform: rotate(360deg); } }
 @media (max-width: 520px) { .brand small { display: none; } .seg button { padding: 5px 8px; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* live agent steps, trend card, sources, offline banner, large text */
+.typing.live { flex-direction: column; align-items: flex-start; gap: 8px; }
+.live-head { display: flex; align-items: center; gap: 5px; }
+.live-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font-size: 14px; color: var(--text); }
+.live-list li { display: flex; align-items: center; gap: 8px; animation: pop .25s both; }
+.live-list li.done { color: var(--muted); }
+.live-ico { width: 18px; height: 18px; display: grid; place-items: center; font-weight: 800; color: var(--green); }
+.mini-spin { width: 13px; height: 13px; border-radius: 50%; border: 2.5px solid var(--line); border-top-color: var(--green2); animation: rot .8s linear infinite; }
+.trend { display: flex; align-items: center; gap: 10px; }
+.spark { flex: 1; height: 70px; min-width: 0; }
+.spark-line { fill: none; stroke: var(--green2); stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
+.spark-fill { fill: color-mix(in srgb, var(--green2) 16%, transparent); stroke: none; }
+.spark-dot { fill: var(--gold); stroke: var(--surface); stroke-width: 2; }
+.spark.falling .spark-line { stroke: var(--red); } .spark.falling .spark-fill { fill: color-mix(in srgb, var(--red) 14%, transparent); }
+.spark.steady .spark-line { stroke: #8a96a0; } .spark.steady .spark-fill { fill: color-mix(in srgb, #8a96a0 14%, transparent); }
+.trend-badge { display: flex; flex-direction: column; align-items: center; padding: 8px 12px; border-radius: 14px; background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); white-space: nowrap; }
+.trend-badge.falling { background: color-mix(in srgb, var(--red) 12%, transparent); color: var(--red); }
+.trend-badge.steady { background: var(--surface2); color: var(--muted); }
+.trend-badge small { font-size: 12px; font-weight: 600; }
+.trend-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+.trend-meta b { color: var(--text); }
+.sources { font-size: 12px; color: var(--muted); padding-left: 4px; }
+.offline { background: #3b2f12; color: #ffe2a3; text-align: center; padding: 8px 14px; font-size: 13.5px; font-weight: 600; }
+html[data-size="lg"] .bubble, html[data-size="lg"] .quick button, html[data-size="lg"] .composer input { font-size: 19px; }
+html[data-size="lg"] .pill, html[data-size="lg"] .row, html[data-size="lg"] .scheme-body, html[data-size="lg"] .live-list { font-size: 16px; }
+html[data-size="lg"] .welcome > p, html[data-size="lg"] .voice-answer, html[data-size="lg"] .live-text { font-size: 18px; }
