@@ -29,7 +29,8 @@ export const T = {
     trendSteady: "స్థిరంగా ఉంది",
     trendLast: "రోజులు",
     trendTool: "ధర ట్రెండ్",
-    tools: { get_price_trend: "ధర ట్రెండ్", get_mandi_price: "మండి ధరలు", best_markets: "ఉత్తమ మార్కెట్లు", get_weather: "వాతావరణం", check_schemes: "పథకాల అర్హత", calculate_revenue: "ఆదాయ లెక్క", get_expert_help: "నిపుణుల సహాయం" },
+    tools: { get_price_trend: "ధర ట్రెండ్", get_mandi_price: "మండి ధరలు", best_markets: "ఉత్తమ మార్కెట్లు", get_weather: "వాతావరణం", check_schemes: "పథకాల అర్హత", calculate_revenue: "ఆదాయ లెక్క", get_expert_help: "నిపుణుల సహాయం", get_msp: "కనీస మద్దతు ధర (MSP)", net_market_value: "నికర ఆదాయం", spray_window: "పిచికారీ రోజు", lookup_problem: "పంట సమస్య", hold_or_sell: "అమ్మాలా? ఆగాలా?" },
+    adv: {msp: "MSP", mspNote: "ప్రభుత్వం కొన్నదానికే వర్తిస్తుంది", netTitle: "నికర ఆదాయం", gross: "మొత్తం", fees: "కమీషన్ + లోడింగ్", transport: "రవాణా", net: "చేతికి వచ్చేది", assumed: "కమీషన్, లోడింగ్, రవాణా రేట్లు అంచనా మాత్రమే. నిజమైన కోట్ ఇవ్వండి.", vsMsp: "MSP కంటే", sprayGood: "పిచికారీకి మంచి రోజు", sprayBad: "వద్దు", wind: "గాలి", likely: "సాధ్యమైన కారణం", checks: "ఇలా చేయండి", askOfficer: "వ్యవసాయ అధికారిని అడగండి", urgencyHigh: "అత్యవసరం", urgencyMedium: "త్వరలో చూపించండి", urgencyLow: "గమనించండి", sellNow: "ఇప్పుడే అమ్మండి", holdShort: "కొద్ది రోజులు ఆగండి", procure: "ముందు ప్రభుత్వ కొనుగోలు అడగండి", sellOrHold: "అమ్మొచ్చు, నిల్వ ఉంటే ఆగొచ్చు", noData: "సమాచారం చాలదు", guidance: "మార్గదర్శకం మాత్రమే, హామీ కాదు", best: "ఉత్తమ మార్కెట్", now: "ఇప్పటి ధర"},
     quick: [
       { icon: "🌾", text: "నా జిల్లాలో వరి ధర ఎంత?" },
       { icon: "📈", text: "వేరుశనగ ఎక్కడ అమ్మితే ఎక్కువ ధర వస్తుంది?" },
@@ -70,7 +71,8 @@ export const T = {
     trendSteady: "steady",
     trendLast: "days",
     trendTool: "Price trend",
-    tools: { get_price_trend: "Price trend", get_mandi_price: "Mandi prices", best_markets: "Best markets", get_weather: "Weather", check_schemes: "Scheme check", calculate_revenue: "Income calculator", get_expert_help: "Expert help" },
+    tools: { get_price_trend: "Price trend", get_mandi_price: "Mandi prices", best_markets: "Best markets", get_weather: "Weather", check_schemes: "Scheme check", calculate_revenue: "Income calculator", get_expert_help: "Expert help", get_msp: "MSP (support price)", net_market_value: "Take-home value", spray_window: "Spray window", lookup_problem: "Crop problem", hold_or_sell: "Sell or hold?" },
+    adv: {msp: "MSP", mspNote: "Applies only to what the government buys", netTitle: "Take-home value", gross: "Gross", fees: "Commission + loading", transport: "Transport", net: "You receive", assumed: "Commission, loading and transport rates are assumptions. Use real quotes.", vsMsp: "vs MSP", sprayGood: "Good day to spray", sprayBad: "Avoid", wind: "wind", likely: "Likely cause", checks: "What to do", askOfficer: "Ask the agriculture officer", urgencyHigh: "Urgent", urgencyMedium: "Show an officer soon", urgencyLow: "Keep an eye", sellNow: "Sell now", holdShort: "Hold a little", procure: "Ask about government procurement first", sellOrHold: "Sell, or hold only if stored safely", noData: "Not enough data", guidance: "Guidance only, not a guarantee", best: "Best market", now: "Current price"},
     quick: [
       { icon: "🌾", text: "What is the paddy price in my district?" },
       { icon: "📈", text: "Where should I sell groundnut for the best price?" },
@@ -111,7 +113,8 @@ export const T = {
     trendSteady: "स्थिर है",
     trendLast: "दिन",
     trendTool: "भाव का रुझान",
-    tools: { get_price_trend: "भाव का रुझान", get_mandi_price: "मंडी भाव", best_markets: "सबसे अच्छी मंडियाँ", get_weather: "मौसम", check_schemes: "योजना पात्रता", calculate_revenue: "आमदनी हिसाब", get_expert_help: "विशेषज्ञ मदद" },
+    tools: { get_price_trend: "भाव का रुझान", get_mandi_price: "मंडी भाव", best_markets: "सबसे अच्छी मंडियाँ", get_weather: "मौसम", check_schemes: "योजना पात्रता", calculate_revenue: "आमदनी हिसाब", get_expert_help: "विशेषज्ञ मदद", get_msp: "MSP (समर्थन मूल्य)", net_market_value: "हाथ में आमदनी", spray_window: "छिड़काव का दिन", lookup_problem: "फसल की समस्या", hold_or_sell: "बेचें या रुकें?" },
+    adv: {msp: "MSP", mspNote: "सिर्फ़ उतनी खरीद पर जो सरकार खरीदती है", netTitle: "हाथ में आमदनी", gross: "कुल", fees: "कमीशन + लोडिंग", transport: "ढुलाई", net: "आपको मिलेगा", assumed: "कमीशन, लोडिंग और ढुलाई की दरें अनुमान हैं। असली भाव पूछें।", vsMsp: "MSP से", sprayGood: "छिड़काव के लिए अच्छा दिन", sprayBad: "न करें", wind: "हवा", likely: "संभावित कारण", checks: "क्या करें", askOfficer: "कृषि अधिकारी से पूछें", urgencyHigh: "तुरंत", urgencyMedium: "जल्द दिखाएँ", urgencyLow: "नज़र रखें", sellNow: "अभी बेचें", holdShort: "थोड़ा रुकें", procure: "पहले सरकारी खरीद पूछें", sellOrHold: "बेचें, या सुरक्षित भंडार हो तो रुकें", noData: "डेटा कम है", guidance: "सिर्फ़ मार्गदर्शन, गारंटी नहीं", best: "सबसे अच्छी मंडी", now: "अभी का भाव"},
     quick: [
       { icon: "🌾", text: "मेरे ज़िले में धान का भाव क्या है?" },
       { icon: "📈", text: "मूँगफली कहाँ बेचूँ ताकि अच्छा भाव मिले?" },
