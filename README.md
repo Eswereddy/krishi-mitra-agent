@@ -14,8 +14,12 @@ short, practical answer, read aloud if they want.
 - **Photo to action plan:** one crop photo goes through the *same agent* (vision + tool calling): it names the likely problem and how sure it is, checks the weather to time spraying, mentions crop insurance if there is real loss, and sends the farmer to a human expert when unsure.
 - **Multi-turn:** follow-up questions work ("and groundnut?"). Quick-ask buttons for common questions.
 - **A real agent, not a chatbot:** the model decides which tools to call, in several steps:
-  `get_mandi_price` and `best_markets` (where to sell for the highest price; Agmarknet via data.gov.in), `get_weather` (Open-Meteo),
+  `get_mandi_price`, `best_markets` (where to sell for the highest price) and `get_price_trend` (rising or falling? sell now or wait?), all from Agmarknet via data.gov.in, `get_weather` (Open-Meteo),
   `check_schemes` (PM-KISAN, PMFBY, KCC, state support, with the documents needed), `calculate_revenue` (exact income maths, never done by the model), `get_expert_help` (Kisan Call Centre 1800-180-1551).
+- **Live agent steps:** the answer streams its progress ("checking mandi prices… checking weather… re-checking figures") so the farmer, and the judge, can see the agent working. Endpoints: `/api/agent/stream` and `/api/diagnose/stream` (newline-delimited JSON).
+- **Sell now or wait:** the agent combines the price trend, best markets and the weather forecast into one clear recommendation (guidance, not a guarantee).
+- **The agent can always talk:** browser voice when the device has one for the language, otherwise a server-generated voice (`/api/tts`, gTTS), so Telugu and Hindi are audible even on laptops without those voices.
+- **Works on weak networks:** installable PWA with an offline shell; saved answers stay readable and playable offline; large-text mode for older farmers.
 - **Verification layer (idea from Meta's Agents 102 workshop):** every figure in the final answer must come from a tool result.
   Otherwise the answer is sent back for a rewrite, and if it still fails the farmer sees an explicit "could not verify" warning, never a confident made-up number.
 - **Honest about limits:** no pesticide doses, escalates to a human expert when unsure, says when price data is sample data.
@@ -28,14 +32,14 @@ short, practical answer, read aloud if they want.
 
 ## Architecture
 React (Vite) frontend → FastAPI backend (`backend/app`) → Muse Spark Open. One Docker service serves both.
-`agent.py` (tool loop) · `tools.py` (6 tools, live data with fallbacks) · `verify.py` (answer verification) · `lang.py` (3 languages) · `meta_client.py` (model client, WebM→WAV conversion for audio).
+`agent.py` (tool loop + progress events) · `tools.py` (7 tools, live data with fallbacks) · `tts.py` (server voice fallback) · `verify.py` (answer verification) · `lang.py` (3 languages) · `meta_client.py` (model client, WebM→WAV conversion for audio).
 
 ## Demo and submission
 See [DEMO.md](DEMO.md) for the 3-minute demo script and submission checklist.
 
 ## Tests (offline, no API key needed)
 ```bash
-cd backend && python tests/test_verify.py && python tests/test_tools.py
+cd backend && python tests/test_verify.py && python tests/test_tools.py && python tests/test_stream.py
 ```
 
 ## Run locally
