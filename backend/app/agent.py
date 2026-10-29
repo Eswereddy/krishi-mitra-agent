@@ -1,20 +1,21 @@
 """Multi-step farming agent: model decides which tools to call, we run them, loop."""
 import json
 
-from . import config, meta_client, mock, tools, verify
+from . import config, lang as langmod, meta_client, mock, tools, verify
 
 SYSTEM = (
     "You are Krishi Mitra, an assistant for small farmers in Andhra Pradesh. "
     "Use tools for prices and scheme eligibility instead of guessing. "
     "If price data comes from sample-data, say it is approximate. "
     "Never claim certainty about scheme rules; tell the farmer where to verify. "
-    "Answer in simple Telugu, short and practical."
+    "{lang_instruction}"
 )
 MAX_STEPS = 6
 MAX_REWRITES = 2
 
 
-async def run_agent(user_text: str, use_open_model: bool = False) -> dict:
+async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "auto") -> dict:
+    code = langmod.resolve(lang, user_text)
     steps: list[dict] = []
 
     if config.MOCK_MODE:
@@ -25,7 +26,7 @@ async def run_agent(user_text: str, use_open_model: bool = False) -> dict:
         return {"answer": mock.ANSWER, "steps": steps, "mock": True,
                 "verification": verify.verify_answer(mock.ANSWER, steps)}
 
-    messages = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user_text}]
+    messages = [{"role": "system", "content": SYSTEM.format(lang_instruction=langmod.instruction(code))}, {"role": "user", "content": user_text}]
     rewrites = 0
     for _ in range(MAX_STEPS):
         msg = await meta_client.chat_message(
@@ -44,7 +45,7 @@ async def run_agent(user_text: str, use_open_model: bool = False) -> dict:
                     "returned by tools (call a tool if you need them), or remove those figures.")})
                 continue
             if not v["passed"]:
-                answer += verify.warning_telugu(v["unverified"])
+                answer += verify.warning(v["unverified"], code)
             v["rewrites"] = rewrites
             return {"answer": answer, "steps": steps, "mock": False, "verification": v}
         messages.append(msg)

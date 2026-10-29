@@ -5,7 +5,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, config, meta_client
+from . import agent, config, lang as langmod, meta_client
 
 app = FastAPI(title="Krishi Mitra Agent")
 
@@ -38,7 +38,7 @@ async def transcribe(audio: UploadFile = File(...)):
 
 
 @app.post("/api/diagnose")
-async def diagnose(image: UploadFile = File(...), question: str = Form("")):
+async def diagnose(image: UploadFile = File(...), question: str = Form(""), lang: str = Form("auto")):
     """Crop photo (+ optional question) -> Telugu diagnosis via Muse Spark vision."""
     if not config.CHAT_KEY and not config.MOCK_MODE:
         raise HTTPException(503, "API key for the selected PROVIDER not set in backend/.env")
@@ -47,7 +47,7 @@ async def diagnose(image: UploadFile = File(...), question: str = Form("")):
         raise HTTPException(413, "Image too large (max 8MB)")
     try:
         answer = await meta_client.diagnose_image(
-            data, image.content_type or "image/jpeg", question
+            data, image.content_type or "image/jpeg", question, lang
         )
     except httpx.HTTPStatusError as e:
         raise HTTPException(502, f"Meta API error: {e.response.text[:300]}")
@@ -56,7 +56,7 @@ async def diagnose(image: UploadFile = File(...), question: str = Form("")):
 
 @app.post("/api/ask")
 async def ask(payload: dict):
-    """Simple text question -> Muse Spark answer in Telugu (agent loop comes next)."""
+    """Simple text question -> Muse Spark answer (simple text, no tools)."""
     question = (payload.get("question") or "").strip()
     if not question:
         raise HTTPException(400, "question required")
@@ -64,7 +64,7 @@ async def ask(payload: dict):
         {
             "role": "system",
             "content": "You are Krishi Mitra, a helpful farming assistant. "
-            "Always answer in simple Telugu.",
+            + langmod.instruction(langmod.resolve(payload.get("lang"), question)),
         },
         {"role": "user", "content": question},
     ]
@@ -84,7 +84,7 @@ async def run_agent(payload: dict):
     if not config.CHAT_KEY and not config.MOCK_MODE:
         raise HTTPException(503, "API key for the selected PROVIDER not set in backend/.env")
     try:
-        return await agent.run_agent(question, bool(payload.get("use_open_model")))
+        return await agent.run_agent(question, bool(payload.get("use_open_model")), payload.get("lang") or "auto")
     except httpx.HTTPStatusError as e:
         raise HTTPException(502, f"Meta API error: {e.response.text[:300]}")
 

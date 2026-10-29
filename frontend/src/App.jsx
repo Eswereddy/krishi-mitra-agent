@@ -1,8 +1,36 @@
 import { useRef, useState } from "react";
 
+// UI text for each language. "auto" answers in the farmer's own language (UI shows Telugu).
+const T = {
+  te: {
+    title: "కృషి మిత్ర", hint: "మీ ప్రశ్న చెప్పండి లేదా పంట ఫోటో పంపండి.",
+    speak: "🎤 మాట్లాడండి", stop: "⏹ ఆపండి", photo: "📷 పంట ఫోటో పంపండి:",
+    you: "మీరు", bot: "కృషి మిత్ర", steps: "ఏజెంట్ దశలు", looking: "ఫోటో చూస్తున్నాను...",
+    ok: "✅ సంఖ్యలు టూల్ ఫలితాలతో సరిపోలాయి", warn: "⚠️ ఈ సంఖ్యలు ధృవీకరించలేదు: ",
+    mic: "మైక్ అనుమతి ఇవ్వండి: ", type: "లేదా ఇక్కడ టైప్ చేయండి...", send: "పంపండి",
+  },
+  en: {
+    title: "Krishi Mitra", hint: "Speak your question or send a photo of your crop.",
+    speak: "🎤 Speak", stop: "⏹ Stop", photo: "📷 Send crop photo:",
+    you: "You", bot: "Krishi Mitra", steps: "Agent steps", looking: "Looking at the photo...",
+    ok: "✅ Figures verified against tool results", warn: "⚠️ Some figures could not be verified: ",
+    mic: "Please allow microphone access: ", type: "Or type here...", send: "Send",
+  },
+  hi: {
+    title: "कृषि मित्र", hint: "अपना सवाल बोलें या फसल की फोटो भेजें।",
+    speak: "🎤 बोलिए", stop: "⏹ रोकिए", photo: "📷 फसल की फोटो भेजें:",
+    you: "आप", bot: "कृषि मित्र", steps: "एजेंट के कदम", looking: "फोटो देख रहा हूँ...",
+    ok: "✅ आंकड़े टूल के नतीजों से मेल खाते हैं", warn: "⚠️ इन आंकड़ों की पुष्टि नहीं हुई: ",
+    mic: "कृपया माइक की अनुमति दें: ", type: "या यहाँ टाइप करें...", send: "भेजें",
+  },
+};
+
 export default function App() {
+  const [lang, setLang] = useState("auto"); // auto | te | en | hi
+  const t = T[lang === "auto" ? "te" : lang];
   const [recording, setRecording] = useState(false);
   const [question, setQuestion] = useState("");
+  const [typed, setTyped] = useState("");
   const [answer, setAnswer] = useState("");
   const [error, setError] = useState("");
   const [steps, setSteps] = useState([]);
@@ -13,16 +41,30 @@ export default function App() {
   async function ask(text) {
     setSteps([]);
     setVerification(null);
+    setAnswer("…");
     const r = await fetch("/api/agent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: text }),
+      body: JSON.stringify({ question: text, lang }),
     });
     if (!r.ok) throw new Error((await r.json()).detail || "ask failed");
     const data = await r.json();
     setAnswer(data.answer);
     setSteps(data.steps || []);
     setVerification(data.verification || null);
+  }
+
+  async function sendTyped() {
+    const text = typed.trim();
+    if (!text) return;
+    setError("");
+    setQuestion(text);
+    try {
+      await ask(text);
+    } catch (e) {
+      setAnswer("");
+      setError(e.message);
+    }
   }
 
   async function start() {
@@ -33,8 +75,8 @@ export default function App() {
       chunks.current = [];
       mr.ondataavailable = (e) => chunks.current.push(e.data);
       mr.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunks.current, { type: "audio/webm" });
+        stream.getTracks().forEach((tr) => tr.stop());
+        const blob = new Blob(chunks.current, { type: mr.mimeType || "audio/webm" });
         const form = new FormData();
         form.append("audio", blob, "question.webm");
         try {
@@ -44,6 +86,7 @@ export default function App() {
           setQuestion(text);
           await ask(text);
         } catch (e) {
+          setAnswer("");
           setError(e.message);
         }
       };
@@ -51,18 +94,26 @@ export default function App() {
       recorder.current = mr;
       setRecording(true);
     } catch (e) {
-      setError("Mic access ivvandi: " + e.message);
+      setError(t.mic + e.message);
     }
+  }
+
+  function stop() {
+    recorder.current?.stop();
+    setRecording(false);
   }
 
   async function uploadPhoto(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     setError("");
-    setAnswer("Photo chuduthunnanu...");
+    setSteps([]);
+    setVerification(null);
+    setAnswer(t.looking);
     const form = new FormData();
     form.append("image", file);
     form.append("question", question);
+    form.append("lang", lang);
     try {
       const r = await fetch("/api/diagnose", { method: "POST", body: form });
       if (!r.ok) throw new Error((await r.json()).detail || "diagnose failed");
@@ -73,33 +124,48 @@ export default function App() {
     }
   }
 
-  function stop() {
-    recorder.current?.stop();
-    setRecording(false);
-  }
-
   return (
     <main style={{ maxWidth: 560, margin: "40px auto", padding: 16, fontFamily: "system-ui" }}>
-      <h1>🌾 Krishi Mitra</h1>
-      <p>Mee prashna Telugu lo cheppandi.</p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1>🌾 {t.title}</h1>
+        <select value={lang} onChange={(e) => setLang(e.target.value)} aria-label="Language">
+          <option value="auto">Auto</option>
+          <option value="te">తెలుగు</option>
+          <option value="en">English</option>
+          <option value="hi">हिन्दी</option>
+        </select>
+      </div>
+      <p>{t.hint}</p>
       <button onClick={recording ? stop : start} style={{ fontSize: 18, padding: "12px 20px" }}>
-        {recording ? "⏹ Aapandi" : "🎤 Matladandi"}
+        {recording ? t.stop : t.speak}
       </button>
+      <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+        <input
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && sendTyped()}
+          placeholder={t.type}
+          style={{ flex: 1, padding: 8 }}
+        />
+        <button onClick={sendTyped}>{t.send}</button>
+      </div>
       <div style={{ marginTop: 12 }}>
         <label>
-          📷 Pant photo pampandi:{" "}
+          {t.photo}{" "}
           <input type="file" accept="image/*" capture="environment" onChange={uploadPhoto} />
         </label>
       </div>
       {error && <p style={{ color: "crimson" }}>{error}</p>}
       {question && (
         <p>
-          <b>Meeru:</b> {question}
+          <b>{t.you}:</b> {question}
         </p>
       )}
       {steps.length > 0 && (
         <details open>
-          <summary>Agent steps ({steps.length})</summary>
+          <summary>
+            {t.steps} ({steps.length})
+          </summary>
           <ul>
             {steps.map((st, i) => (
               <li key={i}>
@@ -110,15 +176,13 @@ export default function App() {
         </details>
       )}
       {answer && (
-        <p>
-          <b>Krishi Mitra:</b> {answer}
+        <p style={{ whiteSpace: "pre-wrap" }}>
+          <b>{t.bot}:</b> {answer}
         </p>
       )}
       {verification && (
         <p style={{ fontSize: 14, color: verification.passed ? "green" : "darkorange" }}>
-          {verification.passed
-            ? "✅ Figures verified against tool results"
-            : "⚠️ Some figures could not be verified: " + (verification.unverified || []).join(", ")}
+          {verification.passed ? t.ok : t.warn + (verification.unverified || []).join(", ")}
         </p>
       )}
     </main>

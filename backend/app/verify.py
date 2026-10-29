@@ -8,7 +8,7 @@ the farmer sees an explicit "not verified" warning instead of a confident wrong 
 import json
 import re
 
-_TELUGU_DIGITS = str.maketrans("౦౧౨౩౪౫౬౭౮౯", "0123456789")
+_TELUGU_DIGITS = str.maketrans("౦౧౨౩౪౫౬౭౮౯०१२३४५६७८९", "01234567890123456789")
 _NUM = re.compile(r"\d[\d,]*(?:\.\d+)?")
 
 
@@ -30,6 +30,6 @@ def verify_answer(answer: str, steps: list[dict]) -> dict:
     return {"passed": not unverified, "unverified": unverified}
 
 
-def warning_telugu(unverified: list[str]) -> str:
-    return ("\n\n⚠️ ఈ సంఖ్యలను నేను ధృవీకరించలేకపోయాను: " + ", ".join(unverified)
-            + ". దయచేసి అధికారిక కార్యాలయంలో నిర్ధారించుకోండి.")
+def warning(unverified: list[str], lang: str = "te") -> str:
+    from .lang import WARNING
+    return WARNING.get(lang, WARNING["en"]).format(n=", ".join(unverified))

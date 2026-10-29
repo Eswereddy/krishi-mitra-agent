@@ -58,7 +58,7 @@ async def transcribe(audio_bytes: bytes, filename: str, content_type: str) -> st
         return body.get("text") or body.get("transcript") or ""
 
 
-async def diagnose_image(image_bytes: bytes, content_type: str, question: str = "") -> str:
+async def diagnose_image(image_bytes: bytes, content_type: str, question: str = "", lang: str = "auto") -> str:
     """Send a crop photo to Muse Spark (image understanding) and get a Telugu answer."""
     if config.MOCK_MODE:
         return mock.DIAGNOSIS
@@ -68,9 +68,11 @@ async def diagnose_image(image_bytes: bytes, content_type: str, question: str = 
     prompt = (
         "You are Krishi Mitra, a farming assistant. Look at this crop photo. "
         "Identify the crop, any visible disease, pest or nutrient problem, how sure you are, "
-        "and simple next steps for a small farmer. Answer in simple Telugu. "
+        "and simple next steps for a small farmer. {lang_instruction} "
         "If the photo is unclear, say so and ask for a better photo."
     )
+    from . import lang as langmod
+    prompt = prompt.format(lang_instruction=langmod.instruction(langmod.resolve(lang, question)))
     if question:
         prompt += f"\nFarmer's question: {question}"
     messages = [

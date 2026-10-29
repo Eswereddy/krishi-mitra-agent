@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from app import agent, config, meta_client, verify  # noqa: E402
+from app import agent, config, lang, meta_client, verify  # noqa: E402
 
 STEPS = [{"tool": "get_mandi_price", "args": {}, "result": {"results": [{"modal_price_per_quintal": 2300}]}}]
 
@@ -48,6 +48,34 @@ def test_agent_accepts_grounded_answer():
     meta_client.chat_message = fake
     out = asyncio.run(agent.run_agent("ధర ఎంత"))
     assert out["verification"]["passed"] and "⚠️" not in out["answer"] and len(out["steps"]) == 1
+
+
+def test_language_detect_and_resolve():
+    assert lang.detect("నా వరి ధర ఎంత") == "te"
+    assert lang.detect("मेरी फसल का भाव क्या है") == "hi"
+    assert lang.detect("what is the paddy price") == "en"
+    assert lang.resolve("hi", "what is the price") == "hi"   # explicit choice wins
+    assert lang.resolve("auto", "what is the price") == "en"
+
+
+def test_hindi_digits_and_warning_language():
+    assert verify.verify_answer("भाव २३०० रुपये", STEPS)["passed"]
+    assert "verify" in verify.warning(["2500"], "en") and "पुष्टि" in verify.warning(["2500"], "hi")
+
+
+def test_agent_system_prompt_uses_language():
+    config.MOCK_MODE = False
+    seen = {}
+
+    async def fake(messages, use_open_model=False, **kw):
+        seen["system"] = messages[0]["content"]
+        return {"content": "ok", "tool_calls": None}
+
+    meta_client.chat_message = fake
+    asyncio.run(agent.run_agent("what is the price", lang="auto"))
+    assert "English" in seen["system"]
+    asyncio.run(agent.run_agent("what is the price", lang="hi"))
+    assert "Hindi" in seen["system"]
 
 
 if __name__ == "__main__":
