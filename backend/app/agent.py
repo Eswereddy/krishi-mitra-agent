@@ -21,6 +21,8 @@ SYSTEM = (
     "If a crop photo is attached: name the crop and the most likely problem with your confidence, then use "
     "get_weather to time any spraying, mention crop insurance (PMFBY via check_schemes) if there is real crop "
     "loss, and call get_expert_help when unsure or serious. "
+    "For 'sell now or wait' or 'is the price going up', call get_price_trend (and best_markets, get_weather if useful), "
+    "then give one clear recommendation with the reason, and say it is guidance, not a guarantee. "
     "Never claim certainty about scheme rules; tell the farmer where to verify. "
     "{lang_instruction}"
 )
@@ -30,7 +32,7 @@ MAX_REWRITES = 2
 
 async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "auto",
                     profile: dict | None = None, history: list | None = None,
-                    image: tuple[bytes, str] | None = None) -> dict:
+                    image: tuple[bytes, str] | None = None, on_event=None) -> dict:
     code = langmod.resolve(lang, user_text)
     steps: list[dict] = []
 
@@ -38,7 +40,10 @@ async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "a
         # Deterministic fake plan so the UI can show agent steps without an API key.
         for name, args in [("get_mandi_price", {"commodity": "Paddy", "district": "Kurnool"}),
                            ("check_schemes", {"owns_land": True})]:
+            _emit(on_event, {"type": "tool", "tool": name, "args": args})
+            await asyncio.sleep(0.6 if on_event else 0)
             steps.append({"tool": name, "args": args, "result": tools.run_tool(name, args)})
+            _emit(on_event, {"type": "tool_done", "tool": name, "ok": True})
         return {"answer": mock.ANSWER, "steps": steps, "mock": True,
                 "verification": verify.verify_answer(mock.ANSWER, steps)}
 
@@ -56,6 +61,7 @@ async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "a
             v = verify.verify_answer(answer, steps)
             if not v["passed"] and rewrites < MAX_REWRITES:
                 rewrites += 1
+                _emit(on_event, {"type": "verify", "status": "retry", "unverified": v["unverified"]})
                 messages.append({"role": "assistant", "content": answer})
                 messages.append({"role": "user", "content": (
                     "Verification failed: these figures are not in any tool result: "
@@ -73,13 +79,24 @@ async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "a
                 args = json.loads(c["function"].get("arguments") or "{}")
             except json.JSONDecodeError:
                 args = {}
+            _emit(on_event, {"type": "tool", "tool": name, "args": args})
             result = await asyncio.to_thread(tools.run_tool, name, args)
+            _emit(on_event, {"type": "tool_done", "tool": name, "ok": "error" not in result})
             steps.append({"tool": name, "args": args, "result": result})
             messages.append({"role": "tool", "tool_call_id": c["id"],
                              "content": json.dumps(result, ensure_ascii=False)})
     return {"answer": "Konni steps lo purtiga cheyaleka poyanu. Malli prayatninchandi.",
             "steps": steps, "mock": False,
             "verification": {"passed": False, "unverified": [], "rewrites": rewrites}}
+
+
+def _emit(on_event, event: dict) -> None:
+    """Progress events for the streaming endpoints. Never lets a UI problem break the agent."""
+    if on_event:
+        try:
+            on_event(event)
+        except Exception:
+            pass
 
 
 def _profile_text(profile: dict | None) -> str:
