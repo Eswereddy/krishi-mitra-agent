@@ -278,12 +278,13 @@ def _get_weather_uncached(place: str, days: int = 3) -> dict:
             f = c.get(FORECAST_URL, params={
                 "latitude": g["latitude"], "longitude": g["longitude"], "timezone": "auto",
                 "forecast_days": min(max(int(days), 1), 7),
-                "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max",
+                "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max",
             }).json()
         d = f["daily"]
         days_out = [
             {"date": d["time"][i], "max_c": d["temperature_2m_max"][i], "min_c": d["temperature_2m_min"][i],
-             "rain_mm": d["precipitation_sum"][i], "rain_chance_pct": d["precipitation_probability_max"][i]}
+             "rain_mm": d["precipitation_sum"][i], "rain_chance_pct": d["precipitation_probability_max"][i],
+             "wind_kmh": (d.get("wind_speed_10m_max") or [None] * len(d["time"]))[i]}
             for i in range(len(d["time"]))
         ]
         return {"source": "open-meteo.com", "place": f"{g['name']}, {g.get('admin1', '')}", "forecast": days_out}
@@ -349,6 +350,12 @@ TOOL_SPECS = [
     _fn("get_expert_help", "Get the Kisan Call Centre number and local expert contacts. Use when the problem "
         "is serious, uncertain, or needs a human expert."),
 ]
+
+
+from . import advisor  # noqa: E402  (advisor imports tools lazily, so this order is safe)
+
+TOOL_FUNCS.update(advisor.FUNCS)
+TOOL_SPECS.extend(advisor.SPECS)
 
 
 def run_tool(name: str, args: dict) -> dict:
