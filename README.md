@@ -78,13 +78,18 @@ Safety: requests are accepted only with a valid `X-Hub-Signature-256`, duplicate
 - CI (GitHub Actions) runs the offline tests and the frontend build on every push.
 
 ## Advisor tools (new)
-Five more tools in `backend/app/advisor.py`, same rules as the rest: exact arithmetic in code, labelled sources, no invented numbers.
+Five more tools (and two below) in `backend/app/advisor.py`, same rules as the rest: exact arithmetic in code, labelled sources, no invented numbers.
 - `get_msp`: government Minimum Support Price per quintal (Kharif 2026-27, Rabi 2027-28 now being sown, Rabi 2026-27) from CCEA announcements in `data/msp.json`. Says MSP applies only to what the government buys.
 - `net_market_value`: what a farmer really takes home from a market after commission, loading and transport, to compare a near market with a far one that pays more. Cost rates are labelled assumptions.
 - `spray_window`: which of the next days suit spraying (rain chance, wind, heat). Never a dose.
 - `lookup_problem`: 20 common problems for paddy, groundnut, cotton, chilli, tomato and maize matched from the farmer's own description (`data/problems.json`). Gives symptoms, field checks and non-chemical steps only, never a pesticide name or dose, and always sends the farmer to the agriculture officer.
 - `hold_or_sell`: one sell-now / hold-a-little / ask-about-procurement recommendation from the price trend, best market and MSP (fixed rules, perishable crops are always "sell now").
 The chat shows a card for each. MSP figures were checked on 29 Oct 2026; update `data/msp.json` when new MSPs are announced.
+
+## Daily brief, irrigation and KCC interest (new)
+- **Today button (`/api/brief`, WhatsApp `/brief`):** one tap gives today's weather, whether to irrigate, whether it is a good day to spray, the price of the farmer's main crop, the price trend, MSP comparison and a sell/hold guide, in Telugu, Hindi or English. It is built from tool results with fixed templates (no model call): instant, works without an API key, and every figure still passes the verification layer.
+- `irrigation_advice`: irrigate or wait, from the rain forecast and heat (the farmer is told to check the soil by hand).
+- `kcc_interest`: Kisan Credit Card crop-loan interest at 7% (4% effective if repaid within a year), exact rupees and the saving; the benefit applies on up to Rs 3 lakh (checked Oct 2026, rules are renewed every year, the bank gives the final figure).
 
 ## Data honesty
 - Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.
