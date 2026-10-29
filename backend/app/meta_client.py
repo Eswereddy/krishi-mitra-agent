@@ -146,7 +146,7 @@ async def _transcribe_via_chat(audio_bytes: bytes, filename: str) -> str:
     data, mime = await _to_wav(audio_bytes)
     b64 = base64.b64encode(data).decode()
     prompt = (
-        "Transcribe the speech in this audio exactly as spoken, in the language it is spoken in "
+        "This is a farmer speaking Telugu, Hindi or English, often mixing English words such as price, rate, mandi, market, weather, rain, scheme, loan, insurance, paddy, groundnut, cotton, tomato, fertilizer, pest. Transcribe the speech in this audio exactly as spoken, in the language it is spoken in "
         "(write Telugu speech in Telugu script, Hindi in Devanagari). Reply with JSON only: "
         '{"understood": true or false, "language": "te|hi|en|other", "text": "<exact transcript>"}. '
         "If there is no clear speech or you cannot process the audio, set understood to false and text to an "
