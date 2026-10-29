@@ -1,13 +1,14 @@
+import asyncio
 import json
 from pathlib import Path
 
 import httpx
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, config, lang as langmod, meta_client
+from . import agent, config, lang as langmod, meta_client, tts as ttsmod
 
 app = FastAPI(title="Krishi Mitra Agent")
 
@@ -110,6 +111,90 @@ async def run_agent(payload: dict):
                                       payload.get("history") if isinstance(payload.get("history"), list) else None)
     except httpx.HTTPStatusError as e:
         raise HTTPException(502, f"Meta API error: {e.response.text[:300]}")
+
+
+def _ndjson(work):
+    """Run `work(on_event)` and stream its progress as newline-delimited JSON, so the UI can show each agent step live."""
+    async def gen():
+        q: asyncio.Queue = asyncio.Queue()
+
+        async def runner():
+            try:
+                data = await work(q.put_nowait)
+                q.put_nowait({"type": "final", "data": data})
+            except httpx.HTTPStatusError as e:
+                q.put_nowait({"type": "error", "detail": f"Meta API error: {e.response.text[:300]}"})
+            except httpx.HTTPError as e:
+                q.put_nowait({"type": "error", "detail": f"Model service unavailable ({type(e).__name__}). Please try again in a moment."})
+            except Exception as e:  # never leave the stream hanging
+                q.put_nowait({"type": "error", "detail": str(e)[:300] or type(e).__name__})
+            finally:
+                q.put_nowait(None)
+
+        task = asyncio.create_task(runner())
+        try:
+            while (event := await q.get()) is not None:
+                yield json.dumps(event, ensure_ascii=False) + "\n"
+        finally:
+            task.cancel()
+
+    return StreamingResponse(gen(), media_type="application/x-ndjson",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+@app.post("/api/agent/stream")
+async def agent_stream(payload: dict):
+    """Same as /api/agent, but streams each tool call as it happens (newline-delimited JSON)."""
+    question = (payload.get("question") or "").strip()
+    if not question:
+        raise HTTPException(400, "question required")
+    if not config.CHAT_KEY and not config.MOCK_MODE:
+        raise HTTPException(503, "API key for the selected PROVIDER not set in backend/.env")
+    profile = payload.get("profile") if isinstance(payload.get("profile"), dict) else None
+    history = payload.get("history") if isinstance(payload.get("history"), list) else None
+    return _ndjson(lambda emit: agent.run_agent(question, False, payload.get("lang") or "auto", profile, history,
+                                                None, emit))
+
+
+@app.post("/api/diagnose/stream")
+async def diagnose_stream(image: UploadFile = File(...), question: str = Form(""), lang: str = Form("auto"),
+                          profile: str = Form("")):
+    """Crop photo -> agent, streaming its steps."""
+    if not config.CHAT_KEY and not config.MOCK_MODE:
+        raise HTTPException(503, "API key for the selected PROVIDER not set in backend/.env")
+    data = await image.read()
+    if len(data) > 8 * 1024 * 1024:
+        raise HTTPException(413, "Image too large (max 8MB)")
+    mime = image.content_type or "image/jpeg"
+    try:
+        prof = json.loads(profile) if profile else None
+    except json.JSONDecodeError:
+        prof = None
+    text = question.strip() or "Please check this crop photo and tell me what to do."
+
+    async def work(emit):
+        emit({"type": "status", "key": "reading_photo"})
+        if config.MOCK_MODE:
+            answer = await meta_client.diagnose_image(data, mime, question, lang)
+            return {"answer": answer, "steps": [], "mock": True, "verification": None}
+        return await agent.run_agent(text, False, lang, prof if isinstance(prof, dict) else None, None,
+                                     (data, mime), emit)
+
+    return _ndjson(work)
+
+
+@app.post("/api/tts")
+async def tts(payload: dict):
+    """Text -> MP3 for devices whose browser has no voice for the language (Telugu/Hindi on many laptops)."""
+    text = (payload.get("text") or "").strip()
+    lang = payload.get("lang") if payload.get("lang") in ttsmod.LANGS else "en"
+    if not text:
+        raise HTTPException(400, "text required")
+    try:
+        audio = await asyncio.to_thread(ttsmod.synthesize, text[: ttsmod.MAX_CHARS], lang)
+    except Exception as e:
+        raise HTTPException(502, f"Voice service unavailable ({type(e).__name__})")
+    return Response(audio, media_type="audio/mpeg", headers={"Cache-Control": "public, max-age=86400"})
 
 
 @app.get("/api/models")
