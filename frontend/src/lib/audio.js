@@ -85,9 +85,24 @@ export function startListening({ onLevel, silenceMs = 1400, waitMs = 9000, maxMs
 }
 
 // ---------- Text to speech ----------
+// 1) browser voice if the device has one for the language, 2) otherwise an MP3 from the server (/api/tts),
+// so Telugu/Hindi answers can be heard even on laptops without those voices.
 
 let token = 0;
 const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
+let player = null; // one shared <audio> element: unlocked once by a tap, then reusable for hands-free mode
+const SILENCE = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+
+/** Call from a tap/click handler so later automatic playback is allowed (Safari/Chrome autoplay rules). */
+export function unlockAudio() {
+  try {
+    if (!player) player = new Audio();
+    player.src = SILENCE;
+    player.play().catch(() => {});
+  } catch {
+    /* audio unsupported */
+  }
+}
 
 export function scriptOf(text) {
   return /[\u0C00-\u0C7F]/.test(text) ? "te" : /[\u0900-\u097F]/.test(text) ? "hi" : "en";
@@ -96,11 +111,7 @@ export function scriptOf(text) {
 function pickVoice(code) {
   const voices = synth?.getVoices?.() || [];
   const norm = (v) => v.lang.replace("_", "-").toLowerCase();
-  return (
-    voices.find((v) => norm(v) === `${code}-in`) ||
-    voices.find((v) => norm(v).startsWith(code)) ||
-    null
-  );
+  return voices.find((v) => norm(v) === `${code}-in`) || voices.find((v) => norm(v).startsWith(code)) || null;
 }
 
 export function hasVoice(code) {
@@ -142,25 +153,62 @@ export function stopSpeaking() {
   } catch {
     /* unsupported */
   }
+  if (player && !player.paused) {
+    player.pause();
+    player.dispatchEvent(new Event("ended")); // lets a waiting speak() promise finish
+  }
 }
 
-/** Speak text; resolves when finished or stopped. Resolves "novoice" if no matching voice is installed. */
+async function serverSpeak(text, code, my, onStart) {
+  try {
+    const r = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, lang: code }),
+    });
+    if (!r.ok) return "novoice";
+    const blob = await r.blob();
+    if (my !== token) return "stopped";
+    if (!player) player = new Audio();
+    const url = URL.createObjectURL(blob);
+    return await new Promise((resolve) => {
+      const done = (res) => {
+        player.onended = player.onerror = null;
+        URL.revokeObjectURL(url);
+        resolve(res);
+      };
+      player.onplay = () => onStart?.();
+      player.onended = () => done("done");
+      player.onerror = () => done("novoice");
+      player.src = url;
+      player.play().catch(() => done("novoice"));
+    });
+  } catch {
+    return "novoice";
+  }
+}
+
+/** Speak text; resolves "done", "stopped", or "novoice" if neither a browser voice nor the server could speak. */
 export function speak(text, { onStart } = {}) {
   return new Promise((resolve) => {
-    if (!synth) return resolve("unsupported");
     stopSpeaking();
     const my = token;
     const code = scriptOf(text);
-    const voice = pickVoice(code);
-    const parts = chunk(cleanForSpeech(text, code));
-    if (!parts.length) return resolve("empty");
+    const clean = cleanForSpeech(text, code);
+    if (!clean) return resolve("empty");
+    const voice = synth ? pickVoice(code) : null;
+    if (!voice) {
+      serverSpeak(clean, code, my, onStart).then((res) => resolve(my !== token ? "stopped" : res));
+      return;
+    }
+    const parts = chunk(clean);
     let i = 0;
     const next = () => {
       if (my !== token) return resolve("stopped");
-      if (i >= parts.length) return resolve(voice ? "done" : "novoice");
+      if (i >= parts.length) return resolve("done");
       const u = new SpeechSynthesisUtterance(parts[i++]);
       u.lang = { te: "te-IN", hi: "hi-IN", en: "en-IN" }[code];
-      if (voice) u.voice = voice;
+      u.voice = voice;
       u.rate = code === "en" ? 1 : 0.95;
       if (i === 1) u.onstart = () => onStart?.();
       u.onend = next;
