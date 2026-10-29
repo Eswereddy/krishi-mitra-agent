@@ -119,6 +119,66 @@ def test_registered_with_agent_and_verification_accepts_msp_gaps():
     assert not verify.verify_answer("Net Rs 9,999 per quintal.", steps)["passed"]
 
 
+def test_irrigation_advice_rules():
+    tools.get_weather = _fake_weather([
+        {"date": "2026-10-30", "max_c": 33, "min_c": 22, "rain_mm": 8, "rain_chance_pct": 80},
+        {"date": "2026-10-31", "max_c": 33, "min_c": 22, "rain_mm": 1.5, "rain_chance_pct": 30},
+        {"date": "2026-11-01", "max_c": 39, "min_c": 24, "rain_mm": 0, "rain_chance_pct": 5},
+        {"date": "2026-11-02", "max_c": 31, "min_c": 23, "rain_mm": 0, "rain_chance_pct": 5},
+    ])
+    r = advisor.irrigation_advice("Kurnool", 4)
+    assert [d["code"] for d in r["days"]] == ["skip_rain", "wait_light_rain", "evening_hot", "if_dry"]
+    assert r["next_irrigation_day"] == "2026-11-01"
+
+
+def test_kcc_interest_exact():
+    r = advisor.kcc_interest(100000, 6)
+    assert r["interest_at_7_pct_rs"] == 3500 and r["interest_if_repaid_on_time_rs"] == 2000 and r["interest_saved_rs"] == 1500
+    big = advisor.kcc_interest(400000, 12)
+    assert big["interest_at_7_pct_rs"] == 21000 and big["above_limit_rs"] == 100000   # benefit stops at Rs 3 lakh
+    late = advisor.kcc_interest(100000, 18)
+    assert "interest_if_repaid_on_time_rs" not in late and "not available" in late["prompt_repayment"]
+    assert "error" in advisor.kcc_interest(0, 6)
+
+
+def test_brief_is_grounded_in_all_languages_and_needs_no_model():
+    import asyncio
+    from app import brief
+    days = [{"date": "2026-10-30", "max_c": 33.1, "min_c": 22, "rain_mm": 0, "rain_chance_pct": 10, "wind_kmh": 8},
+            {"date": "2026-10-31", "max_c": 32, "min_c": 22, "rain_mm": 9, "rain_chance_pct": 70, "wind_kmh": 8}]
+    wx = {"source": "open-meteo.com", "place": "Kurnool, Andhra Pradesh", "forecast": days}
+    tools.get_weather = lambda place, days=3: wx
+    tools.TOOL_FUNCS["get_weather"] = tools.get_weather
+    _patch_market(_trend(7000, 7900, "rising"), [{"market": "Adoni", "modal_price_per_quintal": 7800}])
+    tools.TOOL_FUNCS["get_price_trend"] = tools.get_price_trend
+    tools.TOOL_FUNCS["best_markets"] = tools.best_markets
+    tools.TOOL_FUNCS["get_mandi_price"] = lambda commodity, district="", state="": {
+        "source": "agmarknet-live (data.gov.in)",
+        "results": [{"commodity": commodity, "market": "Kurnool", "modal_price_per_quintal": 7850}]}
+    prof = {"district": "Kurnool", "state": "Andhra Pradesh", "main_crop": "Groundnut"}
+    for code in ("en", "te", "hi"):
+        r = asyncio.run(brief.build_brief(prof, code))
+        assert r["verification"]["passed"], (code, r["verification"], r["answer"])
+        assert "7,850" in r["answer"] and "7,517" in r["answer"] and "33°C" in r["answer"]
+        assert [s["tool"] for s in r["steps"]] == ["get_weather", "irrigation_advice", "spray_window", "get_mandi_price", "hold_or_sell"]
+    en = asyncio.run(brief.build_brief(prof, "en"))["answer"]
+    assert "good day to spray" in en and "rising" in en and "above MSP" in en and "up to 70%" in en
+    assert asyncio.run(brief.build_brief({"state": "Andhra Pradesh"}, "en"))["steps"] == []      # no district: asks, no guessing
+    only_wx = asyncio.run(brief.build_brief({"district": "Kurnool"}, "en"))
+    assert "Groundnut" not in only_wx["answer"] and len(only_wx["steps"]) == 3
+
+
+def test_brief_endpoint_and_registered_tools():
+    from fastapi.testclient import TestClient
+    from app.main import app
+    c = TestClient(app)
+    r = c.post("/api/brief", json={"profile": {"district": "Kurnool", "main_crop": "Paddy"}, "lang": "en"})
+    assert r.status_code == 200 and r.json()["verification"]["passed"] and r.json()["steps"][0]["tool"] == "get_weather"
+    assert c.post("/api/brief", json={"lang": "hi"}).json()["steps"] == []
+    names = {sp["function"]["name"] for sp in tools.TOOL_SPECS}
+    assert {"irrigation_advice", "kcc_interest"} <= names and len(names) == 14
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     for fn in fns:
