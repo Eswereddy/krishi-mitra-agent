@@ -15,7 +15,7 @@ short, practical answer, read aloud if they want.
 - **Multi-turn:** follow-up questions work ("and groundnut?"). Quick-ask buttons for common questions.
 - **A real agent, not a chatbot:** the model decides which tools to call, in several steps:
   `get_mandi_price`, `best_markets` (where to sell for the highest price) and `get_price_trend` (rising or falling? sell now or wait?), all from Agmarknet via data.gov.in, `get_weather` (Open-Meteo),
-  `check_schemes` (PM-KISAN, PMFBY, KCC, state support, with the documents needed), `calculate_revenue` (exact income maths, never done by the model), `get_expert_help` (Kisan Call Centre 1800-180-1551).
+  `check_schemes` (PM-KISAN, PMFBY, KCC, state support, with the documents needed), `calculate_revenue` (exact income maths, never done by the model), `get_expert_help` (Kisan Call Centre 1800-180-1551), plus the advisor tools below (`get_msp`, `net_market_value`, `spray_window`, `lookup_problem`, `hold_or_sell`).
 - **Live agent steps:** the answer streams its progress ("checking mandi prices… checking weather… re-checking figures") so the farmer, and the judge, can see the agent working. Endpoints: `/api/agent/stream` and `/api/diagnose/stream` (newline-delimited JSON).
 - **Sell now or wait:** the agent combines the price trend, best markets and the weather forecast into one clear recommendation (guidance, not a guarantee).
 - **The agent can always talk:** browser voice when the device has one for the language, otherwise a server-generated voice (`/api/tts`, gTTS), so Telugu and Hindi are audible even on laptops without those voices.
@@ -41,7 +41,7 @@ See [DEMO.md](DEMO.md) for the 3-minute demo script and submission checklist.
 
 ## Tests (offline, no API key needed)
 ```bash
-cd backend && python tests/test_verify.py && python tests/test_tools.py && python tests/test_stream.py && python tests/test_hardening.py && python tests/test_grounding.py && python tests/test_whatsapp.py
+cd backend && python tests/test_verify.py && python tests/test_tools.py && python tests/test_stream.py && python tests/test_hardening.py && python tests/test_grounding.py && python tests/test_whatsapp.py && python tests/test_advisor.py
 ```
 
 ## Run locally
@@ -76,6 +76,15 @@ Safety: requests are accepted only with a valid `X-Hub-Signature-256`, duplicate
 - Independent tool calls from one model turn run in parallel.
 - `/api/debug/*` and `/api/models` are hidden unless `DEBUG_ENDPOINTS=1`.
 - CI (GitHub Actions) runs the offline tests and the frontend build on every push.
+
+## Advisor tools (new)
+Five more tools in `backend/app/advisor.py`, same rules as the rest: exact arithmetic in code, labelled sources, no invented numbers.
+- `get_msp`: government Minimum Support Price per quintal (Kharif 2026-27, Rabi 2027-28 now being sown, Rabi 2026-27) from CCEA announcements in `data/msp.json`. Says MSP applies only to what the government buys.
+- `net_market_value`: what a farmer really takes home from a market after commission, loading and transport, to compare a near market with a far one that pays more. Cost rates are labelled assumptions.
+- `spray_window`: which of the next days suit spraying (rain chance, wind, heat). Never a dose.
+- `lookup_problem`: 20 common problems for paddy, groundnut, cotton, chilli, tomato and maize matched from the farmer's own description (`data/problems.json`). Gives symptoms, field checks and non-chemical steps only, never a pesticide name or dose, and always sends the farmer to the agriculture officer.
+- `hold_or_sell`: one sell-now / hold-a-little / ask-about-procurement recommendation from the price trend, best market and MSP (fixed rules, perishable crops are always "sell now").
+The chat shows a card for each. MSP figures were checked on 29 Oct 2026; update `data/msp.json` when new MSPs are announced.
 
 ## Data honesty
 - Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.
