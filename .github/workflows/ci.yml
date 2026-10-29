@@ -25,6 +25,7 @@ jobs:
           python tests/test_hardening.py
           python tests/test_grounding.py
           python tests/test_whatsapp.py
+          python tests/test_advisor.py
 
   frontend:
     runs-on: ubuntu-latest
