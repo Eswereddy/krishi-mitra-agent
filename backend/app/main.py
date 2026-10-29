@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, config, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
+from . import agent, brief, config, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
 
 app = FastAPI(title="Krishi Mitra Agent")
 app.middleware("http")(ratelimit.middleware)
@@ -103,6 +103,13 @@ async def ask(payload: dict):
     except httpx.HTTPStatusError as e:
         raise HTTPException(502, f"Meta API error: {e.response.text[:300]}")
     return {"answer": answer}
+
+
+@app.post("/api/brief")
+async def daily_brief(payload: dict):
+    """One-tap daily brief (weather, irrigation, spraying, price, sell/hold). No model call: instant, works without an API key."""
+    profile = payload.get("profile") if isinstance(payload.get("profile"), dict) else {}
+    return await brief.build_brief(profile, payload.get("lang") or "auto")
 
 
 @app.post("/api/agent")
