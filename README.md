@@ -27,7 +27,7 @@ short, practical answer, read aloud if they want.
 - **Listen button** (browser speech synthesis), **share on WhatsApp**, **farmer profile** (state, district, land, crop; saved on the device), typed input fallback.
 
 ## How Meta models are used
-- **Muse Spark Open** (`meta-models/muse-spark-open`, open weights, served on Baseten): chat, tool calling, image understanding, and audio understanding for speech transcription.
+- **Muse Spark Open** (`meta-models/muse-spark-open-1026`, open weights, served on Baseten): chat, tool calling, image understanding, and audio understanding for speech transcription.
 - Provider switch in `backend/app/config.py`: `PROVIDER=baseten` (open weights) or `PROVIDER=meta` (Meta Model API).
 
 ## Architecture
@@ -41,7 +41,7 @@ See [DEMO.md](DEMO.md) for the 3-minute demo script and submission checklist.
 
 ## Tests (offline, no API key needed)
 ```bash
-cd backend && python tests/test_verify.py && python tests/test_tools.py && python tests/test_stream.py
+cd backend && python tests/test_verify.py && python tests/test_tools.py && python tests/test_stream.py && python tests/test_hardening.py
 ```
 
 ## Run locally
@@ -56,7 +56,14 @@ Without an API key the app runs in **mock mode** (fake answers, for UI developme
 
 ## Deploy (Render)
 Docker web service using the root `Dockerfile`. Environment variables: `PROVIDER=baseten`, `BASETEN_API_KEY`,
-`OPEN_MODEL=meta-models/muse-spark-open`, optional `DATA_GOV_API_KEY` (free key from data.gov.in for live mandi prices).
+`OPEN_MODEL=meta-models/muse-spark-open-1026`, optional `DATA_GOV_API_KEY` (free key from data.gov.in for live mandi prices).
+
+## Production safety
+- Per-IP rate limits on the model, voice and TTS endpoints (default 12 agent requests/min, 20 voice requests/min; `RATE_AGENT_PER_MIN`, `RATE_VOICE_PER_MIN`), so a public demo URL cannot burn the API credits.
+- Public data (Agmarknet, weather) is cached for 10 minutes (`CACHE_TTL_S`, 0 = off); failed lookups are never cached.
+- Independent tool calls from one model turn run in parallel.
+- `/api/debug/*` and `/api/models` are hidden unless `DEBUG_ENDPOINTS=1`.
+- CI (GitHub Actions) runs the offline tests and the frontend build on every push.
 
 ## Data honesty
 - Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.

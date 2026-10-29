@@ -1,5 +1,6 @@
 """Offline tests for tools with the network mocked: python tests/test_tools.py from backend/."""
 import os
+os.environ["CACHE_TTL_S"] = "0"  # these tests reuse the same args with different mocked responses
 import sys
 from pathlib import Path
 

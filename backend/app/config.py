@@ -28,3 +28,6 @@ _mock = os.getenv("MOCK_MODE", "auto").lower()
 MOCK_MODE = _mock in ("1", "true") or (_mock == "auto" and not CHAT_KEY)
 
 REQUEST_TIMEOUT = float(os.getenv("REQUEST_TIMEOUT", "60"))
+
+# /api/debug/* and /api/models are hidden unless this is set (turn on only while debugging a deployment).
+DEBUG_ENDPOINTS = os.getenv("DEBUG_ENDPOINTS", "0").lower() in ("1", "true")

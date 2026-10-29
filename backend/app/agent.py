@@ -73,15 +73,26 @@ async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "a
             v["rewrites"] = rewrites
             return {"answer": answer, "steps": steps, "mock": False, "verification": v}
         messages.append(msg)
+        parsed = []
         for c in calls:
             name = c["function"]["name"]
             try:
                 args = json.loads(c["function"].get("arguments") or "{}")
             except json.JSONDecodeError:
                 args = {}
+            if not isinstance(args, dict):
+                args = {}
             _emit(on_event, {"type": "tool", "tool": name, "args": args})
+            parsed.append((c, name, args))
+
+        async def _run(name, args):
             result = await asyncio.to_thread(tools.run_tool, name, args)
             _emit(on_event, {"type": "tool_done", "tool": name, "ok": "error" not in result})
+            return result
+
+        # independent tool calls from one model turn run concurrently (weather + prices + schemes ...)
+        results = await asyncio.gather(*(_run(n, a) for _c, n, a in parsed))
+        for (c, name, args), result in zip(parsed, results):
             steps.append({"tool": name, "args": args, "result": result})
             messages.append({"role": "tool", "tool_call_id": c["id"],
                              "content": json.dumps(result, ensure_ascii=False)})

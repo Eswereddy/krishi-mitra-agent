@@ -6,6 +6,7 @@ and, for prices, falls back to clearly-labelled SAMPLE data so the agent never i
 """
 import json
 import os
+import time
 from pathlib import Path
 
 import httpx
@@ -15,6 +16,29 @@ GEO_URL = "https://geocoding-api.open-meteo.com/v1/search"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 AGMARKNET_URL = "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070"
 HTTP_TIMEOUT = 10
+
+
+_CACHE: dict = {}
+
+
+def cache_clear() -> None:
+    _CACHE.clear()
+
+
+def _cached(ns: str, key, fn, ok=lambda v: True):
+    """Tiny TTL cache so repeated questions (and the demo) do not hit slow public APIs every time.
+    TTL from CACHE_TTL_S (default 600 s, 0 turns it off). Failures are never cached."""
+    ttl = float(os.getenv("CACHE_TTL_S", "600"))
+    if ttl <= 0:
+        return fn()
+    now = time.monotonic()
+    hit = _CACHE.get((ns, key))
+    if hit and now - hit[0] < ttl:
+        return hit[1]
+    val = fn()
+    if ok(val):
+        _CACHE[(ns, key)] = (now, val)
+    return val
 
 
 def _sample_prices(commodity: str, district: str) -> dict:
@@ -49,6 +73,13 @@ def _date_key(d) -> tuple:
 
 
 def _fetch_live(key: str, state: str, district: str, commodity: str) -> tuple[list[dict], str]:
+    """Cached wrapper: same lookup within the TTL is served from memory."""
+    return _cached("agmarknet", (state.lower(), district.lower(), commodity.lower()),
+                   lambda: _fetch_live_uncached(key, state, district, commodity),
+                   ok=lambda v: bool(v[0]))
+
+
+def _fetch_live_uncached(key: str, state: str, district: str, commodity: str) -> tuple[list[dict], str]:
     """Try the plain and ".keyword" filter styles; return (rows, note)."""
     note = ""
     with httpx.Client(timeout=HTTP_TIMEOUT) as c:
@@ -175,7 +206,12 @@ def calculate_revenue(quintals: float, price_per_quintal: float, expenses: float
 
 
 def get_weather(place: str, days: int = 3) -> dict:
-    """Short forecast (temperature, rain) for a place, from Open-Meteo."""
+    """Short forecast (temperature, rain) for a place, from Open-Meteo (cached for a few minutes)."""
+    return _cached("weather", (place.strip().lower(), int(days)),
+                   lambda: _get_weather_uncached(place, days), ok=lambda v: "error" not in v)
+
+
+def _get_weather_uncached(place: str, days: int = 3) -> dict:
     try:
         with httpx.Client(timeout=HTTP_TIMEOUT) as c:
             geo = c.get(GEO_URL, params={"name": place, "count": 1}).json().get("results") or []

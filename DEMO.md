@@ -20,7 +20,7 @@
 
 ## What to state clearly (judges look for this)
 - New work only: the repository was created on Oct 27-28, 2026; every commit is during the event.
-- Open weights: Muse Spark Open (`meta-models/muse-spark-open`) served on Baseten.
+- Open weights: Muse Spark Open (`meta-models/muse-spark-open-1026`) served on Baseten.
 - Data honesty: live prices only with the data.gov.in key; scheme info is indicative.
 
 ## Submission checklist (deadline Nov 4, 9:00 PM ET = Nov 5, 6:30 AM IST; submit by Nov 3)

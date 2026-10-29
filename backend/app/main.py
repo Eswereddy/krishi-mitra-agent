@@ -8,9 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, config, lang as langmod, meta_client, tts as ttsmod
+from . import agent, config, lang as langmod, meta_client, ratelimit, tts as ttsmod
 
 app = FastAPI(title="Krishi Mitra Agent")
+app.middleware("http")(ratelimit.middleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,6 +28,12 @@ async def model_service_error(_request, exc: httpx.HTTPError):
         status_code=502,
         content={"detail": f"Model service unavailable ({type(exc).__name__}). Please try again in a moment."},
     )
+
+
+def _require_debug() -> None:
+    """Debug endpoints are off in production unless DEBUG_ENDPOINTS=1 (they expose upstream error details)."""
+    if not config.DEBUG_ENDPOINTS:
+        raise HTTPException(404, "Not found")
 
 
 @app.get("/api/health")
@@ -200,6 +207,7 @@ async def tts(payload: dict):
 @app.get("/api/models")
 async def list_models():
     """Debug helper: list model ids the configured provider accepts (ids only, no secrets)."""
+    _require_debug()
     if not config.CHAT_KEY:
         raise HTTPException(503, "API key for the selected PROVIDER not set")
     async with httpx.AsyncClient(timeout=config.REQUEST_TIMEOUT) as client:
@@ -215,6 +223,7 @@ async def list_models():
 @app.get("/api/debug/mandi")
 def debug_mandi(commodity: str = "Paddy", district: str = "Kurnool"):
     """Check the live mandi source from the deployed server (no secrets in the output)."""
+    _require_debug()
     from . import tools
     out = tools.get_mandi_price(commodity, district)
     out["live_key_configured"] = bool(__import__("os").getenv("DATA_GOV_API_KEY"))
@@ -223,6 +232,7 @@ def debug_mandi(commodity: str = "Paddy", district: str = "Kurnool"):
 
 @app.get("/api/debug/weather")
 def debug_weather(place: str = "Kurnool"):
+    _require_debug()
     from . import tools
     return tools.get_weather(place, 3)
 

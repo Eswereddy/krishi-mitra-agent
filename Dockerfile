@@ -1,8 +1,8 @@
 # Build the React frontend
 FROM node:20-alpine AS fe
 WORKDIR /fe
-COPY frontend/package.json ./
-RUN npm install
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
 COPY frontend ./
 RUN npm run build
 
