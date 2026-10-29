@@ -240,6 +240,34 @@ export default function App() {
     }
   }
 
+  // One-tap daily brief: weather, irrigation, spraying, price and sell/hold from the backend (no model call).
+  async function dailyBrief() {
+    unlockAudio();
+    if (busyRef.current) return;
+    if (!navigator.onLine) { setToast(tRef.current.offline); return; }
+    busyRef.current = true;
+    setBusy(true);
+    stopSpeaking();
+    setSpeakingId(null);
+    const bid = uid();
+    setMessages((m) => [...m, { id: uid(), role: "user", text: t.today }, { id: bid, role: "bot", pending: true }]);
+    try {
+      const r = await fetch("/api/brief", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile, lang: lang === "auto" ? "te" : lang }),
+      });
+      if (!r.ok) throw new Error(`Error ${r.status}`);
+      const data = await r.json();
+      setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", text: data.answer, steps: data.steps || [], verification: data.verification } : x)));
+      if (autoSpeakRef.current) speakMessage(bid, data.answer);
+    } catch (e) {
+      setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", error: true, text: e.message } : x)));
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
+  }
+
   function submit() {
     unlockAudio();
     const file = photo?.file;
@@ -458,6 +486,10 @@ export default function App() {
             <button className="talk-cta" onClick={openVoice}>
               <span className="talk-ico"><I.wave /></span>
               <span><b>{t.talkBtn}</b><small>{t.talkSub}</small></span>
+            </button>
+            <button className="talk-cta today-cta" onClick={dailyBrief}>
+              <span className="talk-ico">☀️</span>
+              <span><b>{t.today}</b><small>{t.todaySub}</small></span>
             </button>
             {installEvt && <button className="pill" onClick={installApp}>{t.install}</button>}
             <h4>{t.tryAsk}</h4>
