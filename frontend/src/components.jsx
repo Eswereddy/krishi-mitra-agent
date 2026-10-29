@@ -194,6 +194,109 @@ function ExpertCard({ step, t }) {
   );
 }
 
+
+// ---------- advisor cards: MSP, take-home value, spray window, crop problem, sell-or-hold ----------
+function MspCard({ step, t }) {
+  const r = step.result, cur = r?.current;
+  if (!cur) return null;
+  return (
+    <div className="card">
+      <div className="card-head"><span>🏷️ {t.tools.get_msp} · {r.commodity}</span><span className="badge badge-ok">{cur.season}</span></div>
+      <div className="stats">
+        <div className="stat-profit"><small>{t.adv.msp}</small><b>{rupee(cur.msp_price_per_quintal)}</b></div>
+        {(r.other_seasons || []).slice(0, 2).map((o) => <div key={o.season}><small>{o.season}</small><b>{rupee(o.msp_price_per_quintal)}</b></div>)}
+      </div>
+      <div className="card-foot">{t.perQ} · {t.adv.mspNote}</div>
+    </div>
+  );
+}
+
+function NetValueCard({ step, t }) {
+  const r = step.result;
+  if (!r || r.net_revenue_rs == null) return null;
+  const gap = r.net_vs_msp_rs_per_quintal;
+  return (
+    <div className="card">
+      <div className="card-head"><span>💰 {t.adv.netTitle} · {r.commodity}</span></div>
+      <div className="stats">
+        <div><small>{t.adv.gross}</small><b>{rupee(r.gross_revenue_rs)}</b></div>
+        <div><small>{t.adv.fees}</small><b>−{rupee((r.commission_rs || 0) + (r.loading_rs || 0))}</b></div>
+        {r.transport_rs > 0 && <div><small>{t.adv.transport}</small><b>−{rupee(r.transport_rs)}</b></div>}
+        <div className="stat-profit"><small>{t.adv.net}</small><b>{rupee(r.net_revenue_rs)}</b></div>
+      </div>
+      <div className="card-foot">
+        {rupee(r.net_price_per_quintal)} {t.perQ.toLowerCase?.() || ""}
+        {gap != null && <> · <b className={gap >= 0 ? "pos" : "neg"}>{gap >= 0 ? "+" : "−"}{rupee(Math.abs(gap))}</b> {t.adv.vsMsp}</>}
+      </div>
+      <div className="card-foot warn-note">⚠️ {t.adv.assumed}</div>
+    </div>
+  );
+}
+
+function SprayCard({ step, t }) {
+  const days = step.result?.days;
+  if (!days?.length) return null;
+  return (
+    <div className="card">
+      <div className="card-head"><span>🧴 {t.tools.spray_window} · {step.result.place}</span><SourceBadge source={step.result.source} t={t} /></div>
+      <div className="wx">
+        {days.map((d) => (
+          <div className={"wx-day spray " + (d.suitable ? "go" : "stop")} key={d.date} title={d.advice}>
+            <small>{new Date(d.date).toLocaleDateString(undefined, { weekday: "short", day: "numeric" })}</small>
+            <span className="wx-ico">{d.suitable ? "✅" : "⛔"}</span>
+            <small className="wx-rain">💧 {d.rain_chance_pct ?? 0}%</small>
+            {d.wind_kmh != null && <small>🌬 {Math.round(d.wind_kmh)}</small>}
+          </div>
+        ))}
+      </div>
+      {step.result.best_day && <div className="card-foot">✅ {t.adv.sprayGood}: <b>{new Date(step.result.best_day).toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "short" })}</b></div>}
+    </div>
+  );
+}
+
+function ProblemCard({ step, t }) {
+  const ms = step.result?.matches;
+  if (!ms?.length) return null;
+  const urg = { high: t.adv.urgencyHigh, medium: t.adv.urgencyMedium, low: t.adv.urgencyLow };
+  return (
+    <div className="card">
+      <div className="card-head"><span>🔍 {t.tools.lookup_problem}</span></div>
+      {ms.map((m, i) => (
+        <details className="scheme" key={m.name} open={i === 0}>
+          <summary><b>{m.name}</b><small className={"urg " + m.urgency}>{urg[m.urgency]}</small></summary>
+          <div className="scheme-body">
+            <p>{m.looks_like}</p>
+            <h5>{t.adv.checks}</h5>
+            <ul>{m.what_to_do.map((w) => <li key={w}>{w}</li>)}</ul>
+            <p className="card-foot">👨‍🌾 {m.expert_note}</p>
+          </div>
+        </details>
+      ))}
+      <div className="card-foot">{t.adv.askOfficer}</div>
+    </div>
+  );
+}
+
+function DecisionCard({ step, t }) {
+  const r = step.result;
+  if (!r?.recommendation) return null;
+  const label = { sell_now: t.adv.sellNow, hold_short: t.adv.holdShort, use_procurement_or_wait: t.adv.procure,
+    sell_now_or_hold_if_stored: t.adv.sellOrHold, not_enough_data: t.adv.noData }[r.recommendation] || r.recommendation;
+  const tone = r.recommendation === "hold_short" ? "rising" : r.recommendation === "sell_now" ? "falling" : "steady";
+  return (
+    <div className="card">
+      <div className="card-head"><span>⚖️ {t.tools.hold_or_sell} · {r.commodity}</span><SourceBadge source={r.trend?.source} t={t} /></div>
+      <div className={"decision " + tone}><b>{label}</b></div>
+      <div className="stats">
+        {r.current_price_per_quintal != null && <div><small>{t.adv.now}</small><b>{rupee(r.current_price_per_quintal)}</b></div>}
+        {r.msp_price_per_quintal != null && <div><small>{t.adv.msp}</small><b>{rupee(r.msp_price_per_quintal)}</b></div>}
+        {r.best_market?.modal_price_per_quintal != null && <div><small>{t.adv.best} · {r.best_market.market}</small><b>{rupee(r.best_market.modal_price_per_quintal)}</b></div>}
+      </div>
+      <div className="card-foot">{t.adv.guidance}</div>
+    </div>
+  );
+}
+
 export function ToolCards({ steps, t }) {
   // show the latest result per tool (the agent may call a tool twice)
   const seen = new Map();
@@ -208,6 +311,11 @@ export function ToolCards({ steps, t }) {
       case "check_schemes": return <SchemeCard step={s} t={t} />;
       case "calculate_revenue": return <RevenueCard step={s} t={t} />;
       case "get_expert_help": return <ExpertCard step={s} t={t} />;
+      case "get_msp": return <MspCard step={s} t={t} />;
+      case "net_market_value": return <NetValueCard step={s} t={t} />;
+      case "spray_window": return <SprayCard step={s} t={t} />;
+      case "lookup_problem": return <ProblemCard step={s} t={t} />;
+      case "hold_or_sell": return <DecisionCard step={s} t={t} />;
       default: return null;
     }
   };
@@ -267,6 +375,7 @@ export function SourcesLine({ steps, t }) {
   });
   if ((steps || []).some((s) => s.tool === "check_schemes" && s.result?.matched?.length)) names.add("pmkisan.gov.in · pmfby.gov.in");
   if ((steps || []).some((s) => s.tool === "get_expert_help")) names.add("Kisan Call Centre");
+  if ((steps || []).some((s) => s.tool === "get_msp" && s.result?.current) || (steps || []).some((s) => s.tool === "hold_or_sell" && s.result?.msp_price_per_quintal != null)) names.add("CCEA / agriculture.gov.in (MSP)");
   if (!names.size) return null;
   return <p className="sources">📚 {t.sources}: {[...names].join(" · ")}</p>;
 }
