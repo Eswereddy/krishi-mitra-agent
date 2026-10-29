@@ -8,10 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, config, lang as langmod, meta_client, ratelimit, tts as ttsmod
+from . import agent, config, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
 
 app = FastAPI(title="Krishi Mitra Agent")
 app.middleware("http")(ratelimit.middleware)
+app.include_router(whatsapp.router)
 
 app.add_middleware(
     CORSMiddleware,
