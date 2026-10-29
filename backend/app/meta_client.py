@@ -116,7 +116,7 @@ async def _transcribe_via_chat(audio_bytes: bytes, filename: str) -> str:
     messages = [{
         "role": "user",
         "content": [
-            {"type": "text", "text": "Transcribe this Telugu audio exactly. Output only the transcript in Telugu script."},
+            {"type": "text", "text": "Transcribe the speech in this audio exactly as spoken, in the language it is spoken in (write Telugu speech in Telugu script). Output ONLY the transcript: no explanation, no quotes, no notes about the language."},
             {"type": "audio_url", "audio_url": {"url": f"data:{mime};base64,{b64}"}},
         ],
     }]
