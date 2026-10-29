@@ -1,5 +1,7 @@
 """Thin client for Meta Model API (chat + Muse Voice Transcribe)."""
 import asyncio
+import json
+import re
 
 import httpx
 
@@ -110,6 +112,32 @@ async def _to_wav(audio_bytes: bytes) -> tuple[bytes, str]:
     return audio_bytes, "audio/webm"
 
 
+class AudioNotUnderstood(Exception):
+    """The model could not produce a usable transcript (silence, unsupported audio, refusal)."""
+
+
+_REFUSAL_HINTS = ("audio", "listen", "transcribe", "unable", "cannot", "can't", "don't have", "do not have", "sorry")
+
+
+def parse_transcript(raw: str) -> str | None:
+    """Return the transcript text, or None when the model did not really transcribe.
+    Expects JSON {"understood": bool, "text": str}; accepts a short plain transcript too,
+    but never a refusal like "I can't listen to audio" (that must not become the farmer's question)."""
+    raw = (raw or "").strip()
+    m = re.search(r"\{.*\}", raw, re.S)
+    if m:
+        try:
+            obj = json.loads(m.group(0))
+            text = str(obj.get("text") or "").strip()
+            return text if obj.get("understood") and text else None
+        except (json.JSONDecodeError, AttributeError):
+            pass
+    low = raw.lower()
+    if not raw or len(raw) > 400 or any(h in low for h in _REFUSAL_HINTS):
+        return None
+    return raw
+
+
 async def _transcribe_via_chat(audio_bytes: bytes, filename: str) -> str:
     """Muse Spark Open takes audio as an `audio_url` content part (Baseten docs:
     inference/model-apis/audio). Supported: WAV, MP3, FLAC, OGG, M4A. Not WebM."""
@@ -117,11 +145,23 @@ async def _transcribe_via_chat(audio_bytes: bytes, filename: str) -> str:
 
     data, mime = await _to_wav(audio_bytes)
     b64 = base64.b64encode(data).decode()
+    prompt = (
+        "Transcribe the speech in this audio exactly as spoken, in the language it is spoken in "
+        "(write Telugu speech in Telugu script, Hindi in Devanagari). Reply with JSON only: "
+        '{"understood": true or false, "language": "te|hi|en|other", "text": "<exact transcript>"}. '
+        "If there is no clear speech or you cannot process the audio, set understood to false and text to an "
+        "empty string. Never add explanations."
+    )
     messages = [{
         "role": "user",
         "content": [
-            {"type": "text", "text": "Transcribe the speech in this audio exactly as spoken, in the language it is spoken in (write Telugu speech in Telugu script). Output ONLY the transcript: no explanation, no quotes, no notes about the language."},
+            {"type": "text", "text": prompt},
             {"type": "audio_url", "audio_url": {"url": f"data:{mime};base64,{b64}"}},
         ],
     }]
-    return await chat(messages)
+    text = parse_transcript(await chat(messages))
+    if not text:
+        raise AudioNotUnderstood(
+            f"audio not understood (input {len(audio_bytes)} bytes, wav {len(data)} bytes, ffmpeg_ok={mime == 'audio/wav'})"
+        )
+    return text

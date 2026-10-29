@@ -42,6 +42,8 @@ async def transcribe(audio: UploadFile = File(...)):
         text = await meta_client.transcribe(
             data, audio.filename or "audio.webm", audio.content_type or "audio/webm"
         )
+    except meta_client.AudioNotUnderstood as e:
+        raise HTTPException(422, str(e))
     except httpx.HTTPStatusError as e:
         raise HTTPException(502, f"Meta API error: {e.response.text[:300]}")
     return {"text": text}
@@ -113,6 +115,21 @@ async def list_models():
         raise HTTPException(502, f"models list failed: {r.status_code} {r.text[:200]}")
     data = r.json().get("data", [])
     return {"configured": config.CHAT_MODEL, "available": [m.get("id") for m in data]}
+
+
+@app.get("/api/debug/mandi")
+def debug_mandi(commodity: str = "Paddy", district: str = "Kurnool"):
+    """Check the live mandi source from the deployed server (no secrets in the output)."""
+    from . import tools
+    out = tools.get_mandi_price(commodity, district)
+    out["live_key_configured"] = bool(__import__("os").getenv("DATA_GOV_API_KEY"))
+    return out
+
+
+@app.get("/api/debug/weather")
+def debug_weather(place: str = "Kurnool"):
+    from . import tools
+    return tools.get_weather(place, 3)
 
 
 # Serve the built React app (frontend/dist) from the same service in production.

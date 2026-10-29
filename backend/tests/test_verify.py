@@ -78,6 +78,15 @@ def test_agent_system_prompt_uses_language():
     assert "Hindi" in seen["system"]
 
 
+def test_parse_transcript_rejects_refusals():
+    pt = meta_client.parse_transcript
+    assert pt('{"understood": true, "language": "te", "text": "నా వరి ధర ఎంత"}') == "నా వరి ధర ఎంత"
+    assert pt('```json\n{"understood": false, "text": ""}\n```') is None
+    assert pt("I don't have the ability to listen to or access audio files directly") is None
+    assert pt("") is None
+    assert pt("వరి ధర ఎంత") == "వరి ధర ఎంత"   # plain short transcript accepted
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

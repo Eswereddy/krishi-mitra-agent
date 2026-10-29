@@ -7,21 +7,21 @@ const T = {
     speak: "🎤 మాట్లాడండి", stop: "⏹ ఆపండి", photo: "📷 పంట ఫోటో పంపండి:",
     you: "మీరు", bot: "కృషి మిత్ర", steps: "ఏజెంట్ దశలు", looking: "ఫోటో చూస్తున్నాను...",
     ok: "✅ సంఖ్యలు టూల్ ఫలితాలతో సరిపోలాయి", warn: "⚠️ ఈ సంఖ్యలు ధృవీకరించలేదు: ",
-    mic: "మైక్ అనుమతి ఇవ్వండి: ", listen: "🔊 వినండి", profile: "నా వివరాలు", state: "రాష్ట్రం", district: "జిల్లా", land: "నాకు సొంత భూమి ఉంది", crop: "ప్రధాన పంట", type: "లేదా ఇక్కడ టైప్ చేయండి...", send: "పంపండి",
+    mic: "మైక్ అనుమతి ఇవ్వండి: ", unclear: "నాకు స్పష్టంగా వినిపించలేదు. మళ్లీ మాట్లాడండి లేదా టైప్ చేయండి.", listen: "🔊 వినండి", profile: "నా వివరాలు", state: "రాష్ట్రం", district: "జిల్లా", land: "నాకు సొంత భూమి ఉంది", crop: "ప్రధాన పంట", type: "లేదా ఇక్కడ టైప్ చేయండి...", send: "పంపండి",
   },
   en: {
     title: "Krishi Mitra", hint: "Speak your question or send a photo of your crop.",
     speak: "🎤 Speak", stop: "⏹ Stop", photo: "📷 Send crop photo:",
     you: "You", bot: "Krishi Mitra", steps: "Agent steps", looking: "Looking at the photo...",
     ok: "✅ Figures verified against tool results", warn: "⚠️ Some figures could not be verified: ",
-    mic: "Please allow microphone access: ", listen: "🔊 Listen", profile: "My details", state: "State", district: "District", land: "I own farmland", crop: "Main crop", type: "Or type here...", send: "Send",
+    mic: "Please allow microphone access: ", unclear: "I could not hear that clearly. Please speak again or type your question.", listen: "🔊 Listen", profile: "My details", state: "State", district: "District", land: "I own farmland", crop: "Main crop", type: "Or type here...", send: "Send",
   },
   hi: {
     title: "कृषि मित्र", hint: "अपना सवाल बोलें या फसल की फोटो भेजें।",
     speak: "🎤 बोलिए", stop: "⏹ रोकिए", photo: "📷 फसल की फोटो भेजें:",
     you: "आप", bot: "कृषि मित्र", steps: "एजेंट के कदम", looking: "फोटो देख रहा हूँ...",
     ok: "✅ आंकड़े टूल के नतीजों से मेल खाते हैं", warn: "⚠️ इन आंकड़ों की पुष्टि नहीं हुई: ",
-    mic: "कृपया माइक की अनुमति दें: ", listen: "🔊 सुनिए", profile: "मेरी जानकारी", state: "राज्य", district: "ज़िला", land: "मेरे पास अपनी ज़मीन है", crop: "मुख्य फसल", type: "या यहाँ टाइप करें...", send: "भेजें",
+    mic: "कृपया माइक की अनुमति दें: ", unclear: "मैं साफ़ सुन नहीं पाया। कृपया फिर से बोलें या टाइप करें।", listen: "🔊 सुनिए", profile: "मेरी जानकारी", state: "राज्य", district: "ज़िला", land: "मेरे पास अपनी ज़मीन है", crop: "मुख्य फसल", type: "या यहाँ टाइप करें...", send: "भेजें",
   },
 };
 
@@ -99,10 +99,15 @@ export default function App() {
       mr.onstop = async () => {
         stream.getTracks().forEach((tr) => tr.stop());
         const blob = new Blob(chunks.current, { type: mr.mimeType || "audio/webm" });
+        if (blob.size < 4000) {
+          setError(t.unclear); // recording too short
+          return;
+        }
         const form = new FormData();
         form.append("audio", blob, "question.webm");
         try {
           const r = await fetch("/api/transcribe", { method: "POST", body: form });
+          if (r.status === 422) throw new Error(t.unclear);
           if (!r.ok) throw new Error((await r.json()).detail || "transcribe failed");
           const { text } = await r.json();
           setQuestion(text);

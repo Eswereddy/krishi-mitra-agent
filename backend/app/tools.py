@@ -34,35 +34,70 @@ def _to_int(v) -> int | None:
         return None
 
 
+def _field(rec: dict, name: str):
+    """Agmarknet field names vary in case/spacing between dataset versions."""
+    low = {str(k).lower(): v for k, v in rec.items()}
+    return low.get(name) if name in low else low.get(name.replace("_", "_x0020_"))
+
+
+def _date_key(d) -> tuple:
+    try:
+        dd, mm, yy = str(d).split("/")
+        return (int(yy), int(mm), int(dd))
+    except ValueError:
+        return (0, 0, 0)
+
+
+def _fetch_live(key: str, state: str, district: str, commodity: str) -> tuple[list[dict], str]:
+    """Try the plain and ".keyword" filter styles; return (rows, note)."""
+    note = ""
+    with httpx.Client(timeout=HTTP_TIMEOUT) as c:
+        for suffix in ("", ".keyword"):
+            for use_district in ((True, False) if district else (False,)):
+                params = {"api-key": key, "format": "json", "limit": 500, f"filters[state{suffix}]": state}
+                if use_district:
+                    params[f"filters[district{suffix}]"] = district
+                r = c.get(AGMARKNET_URL, params=params)
+                r.raise_for_status()
+                rows = [rec for rec in r.json().get("records", [])
+                        if commodity.lower() in str(_field(rec, "commodity") or "").lower()]
+                if rows:
+                    if district and not use_district:
+                        note = f"no rows for district {district}; showing other markets in {state}"
+                    return rows, note
+    return [], "no live rows for this commodity"
+
+
 def get_mandi_price(commodity: str, district: str = "", state: str = "Andhra Pradesh", market: str = "") -> dict:
     """Latest mandi price per quintal (Rs). Live Agmarknet data if configured, else sample."""
     district = district or market  # models sometimes say "market" instead of "district"
     key = os.getenv("DATA_GOV_API_KEY", "")
-    if key:
-        try:
-            params = {"api-key": key, "format": "json", "limit": 500, "filters[state]": state}
-            if district:
-                params["filters[district]"] = district
-            with httpx.Client(timeout=HTTP_TIMEOUT) as c:
-                r = c.get(AGMARKNET_URL, params=params)
-                r.raise_for_status()
-            rows = []
-            for rec in r.json().get("records", []):
-                if commodity.lower() in str(rec.get("commodity", "")).lower():
-                    rows.append({
-                        "commodity": rec.get("commodity"), "market": rec.get("market"),
-                        "district": rec.get("district"), "date": rec.get("arrival_date"),
-                        "min_price_per_quintal": _to_int(rec.get("min_price")),
-                        "max_price_per_quintal": _to_int(rec.get("max_price")),
-                        "modal_price_per_quintal": _to_int(rec.get("modal_price")),
-                    })
-            if rows:
-                return {"source": "agmarknet-live (data.gov.in)", "results": rows[:5]}
-        except Exception as e:  # network, quota, bad key: fall through to sample
-            out = _sample_prices(commodity, district)
-            out["live_error"] = type(e).__name__
-            return out
-    return _sample_prices(commodity, district)
+    if not key:
+        out = _sample_prices(commodity, district)
+        out["live_note"] = "DATA_GOV_API_KEY not set"
+        return out
+    try:
+        rows, note = _fetch_live(key, state, district, commodity)
+    except Exception as e:  # network, quota, bad key: fall back, but say so
+        out = _sample_prices(commodity, district)
+        out["live_error"] = type(e).__name__
+        return out
+    if not rows:
+        out = _sample_prices(commodity, district)
+        out["live_note"] = note
+        return out
+    rows.sort(key=lambda rec: _date_key(_field(rec, "arrival_date")), reverse=True)
+    results = [{
+        "commodity": _field(rec, "commodity"), "market": _field(rec, "market"),
+        "district": _field(rec, "district"), "date": _field(rec, "arrival_date"),
+        "min_price_per_quintal": _to_int(_field(rec, "min_price")),
+        "max_price_per_quintal": _to_int(_field(rec, "max_price")),
+        "modal_price_per_quintal": _to_int(_field(rec, "modal_price")),
+    } for rec in rows[:5]]
+    out = {"source": "agmarknet-live (data.gov.in)", "results": results}
+    if note:
+        out["note"] = note
+    return out
 
 
 def get_weather(place: str, days: int = 3) -> dict:

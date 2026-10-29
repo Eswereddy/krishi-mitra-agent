@@ -73,6 +73,26 @@ def test_expert_help_and_schemes():
     assert tools.run_tool("nope", {})["error"]
 
 
+def test_mandi_keyword_filter_and_latest_first():
+    os.environ["DATA_GOV_API_KEY"] = "k"
+    rec = lambda d, m: {"Commodity": "Paddy(Common)", "Market": "Adoni", "District": "Kurnool", "Arrival_Date": d,
+                        "Min_Price": "2000", "Max_Price": "2400", "Modal_Price": m}
+
+    def routes(url, params):
+        if any(k.endswith(".keyword]") for k in params):
+            return FakeResp({"records": [rec("27/10/2026", "2200"), rec("28/10/2026", "2300")]})
+        return FakeResp({"records": []})   # plain filters match nothing -> must retry with .keyword
+
+    tools.httpx.Client = fake_client(routes)
+    out = tools.get_mandi_price("Paddy", "Kurnool")
+    assert out["source"].startswith("agmarknet") and out["results"][0]["date"] == "28/10/2026"
+    assert out["results"][0]["modal_price_per_quintal"] == 2300
+    tools.httpx.Client = fake_client(lambda u, p: FakeResp({"records": []}))
+    out = tools.get_mandi_price("Paddy", "Kurnool")
+    assert out["source"] == "sample-data" and "no live rows" in out["live_note"]
+    del os.environ["DATA_GOV_API_KEY"]
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):
