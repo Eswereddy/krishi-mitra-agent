@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import httpx
@@ -50,20 +51,28 @@ async def transcribe(audio: UploadFile = File(...)):
 
 
 @app.post("/api/diagnose")
-async def diagnose(image: UploadFile = File(...), question: str = Form(""), lang: str = Form("auto")):
-    """Crop photo (+ optional question) -> Telugu diagnosis via Muse Spark vision."""
+async def diagnose(image: UploadFile = File(...), question: str = Form(""), lang: str = Form("auto"),
+                   profile: str = Form("")):
+    """Crop photo (+ optional question) -> the agent looks at the photo and may call tools
+    (weather for spray timing, schemes/insurance, expert help)."""
     if not config.CHAT_KEY and not config.MOCK_MODE:
         raise HTTPException(503, "API key for the selected PROVIDER not set in backend/.env")
     data = await image.read()
     if len(data) > 8 * 1024 * 1024:
         raise HTTPException(413, "Image too large (max 8MB)")
+    mime = image.content_type or "image/jpeg"
+    if config.MOCK_MODE:
+        answer = await meta_client.diagnose_image(data, mime, question, lang)
+        return {"answer": answer, "steps": [], "mock": True, "verification": None}
     try:
-        answer = await meta_client.diagnose_image(
-            data, image.content_type or "image/jpeg", question, lang
-        )
+        prof = json.loads(profile) if profile else None
+    except json.JSONDecodeError:
+        prof = None
+    text = question.strip() or "Please check this crop photo and tell me what to do."
+    try:
+        return await agent.run_agent(text, False, lang, prof if isinstance(prof, dict) else None, None, (data, mime))
     except httpx.HTTPStatusError as e:
         raise HTTPException(502, f"Meta API error: {e.response.text[:300]}")
-    return {"answer": answer}
 
 
 @app.post("/api/ask")
@@ -97,7 +106,8 @@ async def run_agent(payload: dict):
         raise HTTPException(503, "API key for the selected PROVIDER not set in backend/.env")
     try:
         return await agent.run_agent(question, bool(payload.get("use_open_model")), payload.get("lang") or "auto",
-                                      payload.get("profile") if isinstance(payload.get("profile"), dict) else None)
+                                      payload.get("profile") if isinstance(payload.get("profile"), dict) else None,
+                                      payload.get("history") if isinstance(payload.get("history"), list) else None)
     except httpx.HTTPStatusError as e:
         raise HTTPException(502, f"Meta API error: {e.response.text[:300]}")
 

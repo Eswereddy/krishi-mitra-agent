@@ -3,32 +3,64 @@
     "id": "pm-kisan",
     "name": "PM-KISAN",
     "benefit": "Central income support of Rs 6,000 per year in three instalments",
-    "rules": {"owns_land": true},
+    "rules": {
+      "owns_land": true
+    },
     "how_to_apply": "Apply at pmkisan.gov.in (Farmers Corner) or via Common Service Centre / village agriculture office. Need Aadhaar, land records, bank account.",
-    "verify_at": "https://pmkisan.gov.in"
+    "verify_at": "https://pmkisan.gov.in",
+    "documents": [
+      "Aadhaar",
+      "Land ownership records (pattadar passbook / adangal)",
+      "Bank passbook linked to Aadhaar",
+      "Mobile number"
+    ]
   },
   {
     "id": "pmfby",
     "name": "PM Fasal Bima Yojana (crop insurance)",
     "benefit": "Insurance cover against crop loss from drought, flood, pests and disease",
-    "rules": {"grows_notified_crop": true},
+    "rules": {
+      "grows_notified_crop": true
+    },
     "how_to_apply": "Enrol through your bank, CSC or pmfby.gov.in before the crop-season cut-off date.",
-    "verify_at": "https://pmfby.gov.in"
+    "verify_at": "https://pmfby.gov.in",
+    "documents": [
+      "Aadhaar",
+      "Land records or tenancy / sowing declaration",
+      "Bank passbook",
+      "Sowing certificate (if asked)"
+    ]
   },
   {
     "id": "kcc",
     "name": "Kisan Credit Card",
     "benefit": "Low-interest short-term crop loans for farmers",
-    "rules": {"is_farmer": true},
+    "rules": {
+      "is_farmer": true
+    },
     "how_to_apply": "Apply at your bank branch or cooperative bank with land records, Aadhaar and photo.",
-    "verify_at": "https://www.nabard.org"
+    "verify_at": "https://www.nabard.org",
+    "documents": [
+      "Aadhaar",
+      "Land records",
+      "Passport-size photo",
+      "Bank application form"
+    ]
   },
   {
     "id": "state-ap",
     "name": "Andhra Pradesh state farmer support (e.g. Annadata Sukhibhava)",
     "benefit": "State income support for farmer families (amount and rules change; confirm current details)",
-    "rules": {"state": "Andhra Pradesh", "owns_land": true},
+    "rules": {
+      "state": "Andhra Pradesh",
+      "owns_land": true
+    },
     "how_to_apply": "Contact the Rythu Seva Kendram (RSK) in your village.",
-    "verify_at": "Village Rythu Seva Kendram"
+    "verify_at": "Village Rythu Seva Kendram",
+    "documents": [
+      "Aadhaar",
+      "Land records (pattadar passbook)",
+      "Bank passbook"
+    ]
   }
 ]

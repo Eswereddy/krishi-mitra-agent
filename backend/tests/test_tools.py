@@ -93,6 +93,23 @@ def test_mandi_keyword_filter_and_latest_first():
     del os.environ["DATA_GOV_API_KEY"]
 
 
+def test_best_markets_sorted_and_calculator():
+    os.environ["DATA_GOV_API_KEY"] = "k"
+    rec = lambda m, d, price: {"commodity": "Groundnut", "market": m, "district": "X", "arrival_date": d,
+                               "min_price": "1", "max_price": "2", "modal_price": price}
+    rows = {"records": [rec("Adoni", "28/10/2026", "6100"), rec("Adoni", "20/10/2026", "9999"),
+                        rec("Kurnool", "28/10/2026", "6400"), rec("Nandyal", "28/10/2026", "5900")]}
+    tools.httpx.Client = fake_client(lambda u, p: FakeResp(rows))
+    out = tools.best_markets("Groundnut")
+    assert [r["market"] for r in out["highest_first"]] == ["Kurnool", "Adoni", "Nandyal"]
+    assert out["highest_first"][1]["modal_price_per_quintal"] == 6100   # newest record per market
+    del os.environ["DATA_GOV_API_KEY"]
+    assert tools.best_markets("Paddy")["source"] == "sample-data"
+    assert tools.calculate_revenue(20, 6400, 30000) == {"quintals": 20, "price_per_quintal": 6400,
+                                                         "revenue_rs": 128000, "expenses_rs": 30000, "profit_rs": 98000}
+    assert "documents" in tools.check_schemes(owns_land=True)["matched"][0]
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

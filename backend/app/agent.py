@@ -16,6 +16,11 @@ SYSTEM = (
     "paddy, groundnut and cotton, and present the results instead of asking which crop. Only ask a "
     "question when something essential is missing (for example no district and no profile), and ask at most one. "
     "Present prices as a short list: crop, market, price per quintal, date. "
+    "To say where to sell, use best_markets. For any income or money calculation, use calculate_revenue "
+    "(never do the arithmetic yourself). When the farmer asks about schemes, also list the documents needed. "
+    "If a crop photo is attached: name the crop and the most likely problem with your confidence, then use "
+    "get_weather to time any spraying, mention crop insurance (PMFBY via check_schemes) if there is real crop "
+    "loss, and call get_expert_help when unsure or serious. "
     "Never claim certainty about scheme rules; tell the farmer where to verify. "
     "{lang_instruction}"
 )
@@ -24,7 +29,8 @@ MAX_REWRITES = 2
 
 
 async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "auto",
-                    profile: dict | None = None) -> dict:
+                    profile: dict | None = None, history: list | None = None,
+                    image: tuple[bytes, str] | None = None) -> dict:
     code = langmod.resolve(lang, user_text)
     steps: list[dict] = []
 
@@ -36,7 +42,9 @@ async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "a
         return {"answer": mock.ANSWER, "steps": steps, "mock": True,
                 "verification": verify.verify_answer(mock.ANSWER, steps)}
 
-    messages = [{"role": "system", "content": SYSTEM.format(lang_instruction=langmod.instruction(code)) + _profile_text(profile)}, {"role": "user", "content": user_text}]
+    messages = [{"role": "system", "content": SYSTEM.format(lang_instruction=langmod.instruction(code)) + _profile_text(profile)}]
+    messages += _clean_history(history)
+    messages.append({"role": "user", "content": _user_content(user_text, image)})
     rewrites = 0
     for _ in range(MAX_STEPS):
         msg = await meta_client.chat_message(
@@ -79,3 +87,23 @@ def _profile_text(profile: dict | None) -> str:
         return ""
     keep = {k: v for k, v in profile.items() if k in ("state", "district", "owns_land", "main_crop") and v not in ("", None)}
     return "\nFarmer profile: " + json.dumps(keep, ensure_ascii=False) if keep else ""
+
+
+def _clean_history(history: list | None) -> list[dict]:
+    """Last few chat turns from the client: only plain user/assistant text, length-limited."""
+    out = []
+    for m in (history or [])[-6:]:
+        if isinstance(m, dict) and m.get("role") in ("user", "assistant") and isinstance(m.get("content"), str):
+            out.append({"role": m["role"], "content": m["content"][:1000]})
+    return out
+
+
+def _user_content(text: str, image: tuple[bytes, str] | None):
+    if not image:
+        return text
+    import base64
+    data, mime = image
+    return [
+        {"type": "text", "text": text},
+        {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{base64.b64encode(data).decode()}"}},
+    ]

@@ -1,29 +1,59 @@
 import { useRef, useState } from "react";
 
-// UI text for each language. "auto" answers in the farmer's own language (UI shows Telugu).
+// UI text per language. "auto" answers in the farmer's own language (UI shows Telugu).
 const T = {
   te: {
-    title: "కృషి మిత్ర", hint: "మీ ప్రశ్న చెప్పండి లేదా పంట ఫోటో పంపండి.",
+    title: "కృషి మిత్ర", hint: "మీ ప్రశ్న చెప్పండి, టైప్ చేయండి లేదా పంట ఫోటో పంపండి.",
     speak: "🎤 మాట్లాడండి", stop: "⏹ ఆపండి", photo: "📷 పంట ఫోటో పంపండి:",
-    you: "మీరు", bot: "కృషి మిత్ర", steps: "ఏజెంట్ దశలు", looking: "ఫోటో చూస్తున్నాను...",
+    you: "మీరు", bot: "కృషి మిత్ర", steps: "ఏజెంట్ దశలు", looking: "ఆలోచిస్తున్నాను...",
     ok: "✅ సంఖ్యలు టూల్ ఫలితాలతో సరిపోలాయి", warn: "⚠️ ఈ సంఖ్యలు ధృవీకరించలేదు: ",
-    mic: "మైక్ అనుమతి ఇవ్వండి: ", unclear: "నాకు స్పష్టంగా వినిపించలేదు. మళ్లీ మాట్లాడండి లేదా టైప్ చేయండి.", listen: "🔊 వినండి", profile: "నా వివరాలు", state: "రాష్ట్రం", district: "జిల్లా", land: "నాకు సొంత భూమి ఉంది", crop: "ప్రధాన పంట", type: "లేదా ఇక్కడ టైప్ చేయండి...", send: "పంపండి",
+    mic: "మైక్ అనుమతి ఇవ్వండి: ", unclear: "నాకు స్పష్టంగా వినిపించలేదు. మళ్లీ మాట్లాడండి లేదా టైప్ చేయండి.",
+    listen: "🔊 వినండి", share: "WhatsApp లో పంపండి", clear: "కొత్త సంభాషణ",
+    profile: "నా వివరాలు", state: "రాష్ట్రం", district: "జిల్లా", land: "నాకు సొంత భూమి ఉంది", crop: "ప్రధాన పంట",
+    type: "లేదా ఇక్కడ టైప్ చేయండి...", send: "పంపండి", try: "ఇవి అడిగి చూడండి:",
+    chips: ["నా జిల్లాలో వరి ధర ఎంత?", "నాకు ఏ పథకాలు వస్తాయి?", "ఈ వారం వర్షం పడుతుందా?", "వేరుశనగ ఎక్కడ అమ్మితే ఎక్కువ ధర వస్తుంది?"],
   },
   en: {
-    title: "Krishi Mitra", hint: "Speak your question or send a photo of your crop.",
+    title: "Krishi Mitra", hint: "Speak, type, or send a photo of your crop.",
     speak: "🎤 Speak", stop: "⏹ Stop", photo: "📷 Send crop photo:",
-    you: "You", bot: "Krishi Mitra", steps: "Agent steps", looking: "Looking at the photo...",
+    you: "You", bot: "Krishi Mitra", steps: "Agent steps", looking: "Thinking...",
     ok: "✅ Figures verified against tool results", warn: "⚠️ Some figures could not be verified: ",
-    mic: "Please allow microphone access: ", unclear: "I could not hear that clearly. Please speak again or type your question.", listen: "🔊 Listen", profile: "My details", state: "State", district: "District", land: "I own farmland", crop: "Main crop", type: "Or type here...", send: "Send",
+    mic: "Please allow microphone access: ", unclear: "I could not hear that clearly. Please speak again or type your question.",
+    listen: "🔊 Listen", share: "Share on WhatsApp", clear: "New conversation",
+    profile: "My details", state: "State", district: "District", land: "I own farmland", crop: "Main crop",
+    type: "Or type here...", send: "Send", try: "Try asking:",
+    chips: ["What is the paddy price in my district?", "Which schemes can I get?", "Will it rain this week?", "Where should I sell groundnut for the best price?"],
   },
   hi: {
-    title: "कृषि मित्र", hint: "अपना सवाल बोलें या फसल की फोटो भेजें।",
+    title: "कृषि मित्र", hint: "बोलें, टाइप करें या फसल की फोटो भेजें।",
     speak: "🎤 बोलिए", stop: "⏹ रोकिए", photo: "📷 फसल की फोटो भेजें:",
-    you: "आप", bot: "कृषि मित्र", steps: "एजेंट के कदम", looking: "फोटो देख रहा हूँ...",
+    you: "आप", bot: "कृषि मित्र", steps: "एजेंट के कदम", looking: "सोच रहा हूँ...",
     ok: "✅ आंकड़े टूल के नतीजों से मेल खाते हैं", warn: "⚠️ इन आंकड़ों की पुष्टि नहीं हुई: ",
-    mic: "कृपया माइक की अनुमति दें: ", unclear: "मैं साफ़ सुन नहीं पाया। कृपया फिर से बोलें या टाइप करें।", listen: "🔊 सुनिए", profile: "मेरी जानकारी", state: "राज्य", district: "ज़िला", land: "मेरे पास अपनी ज़मीन है", crop: "मुख्य फसल", type: "या यहाँ टाइप करें...", send: "भेजें",
+    mic: "कृपया माइक की अनुमति दें: ", unclear: "मैं साफ़ सुन नहीं पाया। कृपया फिर से बोलें या टाइप करें।",
+    listen: "🔊 सुनिए", share: "WhatsApp पर भेजें", clear: "नई बातचीत",
+    profile: "मेरी जानकारी", state: "राज्य", district: "ज़िला", land: "मेरे पास अपनी ज़मीन है", crop: "मुख्य फसल",
+    type: "या यहाँ टाइप करें...", send: "भेजें", try: "ये पूछकर देखें:",
+    chips: ["मेरे ज़िले में धान का भाव क्या है?", "मुझे कौन सी योजनाएँ मिल सकती हैं?", "क्या इस हफ़्ते बारिश होगी?", "मूँगफली कहाँ बेचूँ ताकि अच्छा भाव मिले?"],
   },
 };
+
+const DEFAULT_PROFILE = { state: "Andhra Pradesh", district: "", owns_land: false, main_crop: "" };
+
+// Phone photos are huge; shrink before upload (faster, cheaper, same diagnosis quality).
+async function shrink(file, max = 1024) {
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
+    canvas.getContext("2d").drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.85));
+    return blob || file;
+  } catch {
+    return file;
+  }
+}
 
 export default function App() {
   const [lang, setLang] = useState("auto"); // auto | te | en | hi
@@ -37,56 +67,91 @@ export default function App() {
   const [verification, setVerification] = useState(null);
   const [profile, setProfile] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("km-profile")) || { state: "Andhra Pradesh", district: "", owns_land: false, main_crop: "" };
+      return JSON.parse(localStorage.getItem("km-profile")) || DEFAULT_PROFILE;
     } catch {
-      return { state: "Andhra Pradesh", district: "", owns_land: false, main_crop: "" };
+      return DEFAULT_PROFILE;
     }
   });
+  const recorder = useRef(null);
+  const chunks = useRef([]);
+  const history = useRef([]); // last turns, sent to the agent so follow-ups work
+
   function updateProfile(patch) {
     const next = { ...profile, ...patch };
     setProfile(next);
-    try { localStorage.setItem("km-profile", JSON.stringify(next)); } catch { /* storage unavailable */ }
+    try {
+      localStorage.setItem("km-profile", JSON.stringify(next));
+    } catch {
+      /* storage unavailable */
+    }
   }
+
   function speak(text) {
     try {
       const synth = window.speechSynthesis;
       if (!synth) return;
       synth.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = /[\u0C00-\u0C7F]/.test(text) ? "te-IN" : /[\u0900-\u097F]/.test(text) ? "hi-IN" : "en-IN";
+      u.lang = /[ఀ-౿]/.test(text) ? "te-IN" : /[ऀ-ॿ]/.test(text) ? "hi-IN" : "en-IN";
       synth.speak(u);
-    } catch { /* speech not supported */ }
+    } catch {
+      /* speech not supported */
+    }
   }
-  const recorder = useRef(null);
-  const chunks = useRef([]);
 
-  async function ask(text) {
+  function shareWhatsApp() {
+    window.open("https://wa.me/?text=" + encodeURIComponent(`${t.title}\n\n${answer}`), "_blank");
+  }
+
+  function newConversation() {
+    history.current = [];
+    setQuestion("");
+    setAnswer("");
     setSteps([]);
     setVerification(null);
-    setAnswer("…");
-    const r = await fetch("/api/agent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: text, lang, profile }),
-    });
-    if (!r.ok) throw new Error((await r.json()).detail || "ask failed");
-    const data = await r.json();
+    setError("");
+  }
+
+  function showResult(userText, data) {
     setAnswer(data.answer);
     setSteps(data.steps || []);
     setVerification(data.verification || null);
+    history.current = [
+      ...history.current,
+      { role: "user", content: userText },
+      { role: "assistant", content: data.answer },
+    ].slice(-6);
   }
 
-  async function sendTyped() {
-    const text = typed.trim();
-    if (!text) return;
+  function begin() {
     setError("");
+    setSteps([]);
+    setVerification(null);
+    setAnswer(t.looking);
+  }
+
+  async function ask(text) {
+    begin();
     setQuestion(text);
     try {
-      await ask(text);
+      const r = await fetch("/api/agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: text, lang, profile, history: history.current }),
+      });
+      if (!r.ok) throw new Error((await r.json()).detail || "ask failed");
+      showResult(text, await r.json());
     } catch (e) {
       setAnswer("");
       setError(e.message);
     }
+  }
+
+  function sendTyped() {
+    const text = typed.trim();
+    if (!text) return;
+    setTyped("");
+    ask(text);
   }
 
   async function start() {
@@ -105,12 +170,12 @@ export default function App() {
         }
         const form = new FormData();
         form.append("audio", blob, "question.webm");
+        begin();
         try {
           const r = await fetch("/api/transcribe", { method: "POST", body: form });
           if (r.status === 422) throw new Error(t.unclear);
           if (!r.ok) throw new Error((await r.json()).detail || "transcribe failed");
           const { text } = await r.json();
-          setQuestion(text);
           await ask(text);
         } catch (e) {
           setAnswer("");
@@ -132,19 +197,20 @@ export default function App() {
 
   async function uploadPhoto(e) {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
-    setError("");
-    setSteps([]);
-    setVerification(null);
-    setAnswer(t.looking);
+    begin();
     const form = new FormData();
-    form.append("image", file);
-    form.append("question", question);
+    form.append("image", await shrink(file), "crop.jpg");
+    form.append("question", typed.trim());
     form.append("lang", lang);
+    form.append("profile", JSON.stringify(profile));
     try {
       const r = await fetch("/api/diagnose", { method: "POST", body: form });
       if (!r.ok) throw new Error((await r.json()).detail || "diagnose failed");
-      setAnswer((await r.json()).answer);
+      const label = "📷 " + (typed.trim() || "crop photo");
+      setQuestion(label);
+      showResult(label, await r.json());
     } catch (err) {
       setAnswer("");
       setError(err.message);
@@ -189,9 +255,18 @@ export default function App() {
       </div>
       <div style={{ marginTop: 12 }}>
         <label>
-          {t.photo}{" "}
-          <input type="file" accept="image/*" capture="environment" onChange={uploadPhoto} />
+          {t.photo} <input type="file" accept="image/*" capture="environment" onChange={uploadPhoto} />
         </label>
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <small>{t.try}</small>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
+          {t.chips.map((c) => (
+            <button key={c} onClick={() => ask(c)} style={{ fontSize: 13, borderRadius: 14, padding: "4px 10px" }}>
+              {c}
+            </button>
+          ))}
+        </div>
       </div>
       {error && <p style={{ color: "crimson" }}>{error}</p>}
       {question && (
@@ -214,10 +289,18 @@ export default function App() {
         </details>
       )}
       {answer && (
-        <p style={{ whiteSpace: "pre-wrap" }}>
-          <b>{t.bot}:</b> {answer}{" "}
-          <button onClick={() => speak(answer)} aria-label="Listen">{t.listen}</button>
-        </p>
+        <div>
+          <p style={{ whiteSpace: "pre-wrap" }}>
+            <b>{t.bot}:</b> {answer}
+          </p>
+          {answer !== t.looking && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button onClick={() => speak(answer)}>{t.listen}</button>
+              <button onClick={shareWhatsApp}>{t.share}</button>
+              <button onClick={newConversation}>{t.clear}</button>
+            </div>
+          )}
+        </div>
       )}
       {verification && (
         <p style={{ fontSize: 14, color: verification.passed ? "green" : "darkorange" }}>

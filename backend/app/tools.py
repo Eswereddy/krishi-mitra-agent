@@ -100,6 +100,50 @@ def get_mandi_price(commodity: str, district: str = "", state: str = "Andhra Pra
     return out
 
 
+def _result_rows(rows: list[dict]) -> list[dict]:
+    return [{
+        "commodity": _field(rec, "commodity"), "market": _field(rec, "market"),
+        "district": _field(rec, "district"), "date": _field(rec, "arrival_date"),
+        "min_price_per_quintal": _to_int(_field(rec, "min_price")),
+        "max_price_per_quintal": _to_int(_field(rec, "max_price")),
+        "modal_price_per_quintal": _to_int(_field(rec, "modal_price")),
+    } for rec in rows]
+
+
+def best_markets(commodity: str, state: str = "Andhra Pradesh") -> dict:
+    """Which markets in the state pay the most for a crop (latest price per market), highest first."""
+    key = os.getenv("DATA_GOV_API_KEY", "")
+    results, source, note = [], "sample-data", "DATA_GOV_API_KEY not set"
+    if key:
+        try:
+            rows, note = _fetch_live(key, state, "", commodity)
+            if rows:
+                rows.sort(key=lambda rec: _date_key(_field(rec, "arrival_date")), reverse=True)
+                latest = {}
+                for rec in rows:                       # newest record per market
+                    latest.setdefault(_field(rec, "market"), rec)
+                results = [r for r in _result_rows(list(latest.values())) if r["modal_price_per_quintal"]]
+                source = "agmarknet-live (data.gov.in)"
+        except Exception as e:
+            note = f"live lookup failed ({type(e).__name__})"
+    if not results:
+        results = _sample_prices(commodity, "")["results"]
+        source = "sample-data"
+    results.sort(key=lambda r: r.get("modal_price_per_quintal") or 0, reverse=True)
+    out = {"source": source, "highest_first": results[:5]}
+    if source == "sample-data":
+        out["note"] = f"SAMPLE data ({note}); approximate only"
+    return out
+
+
+def calculate_revenue(quintals: float, price_per_quintal: float, expenses: float = 0) -> dict:
+    """Exact arithmetic for the farmer's expected income (do not let the model do the maths)."""
+    revenue = round(float(quintals) * float(price_per_quintal))
+    expenses = round(float(expenses or 0))
+    return {"quintals": quintals, "price_per_quintal": price_per_quintal, "revenue_rs": revenue,
+            "expenses_rs": expenses, "profit_rs": revenue - expenses}
+
+
 def get_weather(place: str, days: int = 3) -> dict:
     """Short forecast (temperature, rain) for a place, from Open-Meteo."""
     try:
@@ -142,13 +186,14 @@ def check_schemes(owns_land: bool = False, grows_notified_crop: bool = True,
     matched = []
     for s in schemes:
         if all(profile.get(k) == v for k, v in s["rules"].items()):
-            matched.append({k: s[k] for k in ("name", "benefit", "how_to_apply", "verify_at")})
-    return {"matched": matched, "disclaimer": "Indicative only; confirm with the official office."}
+            matched.append({k: s[k] for k in ("name", "benefit", "documents", "how_to_apply", "verify_at")})
+    return {"matched": matched, "disclaimer": "Indicative only; documents and rules can change. Confirm with the official office."}
 
 
 TOOL_FUNCS = {
     "get_mandi_price": get_mandi_price, "get_weather": get_weather,
     "get_expert_help": get_expert_help, "check_schemes": check_schemes,
+    "best_markets": best_markets, "calculate_revenue": calculate_revenue,
 }
 
 
@@ -167,6 +212,12 @@ TOOL_SPECS = [
     _fn("check_schemes", "Find government schemes a farmer may be eligible for.",
         {"owns_land": {"type": "boolean"}, "grows_notified_crop": {"type": "boolean"},
          "state": {"type": "string"}}, ["owns_land"]),
+    _fn("best_markets", "Find which markets in the state pay the highest price for a crop (where to sell).",
+        {"commodity": {"type": "string"}, "state": {"type": "string"}}, ["commodity"]),
+    _fn("calculate_revenue", "Exact income calculation: quintals x price per quintal minus expenses. "
+        "Always use this for money maths.",
+        {"quintals": {"type": "number"}, "price_per_quintal": {"type": "number"},
+         "expenses": {"type": "number"}}, ["quintals", "price_per_quintal"]),
     _fn("get_expert_help", "Get the Kisan Call Centre number and local expert contacts. Use when the problem "
         "is serious, uncertain, or needs a human expert."),
 ]
