@@ -61,7 +61,7 @@ def _collect(obj, key: str, sets: dict) -> None:
     elif isinstance(obj, bool) or obj is None:
         return
     elif isinstance(obj, (int, float)):
-        vals = [float(obj)]
+        vals = [float(obj), abs(float(obj))]   # a gap of -50 may be said as "Rs 50 below"
         _file(vals, key, sets)
     elif isinstance(obj, str):
         # amounts written in text, e.g. "Rs 6,000 per year"
