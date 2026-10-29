@@ -1,45 +1,27 @@
-import { useRef, useState } from "react";
-
-// UI text per language. "auto" answers in the farmer's own language (UI shows Telugu).
-const T = {
-  te: {
-    title: "కృషి మిత్ర", hint: "మీ ప్రశ్న చెప్పండి, టైప్ చేయండి లేదా పంట ఫోటో పంపండి.",
-    speak: "🎤 మాట్లాడండి", stop: "⏹ ఆపండి", photo: "📷 పంట ఫోటో పంపండి:",
-    you: "మీరు", bot: "కృషి మిత్ర", steps: "ఏజెంట్ దశలు", looking: "ఆలోచిస్తున్నాను...",
-    ok: "✅ సంఖ్యలు టూల్ ఫలితాలతో సరిపోలాయి", warn: "⚠️ ఈ సంఖ్యలు ధృవీకరించలేదు: ",
-    mic: "మైక్ అనుమతి ఇవ్వండి: ", unclear: "నాకు స్పష్టంగా వినిపించలేదు. మళ్లీ మాట్లాడండి లేదా టైప్ చేయండి.",
-    listen: "🔊 వినండి", share: "WhatsApp లో పంపండి", clear: "కొత్త సంభాషణ",
-    profile: "నా వివరాలు", state: "రాష్ట్రం", district: "జిల్లా", land: "నాకు సొంత భూమి ఉంది", crop: "ప్రధాన పంట",
-    type: "లేదా ఇక్కడ టైప్ చేయండి...", send: "పంపండి", try: "ఇవి అడిగి చూడండి:",
-    chips: ["నా జిల్లాలో వరి ధర ఎంత?", "నాకు ఏ పథకాలు వస్తాయి?", "ఈ వారం వర్షం పడుతుందా?", "వేరుశనగ ఎక్కడ అమ్మితే ఎక్కువ ధర వస్తుంది?"],
-  },
-  en: {
-    title: "Krishi Mitra", hint: "Speak, type, or send a photo of your crop.",
-    speak: "🎤 Speak", stop: "⏹ Stop", photo: "📷 Send crop photo:",
-    you: "You", bot: "Krishi Mitra", steps: "Agent steps", looking: "Thinking...",
-    ok: "✅ Figures verified against tool results", warn: "⚠️ Some figures could not be verified: ",
-    mic: "Please allow microphone access: ", unclear: "I could not hear that clearly. Please speak again or type your question.",
-    listen: "🔊 Listen", share: "Share on WhatsApp", clear: "New conversation",
-    profile: "My details", state: "State", district: "District", land: "I own farmland", crop: "Main crop",
-    type: "Or type here...", send: "Send", try: "Try asking:",
-    chips: ["What is the paddy price in my district?", "Which schemes can I get?", "Will it rain this week?", "Where should I sell groundnut for the best price?"],
-  },
-  hi: {
-    title: "कृषि मित्र", hint: "बोलें, टाइप करें या फसल की फोटो भेजें।",
-    speak: "🎤 बोलिए", stop: "⏹ रोकिए", photo: "📷 फसल की फोटो भेजें:",
-    you: "आप", bot: "कृषि मित्र", steps: "एजेंट के कदम", looking: "सोच रहा हूँ...",
-    ok: "✅ आंकड़े टूल के नतीजों से मेल खाते हैं", warn: "⚠️ इन आंकड़ों की पुष्टि नहीं हुई: ",
-    mic: "कृपया माइक की अनुमति दें: ", unclear: "मैं साफ़ सुन नहीं पाया। कृपया फिर से बोलें या टाइप करें।",
-    listen: "🔊 सुनिए", share: "WhatsApp पर भेजें", clear: "नई बातचीत",
-    profile: "मेरी जानकारी", state: "राज्य", district: "ज़िला", land: "मेरे पास अपनी ज़मीन है", crop: "मुख्य फसल",
-    type: "या यहाँ टाइप करें...", send: "भेजें", try: "ये पूछकर देखें:",
-    chips: ["मेरे ज़िले में धान का भाव क्या है?", "मुझे कौन सी योजनाएँ मिल सकती हैं?", "क्या इस हफ़्ते बारिश होगी?", "मूँगफली कहाँ बेचूँ ताकि अच्छा भाव मिले?"],
-  },
-};
+import { useCallback, useEffect, useRef, useState } from "react";
+import { T, LANGS } from "./i18n";
+import { startListening, speak, stopSpeaking, extFor } from "./lib/audio";
+import { Markdown, ToolCards, StepChips, I } from "./components";
 
 const DEFAULT_PROFILE = { state: "Andhra Pradesh", district: "", owns_land: false, main_crop: "" };
+const uid = () => Math.random().toString(36).slice(2, 9);
+const load = (k, fb) => {
+  try {
+    const v = localStorage.getItem(k);
+    return v == null ? fb : JSON.parse(v);
+  } catch {
+    return fb;
+  }
+};
+const save = (k, v) => {
+  try {
+    localStorage.setItem(k, JSON.stringify(v));
+  } catch {
+    /* storage unavailable */
+  }
+};
 
-// Phone photos are huge; shrink before upload (faster, cheaper, same diagnosis quality).
+// Phone photos are huge; shrink before upload (faster, same diagnosis quality).
 async function shrink(file, max = 1024) {
   try {
     const bmp = await createImageBitmap(file);
@@ -56,257 +38,487 @@ async function shrink(file, max = 1024) {
 }
 
 export default function App() {
-  const [lang, setLang] = useState("auto"); // auto | te | en | hi
+  const [lang, setLang] = useState(() => load("km-lang", "auto"));
+  const [theme, setTheme] = useState(() => load("km-theme", window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+  const [autoSpeak, setAutoSpeak] = useState(() => load("km-autospeak", false));
+  const [profile, setProfile] = useState(() => ({ ...DEFAULT_PROFILE, ...load("km-profile", {}) }));
+  const [messages, setMessages] = useState(() => load("km-chat", []).filter((m) => !m.pending));
+  const [text, setText] = useState("");
+  const [photo, setPhoto] = useState(null); // { file, url }
+  const [busy, setBusy] = useState(false);
+  const [rec, setRec] = useState("idle"); // idle | recording
+  const [speakingId, setSpeakingId] = useState(null);
+  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [vstate, setVstate] = useState("idle"); // idle | listening | thinking | speaking
+  const [vlive, setVlive] = useState("");
+  const [showProfile, setShowProfile] = useState(false);
+  const [showAttach, setShowAttach] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [toast, setToast] = useState("");
+
   const t = T[lang === "auto" ? "te" : lang];
-  const [recording, setRecording] = useState(false);
-  const [question, setQuestion] = useState("");
-  const [typed, setTyped] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [error, setError] = useState("");
-  const [steps, setSteps] = useState([]);
-  const [verification, setVerification] = useState(null);
-  const [profile, setProfile] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("km-profile")) || DEFAULT_PROFILE;
-    } catch {
-      return DEFAULT_PROFILE;
+  const tRef = useRef(t);
+  tRef.current = t;
+  const messagesRef = useRef(messages);
+  const busyRef = useRef(false);
+  const autoSpeakRef = useRef(autoSpeak);
+  const voiceRef = useRef(false);
+  const listenerRef = useRef(null);
+  const cancelledRef = useRef(false);
+  const orbRef = useRef(null);
+  const meterRef = useRef(null);
+  const endRef = useRef(null);
+  const camRef = useRef(null);
+  const galRef = useRef(null);
+  const failRef = useRef(0);
+
+  messagesRef.current = messages;
+  autoSpeakRef.current = autoSpeak;
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    save("km-theme", theme);
+  }, [theme]);
+  useEffect(() => { document.documentElement.lang = t.code; }, [t.code]);
+  useEffect(() => save("km-lang", lang), [lang]);
+  useEffect(() => save("km-autospeak", autoSpeak), [autoSpeak]);
+  useEffect(() => save("km-profile", profile), [profile]);
+  useEffect(() => {
+    // keep the last 40 messages (photos are not stored, only the text)
+    save("km-chat", messages.filter((m) => !m.pending).slice(-40).map((m) => ({ ...m, image: null })));
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages]);
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(""), 3200);
+    return () => clearTimeout(id);
+  }, [toast]);
+
+  const onLevel = useCallback((lv) => {
+    orbRef.current?.style.setProperty("--lvl", lv.toFixed(3));
+    meterRef.current?.style.setProperty("--lvl", lv.toFixed(3));
+  }, []);
+
+  // ---------- speaking ----------
+  async function speakMessage(id, answer) {
+    setSpeakingId(id);
+    const res = await speak(answer);
+    setSpeakingId((s) => (s === id ? null : s));
+    if (res === "novoice") setToast(tRef.current.noVoice);
+    return res;
+  }
+  function toggleSpeak(m) {
+    if (speakingId === m.id) {
+      stopSpeaking();
+      setSpeakingId(null);
+    } else speakMessage(m.id, m.text);
+  }
+
+  // ---------- sending ----------
+  async function send({ text: q0, file, speakReply = false, noSpeak = false }) {
+    const q = (q0 || "").trim();
+    if (busyRef.current || (!q && !file)) return null;
+    busyRef.current = true;
+    setBusy(true);
+    stopSpeaking();
+    setSpeakingId(null);
+    const bid = uid();
+    let blob = null;
+    let url = null;
+    if (file) {
+      blob = await shrink(file);
+      url = URL.createObjectURL(blob);
     }
-  });
-  const recorder = useRef(null);
-  const chunks = useRef([]);
-  const history = useRef([]); // last turns, sent to the agent so follow-ups work
-
-  function updateProfile(patch) {
-    const next = { ...profile, ...patch };
-    setProfile(next);
+    const history = messagesRef.current
+      .filter((m) => !m.pending && !m.error && m.text)
+      .slice(-6)
+      .map((m) => ({ role: m.role === "bot" ? "assistant" : "user", content: m.text }));
+    setMessages((m) => [...m, { id: uid(), role: "user", text: q, image: url }, { id: bid, role: "bot", pending: true }]);
     try {
-      localStorage.setItem("km-profile", JSON.stringify(next));
-    } catch {
-      /* storage unavailable */
-    }
-  }
-
-  function speak(text) {
-    try {
-      const synth = window.speechSynthesis;
-      if (!synth) return;
-      synth.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = /[ఀ-౿]/.test(text) ? "te-IN" : /[ऀ-ॿ]/.test(text) ? "hi-IN" : "en-IN";
-      synth.speak(u);
-    } catch {
-      /* speech not supported */
-    }
-  }
-
-  function shareWhatsApp() {
-    window.open("https://wa.me/?text=" + encodeURIComponent(`${t.title}\n\n${answer}`), "_blank");
-  }
-
-  function newConversation() {
-    history.current = [];
-    setQuestion("");
-    setAnswer("");
-    setSteps([]);
-    setVerification(null);
-    setError("");
-  }
-
-  function showResult(userText, data) {
-    setAnswer(data.answer);
-    setSteps(data.steps || []);
-    setVerification(data.verification || null);
-    history.current = [
-      ...history.current,
-      { role: "user", content: userText },
-      { role: "assistant", content: data.answer },
-    ].slice(-6);
-  }
-
-  function begin() {
-    setError("");
-    setSteps([]);
-    setVerification(null);
-    setAnswer(t.looking);
-  }
-
-  async function ask(text) {
-    begin();
-    setQuestion(text);
-    try {
-      const r = await fetch("/api/agent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: text, lang, profile, history: history.current }),
-      });
-      if (!r.ok) throw new Error((await r.json()).detail || "ask failed");
-      showResult(text, await r.json());
-    } catch (e) {
-      setAnswer("");
-      setError(e.message);
-    }
-  }
-
-  function sendTyped() {
-    const text = typed.trim();
-    if (!text) return;
-    setTyped("");
-    ask(text);
-  }
-
-  async function start() {
-    setError("");
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream);
-      chunks.current = [];
-      mr.ondataavailable = (e) => chunks.current.push(e.data);
-      mr.onstop = async () => {
-        stream.getTracks().forEach((tr) => tr.stop());
-        const blob = new Blob(chunks.current, { type: mr.mimeType || "audio/webm" });
-        if (blob.size < 4000) {
-          setError(t.unclear); // recording too short
-          return;
-        }
+      let r;
+      if (blob) {
         const form = new FormData();
-        form.append("audio", blob, "question.webm");
-        begin();
-        try {
-          const r = await fetch("/api/transcribe", { method: "POST", body: form });
-          if (r.status === 422) throw new Error(t.unclear);
-          if (!r.ok) throw new Error((await r.json()).detail || "transcribe failed");
-          const { text } = await r.json();
-          await ask(text);
-        } catch (e) {
-          setAnswer("");
-          setError(e.message);
-        }
-      };
-      mr.start();
-      recorder.current = mr;
-      setRecording(true);
+        form.append("image", blob, "crop.jpg");
+        form.append("question", q);
+        form.append("lang", lang);
+        form.append("profile", JSON.stringify(profile));
+        r = await fetch("/api/diagnose", { method: "POST", body: form });
+      } else {
+        r = await fetch("/api/agent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: q, lang, profile, history }),
+        });
+      }
+      if (!r.ok) {
+        let d = "";
+        try { d = (await r.json()).detail; } catch { /* not json */ }
+        throw new Error(d || `Error ${r.status}`);
+      }
+      const data = await r.json();
+      setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", text: data.answer, steps: data.steps || [], verification: data.verification, mock: data.mock } : x)));
+      if (!noSpeak && (speakReply || autoSpeakRef.current)) speakMessage(bid, data.answer);
+      return { id: bid, answer: data.answer };
     } catch (e) {
-      setError(t.mic + e.message);
+      setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", error: true, text: e.message, retry: { text: q, file } } : x)));
+      return null;
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
     }
   }
 
-  function stop() {
-    recorder.current?.stop();
-    setRecording(false);
+  function submit() {
+    const file = photo?.file;
+    const q = text;
+    if (!q.trim() && !file) return;
+    setText("");
+    clearPhoto();
+    send({ text: q, file });
   }
 
-  async function uploadPhoto(e) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    begin();
+  function retry(m) {
+    setMessages((list) => list.filter((x) => x.id !== m.id));
+    send({ text: m.retry.text, file: m.retry.file });
+  }
+
+  function newChat() {
+    stopSpeaking();
+    setSpeakingId(null);
+    setMessages([]);
+  }
+
+  // ---------- photo ----------
+  function pickPhoto(file) {
+    if (!file || !file.type.startsWith("image/")) return;
+    if (photo?.url) URL.revokeObjectURL(photo.url);
+    setPhoto({ file, url: URL.createObjectURL(file) });
+    setShowAttach(false);
+  }
+  function clearPhoto() {
+    if (photo?.url) URL.revokeObjectURL(photo.url);
+    setPhoto(null);
+  }
+
+  // ---------- voice ----------
+  async function transcribe(blob) {
     const form = new FormData();
-    form.append("image", await shrink(file), "crop.jpg");
-    form.append("question", typed.trim());
-    form.append("lang", lang);
-    form.append("profile", JSON.stringify(profile));
+    form.append("audio", blob, `question.${extFor(blob.type)}`);
+    const r = await fetch("/api/transcribe", { method: "POST", body: form });
+    if (r.status === 422) {
+      const e = new Error(tRef.current.unclear);
+      e.unclear = true;
+      throw e;
+    }
+    if (!r.ok) {
+      let d = "";
+      try { d = (await r.json()).detail; } catch { /* not json */ }
+      throw new Error(d || "transcribe failed");
+    }
+    return (await r.json()).text;
+  }
+
+  // Microphone button next to the text box: record, auto-stop on silence, transcribe, ask, read the reply aloud.
+  async function micToggle() {
+    if (rec === "recording") return listenerRef.current?.stop();
+    if (busyRef.current) return;
+    stopSpeaking();
+    setSpeakingId(null);
+    cancelledRef.current = false;
     try {
-      const r = await fetch("/api/diagnose", { method: "POST", body: form });
-      if (!r.ok) throw new Error((await r.json()).detail || "diagnose failed");
-      const label = "📷 " + (typed.trim() || "crop photo");
-      setQuestion(label);
-      showResult(label, await r.json());
-    } catch (err) {
-      setAnswer("");
-      setError(err.message);
+      const l = startListening({ onLevel });
+      listenerRef.current = l;
+      setRec("recording");
+      const blob = await l.promise;
+      setRec("idle");
+      if (cancelledRef.current) return;
+      if (!blob) return setToast(t.unclear);
+      const heard = await transcribe(blob);
+      const file = photo?.file;
+      clearPhoto();
+      await send({ text: heard, file, speakReply: true });
+    } catch (e) {
+      setRec("idle");
+      setToast(e.name === "NotAllowedError" ? t.mic + e.message : e.message);
     }
   }
+  function cancelRec() {
+    cancelledRef.current = true;
+    listenerRef.current?.cancel();
+  }
+
+  // Hands-free conversation: listen -> answer -> speak -> listen again.
+  async function voiceTurn() {
+    if (!voiceRef.current) return;
+    setVstate("listening");
+    setVlive("");
+    let blob;
+    try {
+      const l = startListening({ onLevel });
+      listenerRef.current = l;
+      blob = await l.promise;
+    } catch (e) {
+      setToast(t.mic + e.message);
+      return setVstate("idle");
+    }
+    if (!voiceRef.current) return;
+    if (!blob) {
+      failRef.current++;
+      return failRef.current >= 2 ? setVstate("idle") : voiceTurn();
+    }
+    setVstate("thinking");
+    let heard;
+    try {
+      heard = await transcribe(blob);
+    } catch (e) {
+      if (!voiceRef.current) return;
+      failRef.current++;
+      setToast(e.message);
+      return e.unclear && failRef.current < 3 ? voiceTurn() : setVstate("idle");
+    }
+    if (!voiceRef.current) return;
+    failRef.current = 0;
+    setVlive(heard);
+    const res = await send({ text: heard, noSpeak: true });
+    if (!voiceRef.current) return;
+    if (!res) return setVstate("idle");
+    setVstate("speaking");
+    await speakMessage(res.id, res.answer);
+    if (voiceRef.current) voiceTurn();
+  }
+  function openVoice() {
+    stopSpeaking();
+    setSpeakingId(null);
+    voiceRef.current = true;
+    failRef.current = 0;
+    setVoiceOpen(true);
+    voiceTurn();
+  }
+  function closeVoice() {
+    voiceRef.current = false;
+    listenerRef.current?.cancel();
+    stopSpeaking();
+    setSpeakingId(null);
+    setVoiceOpen(false);
+    setVstate("idle");
+  }
+  function orbTap() {
+    if (vstate === "listening") listenerRef.current?.stop();
+    else if (vstate === "speaking") stopSpeaking(); // loop continues with listening
+    else if (vstate === "idle") {
+      failRef.current = 0;
+      voiceTurn();
+    }
+  }
+
+  // ---------- misc ----------
+  function shareWhatsApp(m) {
+    window.open("https://wa.me/?text=" + encodeURIComponent(`${t.title}\n\n${m.text}`), "_blank");
+  }
+  async function copyText(m) {
+    try {
+      await navigator.clipboard.writeText(m.text);
+      setToast(t.copied);
+    } catch { /* clipboard blocked */ }
+  }
+  function quick(q) {
+    if (q.text === "__photo__") return setShowAttach(true);
+    send({ text: q.text });
+  }
+  function onDrop(e) {
+    e.preventDefault();
+    setDragging(false);
+    pickPhoto(e.dataTransfer.files?.[0]);
+  }
+
+  const lastBot = [...messages].reverse().find((m) => m.role === "bot" && m.text && !m.error);
+  const vlabel = { listening: t.listening, thinking: t.thinking, speaking: t.speaking, idle: t.idle }[vstate];
+  const canSend = !!(text.trim() || photo);
 
   return (
-    <main style={{ maxWidth: 560, margin: "40px auto", padding: 16, fontFamily: "system-ui" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>🌾 {t.title}</h1>
-        <select value={lang} onChange={(e) => setLang(e.target.value)} aria-label="Language">
-          <option value="auto">Auto</option>
-          <option value="te">తెలుగు</option>
-          <option value="en">English</option>
-          <option value="hi">हिन्दी</option>
-        </select>
-      </div>
-      <p>{t.hint}</p>
-      <details style={{ marginBottom: 12 }}>
-        <summary>{t.profile}</summary>
-        <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
-          <input value={profile.state} onChange={(e) => updateProfile({ state: e.target.value })} placeholder={t.state} />
-          <input value={profile.district} onChange={(e) => updateProfile({ district: e.target.value })} placeholder={t.district} />
-          <input value={profile.main_crop} onChange={(e) => updateProfile({ main_crop: e.target.value })} placeholder={t.crop} />
-          <label>
-            <input type="checkbox" checked={profile.owns_land} onChange={(e) => updateProfile({ owns_land: e.target.checked })} /> {t.land}
-          </label>
+    <div
+      className="app"
+      onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+      onDragLeave={(e) => e.currentTarget === e.target && setDragging(false)}
+      onDrop={onDrop}
+    >
+      {/* ---------- header ---------- */}
+      <header className="top">
+        <div className="brand">
+          <span className="logo">🌾</span>
+          <div>
+            <h1>{t.title}</h1>
+            <small>{t.tagline}</small>
+          </div>
         </div>
-      </details>
-      <button onClick={recording ? stop : start} style={{ fontSize: 18, padding: "12px 20px" }}>
-        {recording ? t.stop : t.speak}
-      </button>
-      <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
-        <input
-          value={typed}
-          onChange={(e) => setTyped(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendTyped()}
-          placeholder={t.type}
-          style={{ flex: 1, padding: 8 }}
-        />
-        <button onClick={sendTyped}>{t.send}</button>
-      </div>
-      <div style={{ marginTop: 12 }}>
-        <label>
-          {t.photo} <input type="file" accept="image/*" capture="environment" onChange={uploadPhoto} />
-        </label>
-      </div>
-      <div style={{ marginTop: 12 }}>
-        <small>{t.try}</small>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
-          {t.chips.map((c) => (
-            <button key={c} onClick={() => ask(c)} style={{ fontSize: 13, borderRadius: 14, padding: "4px 10px" }}>
-              {c}
-            </button>
-          ))}
-        </div>
-      </div>
-      {error && <p style={{ color: "crimson" }}>{error}</p>}
-      {question && (
-        <p>
-          <b>{t.you}:</b> {question}
-        </p>
-      )}
-      {steps.length > 0 && (
-        <details open>
-          <summary>
-            {t.steps} ({steps.length})
-          </summary>
-          <ul>
-            {steps.map((st, i) => (
-              <li key={i}>
-                <code>{st.tool}</code> {JSON.stringify(st.args)}
-              </li>
+        <div className="top-actions">
+          <div className="seg" role="group" aria-label="Language">
+            {LANGS.map((l) => (
+              <button key={l.id} className={lang === l.id ? "on" : ""} onClick={() => setLang(l.id)}>{l.label}</button>
             ))}
-          </ul>
-        </details>
-      )}
-      {answer && (
-        <div>
-          <p style={{ whiteSpace: "pre-wrap" }}>
-            <b>{t.bot}:</b> {answer}
-          </p>
-          {answer !== t.looking && (
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button onClick={() => speak(answer)}>{t.listen}</button>
-              <button onClick={shareWhatsApp}>{t.share}</button>
-              <button onClick={newConversation}>{t.clear}</button>
+          </div>
+          <button className="icon-btn" aria-label={t.theme} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+            {theme === "dark" ? <I.sun /> : <I.moon />}
+          </button>
+          <button className="icon-btn" aria-label={t.profile} onClick={() => setShowProfile(true)}><I.user /></button>
+          {messages.length > 0 && <button className="icon-btn" aria-label={t.newChat} title={t.newChat} onClick={newChat}><I.plus /></button>}
+        </div>
+      </header>
+
+      {/* ---------- conversation ---------- */}
+      <main className="chat">
+        {messages.length === 0 ? (
+          <section className="welcome">
+            <div className="hero-orb" aria-hidden="true">🌱</div>
+            <h2>{t.hello}</h2>
+            <p>{t.helloSub}</p>
+            <button className="talk-cta" onClick={openVoice}>
+              <span className="talk-ico"><I.wave /></span>
+              <span><b>{t.talkBtn}</b><small>{t.talkSub}</small></span>
+            </button>
+            <h4>{t.tryAsk}</h4>
+            <div className="quick">
+              {t.quick.map((q) => (
+                <button key={q.text} onClick={() => quick(q)}>
+                  <span>{q.icon}</span>{q.label || q.text}
+                </button>
+              ))}
             </div>
-          )}
+          </section>
+        ) : (
+          <div className="thread">
+            {messages.map((m) =>
+              m.role === "user" ? (
+                <div className="msg user" key={m.id}>
+                  <div className="bubble">
+                    {m.image && <img className="thumb" src={m.image} alt="" />}
+                    {m.text && <p>{m.text}</p>}
+                  </div>
+                </div>
+              ) : (
+                <div className="msg bot" key={m.id}>
+                  <span className="avatar">🌾</span>
+                  <div className="bot-col">
+                    {m.pending ? (
+                      <div className="bubble typing"><i /><i /><i /><span>{t.thinking}</span></div>
+                    ) : m.error ? (
+                      <div className="bubble error">
+                        <p>⚠️ {m.text}</p>
+                        {m.retry && <button className="pill" onClick={() => retry(m)}>↻ {t.retry}</button>}
+                      </div>
+                    ) : (
+                      <>
+                        <div className="bubble"><Markdown text={m.text} /></div>
+                        <ToolCards steps={m.steps} t={t} />
+                        {m.verification && (
+                          <p className={"verify " + (m.verification.passed ? "ok" : "warn")}>
+                            {m.verification.passed ? "✓ " + t.verified : "⚠ " + t.unverified + (m.verification.unverified || []).join(", ")}
+                          </p>
+                        )}
+                        <StepChips steps={m.steps} t={t} />
+                        <div className="actions">
+                          <button className={"pill" + (speakingId === m.id ? " live" : "")} onClick={() => toggleSpeak(m)}>
+                            {speakingId === m.id ? <I.stop width="16" height="16" /> : <I.speaker />}
+                            {speakingId === m.id ? t.stopListen : t.listen}
+                          </button>
+                          <button className="pill" onClick={() => shareWhatsApp(m)}><I.whatsapp />{t.share}</button>
+                          <button className="pill" onClick={() => copyText(m)}><I.copy />{t.copy}</button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )
+            )}
+            <div ref={endRef} />
+          </div>
+        )}
+      </main>
+
+      {/* ---------- composer ---------- */}
+      <footer className="composer-wrap">
+        {photo && (
+          <div className="photo-prev">
+            <img src={photo.url} alt="" />
+            <span>{t.photo}</span>
+            <button className="icon-btn sm" aria-label={t.removePhoto} onClick={clearPhoto}><I.x /></button>
+          </div>
+        )}
+        {showAttach && (
+          <div className="attach-menu">
+            <button onClick={() => camRef.current?.click()}><I.camera />{t.camera}</button>
+            <button onClick={() => galRef.current?.click()}><I.image />{t.gallery}</button>
+          </div>
+        )}
+        {rec === "recording" ? (
+          <div className="composer recording">
+            <button className="icon-btn" aria-label="Cancel" onClick={cancelRec}><I.x /></button>
+            <div className="meter" ref={meterRef} aria-hidden="true">{Array.from({ length: 18 }).map((_, i) => <i key={i} style={{ "--k": (0.4 + 0.6 * Math.abs(Math.sin(i * 1.7))).toFixed(2) }} />)}</div>
+            <span className="rec-label">{t.listening}</span>
+            <button className="round stop" aria-label={t.tapStop} onClick={micToggle}><I.stop /></button>
+          </div>
+        ) : (
+          <div className="composer">
+            <button className={"icon-btn" + (showAttach ? " on" : "")} aria-label={t.photo} onClick={() => setShowAttach((s) => !s)}><I.camera /></button>
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), submit())}
+              placeholder={photo ? t.photoPlaceholder : t.placeholder}
+              disabled={busy}
+              aria-label={t.placeholder}
+            />
+            {canSend ? (
+              <button className="round" aria-label={t.send} onClick={submit} disabled={busy}><I.send /></button>
+            ) : (
+              <>
+                <button className="icon-btn" aria-label={t.talkBtn} title={t.talkBtn} onClick={openVoice} disabled={busy}><I.wave /></button>
+                <button className="round" aria-label={t.idle} onClick={micToggle} disabled={busy}><I.mic /></button>
+              </>
+            )}
+          </div>
+        )}
+        <input ref={camRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { pickPhoto(e.target.files?.[0]); e.target.value = ""; }} />
+        <input ref={galRef} type="file" accept="image/*" hidden onChange={(e) => { pickPhoto(e.target.files?.[0]); e.target.value = ""; }} />
+      </footer>
+
+      {/* ---------- hands-free voice conversation ---------- */}
+      {voiceOpen && (
+        <div className="voice" role="dialog" aria-modal="true">
+          <button className="icon-btn voice-close" onClick={closeVoice} aria-label={t.closeVoice}><I.x /></button>
+          <div className="voice-body">
+            <button ref={orbRef} className={"orb " + vstate} onClick={orbTap} aria-label={vlabel}>
+              <i className="ring r1" /><i className="ring r2" /><i className="ring r3" />
+              <span className="core">{vstate === "speaking" ? <I.speaker width="44" height="44" /> : vstate === "thinking" ? <span className="spin" /> : <I.mic width="44" height="44" />}</span>
+            </button>
+            <h3>{vlabel}</h3>
+            <p className="hint">
+              {vstate === "listening" ? t.tapStop : vstate === "speaking" ? t.tapInterrupt : ""}
+            </p>
+            {vlive && <p className="live-text">“{vlive}”</p>}
+            {lastBot && vstate !== "listening" && <div className="voice-answer"><Markdown text={lastBot.text} /></div>}
+          </div>
+          <button className="end-call" onClick={closeVoice}>{t.closeVoice}</button>
         </div>
       )}
-      {verification && (
-        <p style={{ fontSize: 14, color: verification.passed ? "green" : "darkorange" }}>
-          {verification.passed ? t.ok : t.warn + (verification.unverified || []).join(", ")}
-        </p>
+
+      {/* ---------- profile sheet ---------- */}
+      {showProfile && (
+        <div className="sheet-bg" onClick={() => setShowProfile(false)}>
+          <div className="sheet" onClick={(e) => e.stopPropagation()}>
+            <h3>{t.profile}</h3>
+            <label>{t.state}<input value={profile.state} onChange={(e) => setProfile({ ...profile, state: e.target.value })} /></label>
+            <label>{t.district}<input value={profile.district} onChange={(e) => setProfile({ ...profile, district: e.target.value })} placeholder="Kurnool" /></label>
+            <label>{t.crop}<input value={profile.main_crop} onChange={(e) => setProfile({ ...profile, main_crop: e.target.value })} placeholder="Groundnut" /></label>
+            <label className="check"><input type="checkbox" checked={profile.owns_land} onChange={(e) => setProfile({ ...profile, owns_land: e.target.checked })} />{t.land}</label>
+            <label className="check"><input type="checkbox" checked={autoSpeak} onChange={(e) => setAutoSpeak(e.target.checked)} />{t.autoSpeak}</label>
+            <button className="primary" onClick={() => setShowProfile(false)}>{t.save}</button>
+          </div>
+        </div>
       )}
-    </main>
+
+      {dragging && <div className="drop">📷 {t.dropHere}</div>}
+      {toast && <div className="toast" role="status">{toast}</div>}
+    </div>
   );
 }
