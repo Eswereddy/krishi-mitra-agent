@@ -1,0 +1,33 @@
+{
+  "_note": "Minimum Support Prices announced by the Cabinet Committee on Economic Affairs (CCEA), Rs per quintal. Kharif 2026-27 announced 13 May 2026; Rabi 2026-27 announced 1 Oct 2025; Rabi 2027-28 announced 30 Sep 2026 (current sowing season). Verify at agriculture.gov.in / pib.gov.in.",
+  "checked": "2026-10-29",
+  "seasons": {
+    "kharif-2026-27": {
+      "label": "Kharif 2026-27", "type": "kharif",
+      "crops": {
+        "paddy": 2441, "paddy (grade a)": 2461, "jowar": 4023, "jowar (maldandi)": 4073, "bajra": 2900,
+        "ragi": 5205, "maize": 2410, "groundnut": 7517, "cotton": 8267, "cotton (long staple)": 8667,
+        "sunflower": 8343, "soyabean": 5708, "tur": 8450, "urad": 8200, "moong": 8780,
+        "nigerseed": 10052, "sesamum": 10346
+      }
+    },
+    "rabi-2026-27": {
+      "label": "Rabi 2026-27", "type": "rabi",
+      "crops": {"wheat": 2585, "barley": 2150, "gram": 5875, "lentil": 7000, "mustard": 6200, "safflower": 6540}
+    },
+    "rabi-2027-28": {
+      "label": "Rabi 2027-28", "type": "rabi",
+      "crops": {"wheat": 2610, "barley": 2286, "gram": 5958, "lentil": 7390, "mustard": 6613, "safflower": 7215}
+    }
+  },
+  "aliases": {
+    "rice": "paddy", "dhan": "paddy", "vari": "paddy", "paddy(common)": "paddy", "paddy (common)": "paddy",
+    "groundnut": "groundnut", "peanut": "groundnut", "verusenaga": "groundnut",
+    "cotton": "cotton", "patthi": "cotton", "pathi": "cotton",
+    "chickpea": "gram", "bengal gram": "gram", "chana": "gram", "senaga": "gram",
+    "red gram": "tur", "arhar": "tur", "pigeon pea": "tur", "kandi": "tur",
+    "black gram": "urad", "minumu": "urad", "green gram": "moong", "pesalu": "moong",
+    "corn": "maize", "mokkajonna": "maize", "jonna": "jowar", "sorghum": "jowar", "masur": "lentil",
+    "soybean": "soyabean", "rapeseed": "mustard", "sesame": "sesamum", "gingelly": "sesamum", "nuvvulu": "sesamum"
+  }
+}
