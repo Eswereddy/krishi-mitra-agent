@@ -1,0 +1,21 @@
+{
+  "_note": "INDICATIVE per-acre yield and cultivation cost for common Andhra Pradesh crops under normal management, rounded from typical state-level cost-of-cultivation estimates. These are planning assumptions, not measured data: real yield and cost change with soil, water, seed, labour and weather. The farmer should replace them with his own numbers.",
+  "crops": [
+    {"id": "paddy", "name": "Paddy", "seasons": ["kharif", "rabi"], "mandi_keyword": "paddy", "msp_key": "paddy",
+     "yield_q_per_acre": 28, "cost_rs_per_acre": 32000, "duration_days": 130, "water": "high"},
+    {"id": "groundnut", "name": "Groundnut", "seasons": ["kharif", "rabi"], "mandi_keyword": "groundnut", "msp_key": "groundnut",
+     "yield_q_per_acre": 9, "cost_rs_per_acre": 28000, "duration_days": 110, "water": "medium"},
+    {"id": "cotton", "name": "Cotton", "seasons": ["kharif"], "mandi_keyword": "cotton", "msp_key": "cotton",
+     "yield_q_per_acre": 8, "cost_rs_per_acre": 38000, "duration_days": 170, "water": "medium"},
+    {"id": "maize", "name": "Maize", "seasons": ["kharif", "rabi"], "mandi_keyword": "maize", "msp_key": "maize",
+     "yield_q_per_acre": 28, "cost_rs_per_acre": 24000, "duration_days": 115, "water": "medium"},
+    {"id": "redgram", "name": "Red gram (Tur)", "seasons": ["kharif"], "mandi_keyword": "arhar", "msp_key": "tur",
+     "yield_q_per_acre": 4, "cost_rs_per_acre": 16000, "duration_days": 165, "water": "low"},
+    {"id": "chilli", "name": "Dry chilli", "seasons": ["kharif"], "mandi_keyword": "dry chillies", "msp_key": null,
+     "yield_q_per_acre": 14, "cost_rs_per_acre": 110000, "duration_days": 170, "water": "medium"},
+    {"id": "bengalgram", "name": "Bengal gram (Chana)", "seasons": ["rabi"], "mandi_keyword": "bengal gram", "msp_key": "gram",
+     "yield_q_per_acre": 6, "cost_rs_per_acre": 15000, "duration_days": 100, "water": "low"},
+    {"id": "blackgram", "name": "Black gram (Urad)", "seasons": ["rabi"], "mandi_keyword": "black gram", "msp_key": "urad",
+     "yield_q_per_acre": 4, "cost_rs_per_acre": 14000, "duration_days": 85, "water": "low"}
+  ]
+}

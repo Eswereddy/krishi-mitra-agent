@@ -41,7 +41,7 @@ See [DEMO.md](DEMO.md) for the 3-minute demo script and submission checklist.
 
 ## Tests (offline, no API key needed)
 ```bash
-cd backend && python tests/test_verify.py && python tests/test_tools.py && python tests/test_stream.py && python tests/test_hardening.py && python tests/test_grounding.py && python tests/test_whatsapp.py && python tests/test_advisor.py
+cd backend && python tests/test_verify.py && python tests/test_tools.py && python tests/test_stream.py && python tests/test_hardening.py && python tests/test_grounding.py && python tests/test_whatsapp.py && python tests/test_advisor.py && python tests/test_planner.py
 ```
 
 ## Run locally
@@ -91,6 +91,14 @@ The chat shows a card for each. MSP figures were checked on 29 Oct 2026; update 
 - `irrigation_advice`: irrigate or wait, from the rain forecast and heat (the farmer is told to check the soil by hand).
 - `kcc_interest`: Kisan Credit Card crop-loan interest at 7% (4% effective if repaid within a year), exact rupees and the saving; the benefit applies on up to Rs 3 lakh (checked Oct 2026, rules are renewed every year, the bank gives the final figure).
 
+## Planning, alerts and risk warnings (new)
+- **`sell_plan` (where to sell after transport):** ranks the best-paying markets by the money that actually reaches the farmer's hand, using the distance from the farmer's village (Open-Meteo geocoding, straight line x 1.3 for roads), commission, loading and transport. A far market that pays Rs 100 more per quintal can lose to a near one; the card shows exactly why. Rates are labelled assumptions.
+- **`compare_crops` (which crop to grow):** for kharif or rabi and any number of acres, ranks crops by expected profit using indicative yield and cost per acre (`data/crop_economics.json`, clearly labelled as assumptions) and the latest mandi price (or MSP when there is no market price). It also shows the profit if the price falls 10%, water need and crop duration, so risk is visible.
+- **Price alerts (bell icon):** "tell me when groundnut goes above Rs 7,500". Alerts stay on the phone (no account, no personal data on the server); the app checks `/api/alerts/check` every 15 minutes, when it comes back online and on demand, and shows a banner and a phone notification. **Only live prices can trigger an alert**: sample or saved data never says "price reached".
+- **Weather risk warnings in the Today brief:** heat (40 degC or more), heavy rain (25 mm or more) and strong wind (40 km/h or more) are called out with the worst day and what to do, in Telugu, Hindi and English, and pass the same verification layer.
+- **Hardening:** the rate limiter now trusts only the address added by the proxy (a client can no longer dodge it with a fake `X-Forwarded-For`), idle clients are swept from memory, uploads are type- and size-checked (photos 8 MB, audio 10 MB), and the agent's "could not finish" message is in the farmer's language. `/api/health` reports the tool count and whether live prices are on.
+- 16 tools in total; 10 new offline tests in `backend/tests/test_planner.py`.
+
 ## Data honesty
 - Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.
 - Scheme details are indicative and must be confirmed with the official office (links are returned by the tool).
@@ -99,3 +107,4 @@ The chat shows a card for each. MSP figures were checked on 29 Oct 2026; update 
 - Day 1 (Oct 27): repo scaffold, FastAPI backend, Meta API client, voice-record UI, crop photo upload.
 - Day 2 (Oct 28): agent loop with tools, mock mode, Baseten provider switch, answer verification layer, Docker deploy.
 - Day 3 (Oct 29): photo-to-action-plan through the agent, multi-turn, best markets, revenue calculator, scheme documents, WhatsApp share, quick-ask buttons, transcription guard, image shrinking. Also: Telugu/English/Hindi, typed input, WebM→WAV audio fix for Baseten, weather + expert-help + live mandi tools, farmer profile, listen button.
+- Day 4 (Oct 30): sell_plan, compare_crops, price alerts, weather risk warnings, rate-limit and upload hardening.

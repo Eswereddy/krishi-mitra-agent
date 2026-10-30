@@ -354,8 +354,12 @@ TOOL_SPECS = [
 
 from . import advisor  # noqa: E402  (advisor imports tools lazily, so this order is safe)
 
+from . import planner  # noqa: E402
+
 TOOL_FUNCS.update(advisor.FUNCS)
 TOOL_SPECS.extend(advisor.SPECS)
+TOOL_FUNCS.update(planner.FUNCS)
+TOOL_SPECS.extend(planner.SPECS)
 
 
 def run_tool(name: str, args: dict) -> dict:

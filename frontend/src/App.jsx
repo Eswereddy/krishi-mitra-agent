@@ -58,6 +58,11 @@ export default function App() {
   const [big, setBig] = useState(() => load("km-big", false));
   const [online, setOnline] = useState(() => navigator.onLine !== false);
   const [installEvt, setInstallEvt] = useState(null);
+  const [alerts, setAlerts] = useState(() => load("km-alerts", []));
+  const [alertRes, setAlertRes] = useState({}); // id -> latest check result from the server
+  const [showAlerts, setShowAlerts] = useState(false);
+  const [dismissed, setDismissed] = useState([]);
+  const [draft, setDraft] = useState({ crop: "", target: "", direction: "above" });
 
   const t = T[lang === "auto" ? "te" : lang];
   const tRef = useRef(t);
@@ -112,6 +117,50 @@ export default function App() {
     const id = setTimeout(() => setToast(""), 3200);
     return () => clearTimeout(id);
   }, [toast]);
+
+  useEffect(() => save("km-alerts", alerts), [alerts]);
+
+  // Price alerts live on the device. Ask the server for the latest live prices now, every 15 minutes,
+  // and whenever the phone comes back online; notify once per alert per day when a target is reached.
+  const alertsRef = useRef(alerts);
+  alertsRef.current = alerts;
+  const checkAlerts = useCallback(async (manual = false) => {
+    const list = alertsRef.current;
+    if (!list.length || !navigator.onLine) return;
+    try {
+      const r = await fetch("/api/alerts/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ alerts: list.map((a) => ({ ...a, state: profile.state })) }) });
+      if (!r.ok) return;
+      const { results } = await r.json();
+      setAlertRes(Object.fromEntries(results.map((x) => [x.id, x])));
+      const today = new Date().toISOString().slice(0, 10);
+      const seen = load("km-alerts-seen", {});
+      results.filter((x) => x.triggered && seen[x.id] !== today).forEach((x) => {
+        seen[x.id] = today;
+        const msg = `${tRef.current.al.banner}: ${x.crop} ₹${Number(x.current).toLocaleString("en-IN")} (${x.market || x.district})`;
+        setToast(msg);
+        try { if (window.Notification?.permission === "granted") new Notification(tRef.current.title, { body: msg, icon: "/icon.svg" }); } catch { /* notifications unavailable */ }
+      });
+      save("km-alerts-seen", seen);
+      if (manual) setToast(tRef.current.al.check + " ✓");
+    } catch { /* offline or server busy: try again at the next check */ }
+  }, [profile.state]);
+  useEffect(() => {
+    checkAlerts();
+    const id = setInterval(checkAlerts, 15 * 60 * 1000);
+    window.addEventListener("online", checkAlerts);
+    return () => { clearInterval(id); window.removeEventListener("online", checkAlerts); };
+  }, [checkAlerts, alerts.length]);
+  function addAlert() {
+    const target = Number(draft.target);
+    const crop = (draft.crop || profile.main_crop || "").trim();
+    if (!profile.district) return setToast(t.al.needDistrict);
+    if (!crop || !(target > 0)) return;
+    setAlerts((l) => [...l, { id: uid(), crop, district: profile.district, target, direction: draft.direction }].slice(-5));
+    setDraft({ crop: "", target: "", direction: "above" });
+  }
+  async function enableNotifications() {
+    try { await window.Notification?.requestPermission(); } catch { /* not supported */ }
+  }
 
   const onLevel = useCallback((lv) => {
     orbRef.current?.style.setProperty("--lvl", lv.toFixed(3));
@@ -470,11 +519,20 @@ export default function App() {
           <button className="icon-btn" aria-label={t.theme} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
             {theme === "dark" ? <I.sun /> : <I.moon />}
           </button>
+          <button className="icon-btn bell" aria-label={t.al.title} title={t.al.title} onClick={() => setShowAlerts(true)}>
+            <I.bell />{Object.values(alertRes).some((x) => x.triggered) && <i className="dot" />}
+          </button>
           <button className="icon-btn" aria-label={t.profile} onClick={() => setShowProfile(true)}><I.user /></button>
           {messages.length > 0 && <button className="icon-btn" aria-label={t.newChat} title={t.newChat} onClick={newChat}><I.plus /></button>}
         </div>
       </header>
       {!online && <div className="offline" role="status">📡 {t.offline}</div>}
+      {Object.values(alertRes).filter((x) => x.triggered && !dismissed.includes(x.id)).map((x) => (
+        <div className="alert-banner" role="status" key={x.id}>
+          <span>{t.al.banner}: <b>{x.crop}</b> ₹{Number(x.current).toLocaleString("en-IN")} · {x.market || x.district} ({x.direction === "above" ? "≥" : "≤"} ₹{x.target.toLocaleString("en-IN")})</span>
+          <button className="icon-btn sm" aria-label="Close" onClick={() => setDismissed((d) => [...d, x.id])}><I.x /></button>
+        </div>
+      ))}
 
       {/* ---------- conversation ---------- */}
       <main className="chat">
@@ -616,6 +674,51 @@ export default function App() {
             {lastBot && vstate !== "listening" && <div className="voice-answer"><Markdown text={lastBot.text} /></div>}
           </div>
           <button className="end-call" onClick={closeVoice}>{t.closeVoice}</button>
+        </div>
+      )}
+
+      {/* ---------- price alerts sheet ---------- */}
+      {showAlerts && (
+        <div className="sheet-bg" onClick={() => setShowAlerts(false)}>
+          <div className="sheet" onClick={(e) => e.stopPropagation()}>
+            <h3>🔔 {t.al.title}</h3>
+            {alerts.length === 0 && <p className="hint">{t.al.empty}</p>}
+            {alerts.map((a) => {
+              const r = alertRes[a.id];
+              const state = r?.triggered ? "reached" : r?.status === "waiting" ? "waiting" : r ? "off" : "";
+              return (
+                <div className={"alert-row " + state} key={a.id}>
+                  <div>
+                    <b>{a.crop}</b> · {a.district}
+                    <small>{a.direction === "above" ? t.al.above : t.al.below} ₹{a.target.toLocaleString("en-IN")}
+                      {r?.current != null && <> · {t.al.now} ₹{Number(r.current).toLocaleString("en-IN")}{r.live ? "" : ` (${t.al.notLive})`}</>}
+                    </small>
+                  </div>
+                  <span className="alert-state">{r?.triggered ? "✅ " + t.al.reached : r?.status === "waiting" ? "⏳ " + t.al.waiting : ""}</span>
+                  <button className="icon-btn sm" aria-label={t.al.remove} onClick={() => setAlerts((l) => l.filter((x) => x.id !== a.id))}><I.x /></button>
+                </div>
+              );
+            })}
+            {alerts.length < 5 && (
+              <>
+                <label>{t.al.crop}<input value={draft.crop} onChange={(e) => setDraft({ ...draft, crop: e.target.value })} placeholder={profile.main_crop || "Groundnut"} /></label>
+                <div className="alert-form">
+                  <select value={draft.direction} onChange={(e) => setDraft({ ...draft, direction: e.target.value })} aria-label="direction">
+                    <option value="above">{t.al.above}</option>
+                    <option value="below">{t.al.below}</option>
+                  </select>
+                  <input type="number" inputMode="numeric" min="1" value={draft.target} onChange={(e) => setDraft({ ...draft, target: e.target.value })} placeholder="₹ / quintal" aria-label={t.al.target} />
+                </div>
+                <button className="primary" onClick={addAlert}>＋ {t.al.add}</button>
+              </>
+            )}
+            <p className="hint">{t.al.liveOnly}</p>
+            <div className="alert-actions">
+              {alerts.length > 0 && <button className="pill" onClick={() => checkAlerts(true)}>↻ {t.al.check}</button>}
+              {"Notification" in window && window.Notification.permission === "default" && <button className="pill" onClick={enableNotifications}>🔔 {t.al.notifyOn}</button>}
+            </div>
+            <button className="primary" onClick={() => setShowAlerts(false)}>{t.save}</button>
+          </div>
         </div>
       )}
 

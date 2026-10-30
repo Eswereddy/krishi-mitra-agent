@@ -32,8 +32,17 @@ SYSTEM = (
     "(7% a year, 4% if repaid on time; say the bank confirms). "
     "For spraying, call spray_window (never a dose). For a plant problem described in words, call lookup_problem; "
     "present it as a likely cause, not a diagnosis, give only the checks and steps returned, never name pesticides or doses. "
+    "For 'where should I sell' with a quantity or distance, call sell_plan (it ranks markets after transport and fees; "
+    "say the cost rates are assumptions and the farmer should get real quotes). For 'which crop should I grow' or "
+    "'which crop gives more profit', call compare_crops and say yield and cost per acre are indicative assumptions, "
+    "price can change by harvest, and the agriculture officer should confirm. Report only figures the tools returned. "
     "{lang_instruction}"
 )
+GIVE_UP = {
+    "te": "ఈ ప్రశ్నను పూర్తిగా పరిష్కరించలేకపోయాను. దయచేసి మళ్లీ ప్రయత్నించండి లేదా కిసాన్ కాల్ సెంటర్ 1800-180-1551 కు కాల్ చేయండి.",
+    "hi": "मैं इस सवाल को पूरा हल नहीं कर सका। कृपया फिर से कोशिश करें या किसान कॉल सेंटर 1800-180-1551 पर कॉल करें।",
+    "en": "I could not finish this question. Please try again, or call the Kisan Call Centre on 1800-180-1551.",
+}
 MAX_STEPS = 6
 MAX_REWRITES = 2
 
@@ -104,7 +113,7 @@ async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "a
             steps.append({"tool": name, "args": args, "result": result})
             messages.append({"role": "tool", "tool_call_id": c["id"],
                              "content": json.dumps(result, ensure_ascii=False)})
-    return {"answer": "Konni steps lo purtiga cheyaleka poyanu. Malli prayatninchandi.",
+    return {"answer": GIVE_UP.get(code, GIVE_UP["en"]),
             "steps": steps, "mock": False,
             "verification": {"passed": False, "unverified": [], "rewrites": rewrites}}
 

@@ -217,3 +217,20 @@ html[data-size="lg"] .welcome > p, html[data-size="lg"] .voice-answer, html[data
 .decision.falling { background: color-mix(in srgb, var(--gold) 28%, transparent); color: #8a5a00; }
 .today-cta { margin-top: 10px; }
 .today-cta .talk-ico { background: linear-gradient(135deg, #f5b942, #ee8a2b); }
+
+/* ---- planning cards and price alerts ---- */
+.row.best { background: color-mix(in srgb, var(--green) 10%, transparent); border-radius: 12px; padding: 6px 8px; margin: 0 -8px; }
+.bell { position: relative; }
+.bell .dot { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--red); border: 2px solid var(--surface); }
+.alert-banner { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: color-mix(in srgb, var(--green) 18%, var(--surface)); color: var(--text); padding: 8px 14px; font-size: 14px; border-bottom: 1px solid var(--line); }
+.alert-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; background: var(--surface2); border-radius: 14px; padding: 10px 12px; }
+.alert-row small { display: block; color: var(--muted); font-size: 12.5px; }
+.alert-row.reached { outline: 2px solid var(--green); }
+.alert-state { font-size: 12.5px; font-weight: 700; }
+.alert-form { display: grid; grid-template-columns: 1fr 1.2fr; gap: 8px; }
+.alert-form select { padding: 11px 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface2); font-size: 16px; color: var(--text); }
+.alert-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sheet .hint { color: var(--muted); font-size: 13px; }
+.sheet { grid-template-columns: minmax(0, 1fr); max-height: 92vh; overflow-y: auto; }
+.sheet input:not([type=checkbox]), .sheet select, .sheet button.primary { width: 100%; box-sizing: border-box; min-width: 0; }
+.alert-form > * { min-width: 0; }

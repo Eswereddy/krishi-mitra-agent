@@ -10,7 +10,10 @@ Small farmers in India often cannot type long questions, read English websites, 
 
 ## What Krishi Mitra does
 - **Talk to it.** Tap Talk and have a hands-free conversation: it listens, answers out loud, and listens again. Typing and crop photos work too.
-- **A real agent, not a chatbot.** The model decides which of 14 tools to call, in several steps: mandi price, best markets to sell, price trend (rising or falling), weather forecast, scheme eligibility with documents needed, an exact income calculator, expert help (Kisan Call Centre), and an advisor set: government MSP, take-home value after transport and fees, spray-day finder, a crop-problem lookup that never names pesticides or doses, a one-line sell-or-hold recommendation, irrigation advice and Kisan Credit Card interest. A one-tap **Today brief** (weather, irrigation, spraying, price, MSP gap, sell/hold) is built with no model call, so it is instant and works offline from the model.
+- **A real agent, not a chatbot.** The model decides which of 16 tools to call, in several steps: mandi price, best markets to sell, price trend (rising or falling), weather forecast, scheme eligibility with documents needed, an exact income calculator, expert help (Kisan Call Centre), and an advisor set: government MSP, take-home value after transport and fees, spray-day finder, a crop-problem lookup that never names pesticides or doses, a one-line sell-or-hold recommendation, irrigation advice and Kisan Credit Card interest. A one-tap **Today brief** (weather, irrigation, spraying, price, MSP gap, sell/hold) is built with no model call, so it is instant and works offline from the model.
+- **Where to sell, after transport.** A far market that pays more can leave less money in hand. `sell_plan` ranks markets by what reaches the farmer after distance, commission and loading.
+- **Which crop to grow.** `compare_crops` ranks crops for the season by expected profit per acre, with the downside if the price falls 10%, water need and duration. Yield and cost are labelled assumptions.
+- **Price alerts and weather warnings.** Set a target price once; the app tells the farmer when a live price reaches it (never from sample or old data). The Today brief warns about heat, heavy rain and strong wind.
 - **Sell now or wait.** It combines the price trend, the best markets and the weather into one clear recommendation, and says it is guidance, not a guarantee.
 - **Photo to action plan.** A crop photo goes through the same agent: likely problem and how sure it is, weather to time spraying, crop insurance if there is real loss, and a call button to a human expert when unsure. It gives no pesticide doses.
 - **You can watch it work.** Each tool call appears live while the answer is being prepared.
@@ -38,7 +41,7 @@ React (Vite) PWA, FastAPI backend, Muse Spark Open on Baseten. Live data: Agmark
 - Telugu, Hindi and English only for now.
 
 ## What is next
-More languages, village-level weather from the farmer's location, a reminder when a price target is reached, and a WhatsApp channel for farmers who do not install apps.
+More languages, village-level weather from the farmer's location, price alerts over WhatsApp, and real transport quotes instead of assumed rates.
 
 ## Links (fill in before submitting)
 - Live app: <https://krishi-mitra-agent.onrender.com/>
