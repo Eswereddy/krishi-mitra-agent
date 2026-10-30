@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, alerts, brief, config, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
+from . import agent, alerts, brief, config, meta_extras, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -16,6 +16,7 @@ MAX_IMAGE_BYTES = 8 * 1024 * 1024
 app = FastAPI(title="Krishi Mitra Agent")
 app.middleware("http")(ratelimit.middleware)
 app.include_router(whatsapp.router)
+app.include_router(meta_extras.router)
 
 app.add_middleware(
     CORSMiddleware,

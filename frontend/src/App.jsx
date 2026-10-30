@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { T, LANGS } from "./i18n";
 import { startListening, speak, stopSpeaking, extFor, unlockAudio } from "./lib/audio";
 import { Markdown, ToolCards, StepChips, LiveSteps, SourcesLine, I } from "./components";
+import { ExtraSheet, ex, leafScan, adviceCard } from "./extras";
 
 const DEFAULT_PROFILE = { state: "Andhra Pradesh", district: "", owns_land: false, main_crop: "" };
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -55,6 +56,7 @@ export default function App() {
   const [showAttach, setShowAttach] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [toast, setToast] = useState("");
+  const [extra, setExtra] = useState(null); // { kind: "scan" | "card", loading, data, error, run }
   const [big, setBig] = useState(() => load("km-big", false));
   const [online, setOnline] = useState(() => navigator.onLine !== false);
   const [installEvt, setInstallEvt] = useState(null);
@@ -354,7 +356,7 @@ export default function App() {
   async function transcribe(blob) {
     const form = new FormData();
     form.append("audio", blob, `question.${extFor(blob.type)}`);
-    const r = await fetch("/api/transcribe", { method: "POST", body: form });
+    const r = await fetch("/api/asr", { method: "POST", body: form }); // Muse Voice Transcribe when configured, else Spark Open
     if (r.status === 422) {
       const e = new Error(tRef.current.unclear);
       e.unclear = true;
@@ -462,6 +464,18 @@ export default function App() {
       voiceTurn();
     }
   }
+
+  // ---------- Meta extras: SAM 3.1 leaf measurement, Muse Image share card ----------
+  async function runExtra(kind, run) {
+    setExtra({ kind, loading: true, run });
+    try {
+      setExtra({ kind, data: await run(), run });
+    } catch (e) {
+      setExtra({ kind, error: e.message, run });
+    }
+  }
+  const scanPhoto = () => photo?.file && runExtra("scan", () => leafScan(photo.file, ex(t.code).unavailable));
+  const makeCard = (m) => runExtra("card", () => adviceCard(m.text, lang, profile.main_crop, ex(t.code).unavailable));
 
   // ---------- misc ----------
   function shareWhatsApp(m) {
@@ -598,6 +612,7 @@ export default function App() {
                           </button>
                           <button className="pill" onClick={() => shareWhatsApp(m)}><I.whatsapp />{t.share}</button>
                           <button className="pill" onClick={() => copyText(m)}><I.copy />{t.copy}</button>
+                          <button className="pill" onClick={() => makeCard(m)}>🖼️ {ex(t.code).cardBtn}</button>
                         </div>
                       </>
                     )}
@@ -616,6 +631,7 @@ export default function App() {
           <div className="photo-prev">
             <img src={photo.url} alt="" />
             <span>{t.photo}</span>
+            <button className="pill" onClick={scanPhoto}>🔬 {ex(t.code).scan}</button>
             <button className="icon-btn sm" aria-label={t.removePhoto} onClick={clearPhoto}><I.x /></button>
           </div>
         )}
@@ -676,6 +692,8 @@ export default function App() {
           <button className="end-call" onClick={closeVoice}>{t.closeVoice}</button>
         </div>
       )}
+
+      <ExtraSheet extra={extra} lang={t.code} onClose={() => setExtra(null)} onRetry={() => extra?.run && runExtra(extra.kind, extra.run)} />
 
       {/* ---------- price alerts sheet ---------- */}
       {showAlerts && (

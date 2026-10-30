@@ -234,3 +234,7 @@ html[data-size="lg"] .welcome > p, html[data-size="lg"] .voice-answer, html[data
 .sheet { grid-template-columns: minmax(0, 1fr); max-height: 92vh; overflow-y: auto; }
 .sheet input:not([type=checkbox]), .sheet select, .sheet button.primary { width: 100%; box-sizing: border-box; min-width: 0; }
 .alert-form > * { min-width: 0; }
+
+.extra-img { width: 100%; max-height: 46vh; object-fit: contain; border-radius: 14px; background: var(--surface2); }
+.warn-note { color: #b4540a; font-size: 14px; font-weight: 600; }
+.alert-actions a.pill { text-decoration: none; color: inherit; }

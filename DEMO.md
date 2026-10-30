@@ -36,3 +36,5 @@
 - **Where to sell:** ask "Where should I sell 10 quintals of groundnut after transport costs?". Point at the 🏆 market and the "+₹ more than the nearest market" line: a far market that pays more can lose once transport is counted.
 - **Which crop:** ask "Which crop gives more profit on 2 acres this rabi?". Show the "if price falls 10%" column and say yield/cost are labelled assumptions.
 - **Price alert:** tap the 🔔, set groundnut "goes above" a price below today's, tap Check now: the banner appears. Say that only live prices can trigger it.
+- **SAM 3.1 leaf measurement:** add a leaf photo, tap 🔬 Measure damage: the overlay shows the marked lesions and the percentage. Say that the model finds the regions and code computes the percentage, and that it is not a diagnosis. (needs `MODEL_API_KEY`)
+- **Muse Image card:** tap 🖼️ Card under an answer and share it to WhatsApp. (needs `MODEL_API_KEY`)

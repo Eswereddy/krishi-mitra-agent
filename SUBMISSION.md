@@ -21,6 +21,9 @@ Small farmers in India often cannot type long questions, read English websites, 
 
 ## How Meta models are used
 - **Muse Spark Open** (open weights, served on Baseten) does the chat, tool calling, image understanding and speech transcription. One model for text, vision and audio keeps the app simple.
+- **SAM 3.1** measures how much of a leaf is marked: it finds lesions and the leaf, and the percentage is computed in code from the masks, not guessed by a model.
+- **Muse Voice Transcribe** is the dedicated speech model for voice questions (with automatic fallback to Spark Open audio).
+- **Muse Image** turns a verified answer into a shareable advice card.
 - A provider switch (`PROVIDER=baseten` or `PROVIDER=meta`) lets the same code run on the Meta Model API.
 
 ## Why you can trust the numbers (verification layer)

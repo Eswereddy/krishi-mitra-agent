@@ -27,6 +27,7 @@ jobs:
           python tests/test_whatsapp.py
           python tests/test_advisor.py
           python tests/test_planner.py
+          python tests/test_meta_extras.py
 
   frontend:
     runs-on: ubuntu-latest
