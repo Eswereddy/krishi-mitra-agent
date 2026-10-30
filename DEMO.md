@@ -38,3 +38,4 @@
 - **Price alert:** tap the 🔔, set groundnut "goes above" a price below today's, tap Check now: the banner appears. Say that only live prices can trigger it.
 - **SAM 3.1 leaf measurement:** add a leaf photo, tap 🔬 Measure damage: the overlay shows the marked lesions and the percentage. Say that the model finds the regions and code computes the percentage, and that it is not a diagnosis. (needs `MODEL_API_KEY`)
 - **Muse Image card:** tap 🖼️ Card under an answer and share it to WhatsApp. (needs `MODEL_API_KEY`)
+- **This week:** tap 📅 This week. Show the 🔴 Do first items and the 7-day strip; say it decides and ranks the actions itself and every figure is verified.

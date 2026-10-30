@@ -5,6 +5,7 @@ import { I } from "./components";
 
 const S = {
   te: {
+    week: "ఈ వారం", weekSub: "7 రోజుల ప్లాన్: ముందు ఏం చేయాలి",
     scan: "నష్టం కొలవండి", scanTitle: "ఆకు నష్టం కొలత", scanning: "SAM 3.1 ఆకును చూస్తోంది...", cardBtn: "కార్డ్", cardTitle: "షేర్ కార్డ్",
     making: "Muse Image కార్డ్ తయారుచేస్తోంది...", pct: "ఆకులో నష్టం", spots: "మచ్చల ప్రాంతాలు", photoBasis: "(ఫోటోలో శాతం)",
     bands: { none: "మచ్చలు కనిపించలేదు", mild: "తక్కువ", moderate: "మధ్యస్థం", severe: "ఎక్కువ" },
@@ -13,6 +14,7 @@ const S = {
     unavailable: "ఈ సదుపాయం ఇప్పుడు అందుబాటులో లేదు.", download: "డౌన్‌లోడ్", share: "షేర్", close: "మూసివేయి", again: "మళ్లీ ప్రయత్నించు",
   },
   en: {
+    week: "This week", weekSub: "7-day plan: what to do first",
     scan: "Measure damage", scanTitle: "Leaf damage measurement", scanning: "SAM 3.1 is looking at the leaf...", cardBtn: "Card", cardTitle: "Share card",
     making: "Muse Image is making the card...", pct: "of the leaf is marked", spots: "marked areas", photoBasis: "(of the whole photo)",
     bands: { none: "No lesions found", mild: "Mild", moderate: "Moderate", severe: "Severe" },
@@ -21,6 +23,7 @@ const S = {
     unavailable: "This feature is not available right now.", download: "Download", share: "Share", close: "Close", again: "Try again",
   },
   hi: {
+    week: "इस हफ़्ते", weekSub: "7 दिन की योजना: पहले क्या करें",
     scan: "नुकसान मापें", scanTitle: "पत्ती के नुकसान की माप", scanning: "SAM 3.1 पत्ती देख रहा है...", cardBtn: "कार्ड", cardTitle: "शेयर कार्ड",
     making: "Muse Image कार्ड बना रहा है...", pct: "पत्ती पर निशान", spots: "निशान वाले हिस्से", photoBasis: "(पूरी फ़ोटो का हिस्सा)",
     bands: { none: "कोई धब्बा नहीं मिला", mild: "हल्का", moderate: "मध्यम", severe: "ज़्यादा" },

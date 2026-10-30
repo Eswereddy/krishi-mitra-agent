@@ -389,6 +389,39 @@ function CropPlanCard({ step, t }) {
   );
 }
 
+// ---------- week plan: ranked actions + 7-day strip ----------
+const DOT = { urgent: "🔴", soon: "🟡", info: "🟢" };
+function WeekPlanCard({ step }) {
+  const { days = [], priorities = [] } = step.result || {};
+  if (!days.length && !priorities.length) return null;
+  return (
+    <div className="card">
+      <div className="card-head"><span>📅 {priorities.length} ✔</span></div>
+      <div className="plan-list">
+        {priorities.map((p, i) => (
+          <div className={"plan-item " + p.level} key={i}>
+            <span className="plan-dot">{DOT[p.level]}</span>
+            <div><small>{p.label}</small><p>{p.text}</p></div>
+          </div>
+        ))}
+      </div>
+      {days.length > 0 && (
+        <div className="wx plan-days">
+          {days.map((d) => (
+            <div className="wx-day" key={d.date}>
+              <small>{new Date(d.date).toLocaleDateString(undefined, { weekday: "short", day: "numeric" })}</small>
+              <span className="wx-ico">{WX(d.rain_mm, d.rain_chance_pct)}</span>
+              <b>{Math.round(d.max_c)}°</b>
+              <small title="irrigation">{d.irrigate ? "💧" : "·"}</small>
+              <small title="spraying">{d.spray_ok ? "🧴" : "⛔"}</small>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ToolCards({ steps, t }) {
   // show the latest result per tool (the agent may call a tool twice)
   const seen = new Map();
@@ -410,6 +443,7 @@ export function ToolCards({ steps, t }) {
       case "hold_or_sell": return <DecisionCard step={s} t={t} />;
       case "irrigation_advice": return <IrrigationCard step={s} t={t} />;
       case "kcc_interest": return <KccCard step={s} t={t} />;
+      case "week_plan": return <WeekPlanCard step={s} />;
       case "sell_plan": return <SellPlanCard step={s} t={t} />;
       case "compare_crops": return <CropPlanCard step={s} t={t} />;
       default: return null;

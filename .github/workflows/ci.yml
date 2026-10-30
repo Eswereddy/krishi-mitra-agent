@@ -28,6 +28,7 @@ jobs:
           python tests/test_advisor.py
           python tests/test_planner.py
           python tests/test_meta_extras.py
+          python tests/test_plan.py
 
   frontend:
     runs-on: ubuntu-latest

@@ -319,6 +319,32 @@ export default function App() {
     }
   }
 
+  // 7-day plan: ranked actions from weather, irrigation, spraying, price and schemes (backend, no model call).
+  async function weekPlan() {
+    unlockAudio();
+    if (busyRef.current) return;
+    if (!navigator.onLine) { setToast(tRef.current.offline); return; }
+    busyRef.current = true;
+    setBusy(true);
+    stopSpeaking();
+    setSpeakingId(null);
+    const bid = uid();
+    setMessages((m) => [...m, { id: uid(), role: "user", text: "📅 " + ex(t.code).week }, { id: bid, role: "bot", pending: true }]);
+    try {
+      const r = await fetch("/api/plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profile, lang: lang === "auto" ? "te" : lang }) });
+      if (!r.ok) throw new Error(`Error ${r.status}`);
+      const data = await r.json();
+      const keep = (data.steps || []).filter((s) => ["week_plan", "check_schemes", "hold_or_sell"].includes(s.tool));
+      setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", text: data.answer, steps: keep, verification: data.verification } : x)));
+      if (autoSpeakRef.current) speakMessage(bid, data.answer);
+    } catch (e) {
+      setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", error: true, text: e.message } : x)));
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
+  }
+
   function submit() {
     unlockAudio();
     const file = photo?.file;
@@ -562,6 +588,10 @@ export default function App() {
             <button className="talk-cta today-cta" onClick={dailyBrief}>
               <span className="talk-ico">☀️</span>
               <span><b>{t.today}</b><small>{t.todaySub}</small></span>
+            </button>
+            <button className="talk-cta today-cta" onClick={weekPlan}>
+              <span className="talk-ico">📅</span>
+              <span><b>{ex(t.code).week}</b><small>{ex(t.code).weekSub}</small></span>
             </button>
             {installEvt && <button className="pill" onClick={installApp}>{t.install}</button>}
             <h4>{t.tryAsk}</h4>
