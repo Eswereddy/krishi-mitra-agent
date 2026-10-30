@@ -41,7 +41,7 @@ See [DEMO.md](DEMO.md) for the 3-minute demo script and submission checklist.
 
 ## Tests (offline, no API key needed)
 ```bash
-cd backend && python tests/test_verify.py && python tests/test_tools.py && python tests/test_stream.py && python tests/test_hardening.py && python tests/test_grounding.py && python tests/test_whatsapp.py && python tests/test_advisor.py && python tests/test_planner.py && python tests/test_meta_extras.py
+cd backend && python tests/test_verify.py && python tests/test_tools.py && python tests/test_stream.py && python tests/test_hardening.py && python tests/test_grounding.py && python tests/test_whatsapp.py && python tests/test_advisor.py && python tests/test_planner.py && python tests/test_meta_extras.py && python tests/test_plan.py
 ```
 
 ## Run locally
@@ -98,6 +98,10 @@ The chat shows a card for each. MSP figures were checked on 29 Oct 2026; update 
 - **Weather risk warnings in the Today brief:** heat (40 degC or more), heavy rain (25 mm or more) and strong wind (40 km/h or more) are called out with the worst day and what to do, in Telugu, Hindi and English, and pass the same verification layer.
 - **Hardening:** the rate limiter now trusts only the address added by the proxy (a client can no longer dodge it with a fake `X-Forwarded-For`), idle clients are swept from memory, uploads are type- and size-checked (photos 8 MB, audio 10 MB), and the agent's "could not finish" message is in the farmer's language. `/api/health` reports the tool count and whether live prices are on.
 - 16 tools in total; 10 new offline tests in `backend/tests/test_planner.py`.
+
+## Week plan and more schemes (new)
+- **📅 This week (`/api/plan`):** one tap and the agent looks at the next 7 days and decides what to do, ranked **Do first / This week / Good to know**: heavy rain, heat or wind warnings, sell-or-hold and "below MSP" for the main crop, the next good irrigation day, the best spraying day, and the schemes the farmer qualifies for, with a 7-day strip (weather, irrigate, spray). Fixed rules and templates in Telugu, Hindi and English, no model call, and every figure passes the verification layer. If the forecast is unavailable it says so instead of planning blind.
+- **Six more schemes** in the scheme check, each with documents and where to apply: Soil Health Card, e-NAM, PM Kisan Maan-Dhan pension, PMKSY drip/sprinkler subsidy, PM-KUSUM solar pumps, Agriculture Infrastructure Fund. Subsidy rates that differ by state are not quoted; the card sends the farmer to the office to confirm.
 
 ## More of Meta's model family (new, optional)
 The core agent runs on **Muse Spark Open** (open weights, Baseten). With a Meta Model API key (`MODEL_API_KEY`, works alongside `PROVIDER=baseten`) three more Meta models switch on. Nothing in the existing flow changes; each feature is a separate endpoint and degrades gracefully without the key. `GET /api/meta-models` shows which models a deployment uses.

@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, alerts, brief, config, meta_extras, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
+from . import agent, alerts, brief, config, meta_extras, plan as planmod, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -127,6 +127,13 @@ async def daily_brief(payload: dict):
     """One-tap daily brief (weather, irrigation, spraying, price, sell/hold). No model call: instant, works without an API key."""
     profile = payload.get("profile") if isinstance(payload.get("profile"), dict) else {}
     return await brief.build_brief(profile, payload.get("lang") or "auto")
+
+
+@app.post("/api/plan")
+async def week_plan(payload: dict):
+    """7-day plan with ranked actions (urgent / this week / good to know). No model call: instant and checkable."""
+    profile = payload.get("profile") if isinstance(payload.get("profile"), dict) else {}
+    return await planmod.build_plan(profile, payload.get("lang") or "auto")
 
 
 @app.post("/api/alerts/check")

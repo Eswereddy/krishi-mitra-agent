@@ -62,5 +62,100 @@
       "Land records (pattadar passbook)",
       "Bank passbook"
     ]
+  },
+  {
+    "id": "soil-health-card",
+    "name": "Soil Health Card",
+    "benefit": "Free soil testing and a crop-wise fertiliser recommendation card for your field, renewed every two years",
+    "rules": {
+      "is_farmer": true
+    },
+    "how_to_apply": "Ask the village agriculture office / Rythu Seva Kendram to collect a soil sample from your field, or register at soilhealth.dac.gov.in.",
+    "verify_at": "https://soilhealth.dac.gov.in",
+    "documents": [
+      "Aadhaar",
+      "Survey / khata number of the field",
+      "Mobile number"
+    ]
+  },
+  {
+    "id": "e-nam",
+    "name": "e-NAM (online mandi trading)",
+    "benefit": "Sell your produce online to buyers across many mandis, with transparent bidding and payment to your bank account",
+    "rules": {
+      "is_farmer": true
+    },
+    "how_to_apply": "Register at enam.gov.in or at your nearest e-NAM linked mandi (APMC) office; the mandi staff help with registration.",
+    "verify_at": "https://enam.gov.in",
+    "documents": [
+      "Aadhaar",
+      "Bank passbook linked to Aadhaar",
+      "Mobile number"
+    ]
+  },
+  {
+    "id": "pm-kmy",
+    "name": "PM Kisan Maan-Dhan (farmer pension)",
+    "benefit": "Pension of Rs 3,000 per month after age 60 for small and marginal farmers who join at age 18 to 40 and pay a small monthly contribution (Rs 55 to Rs 200), matched by the government",
+    "rules": {
+      "owns_land": true
+    },
+    "how_to_apply": "Enrol at a Common Service Centre or at pmkmy.gov.in. Contribution can be auto-debited from your bank account.",
+    "verify_at": "https://pmkmy.gov.in",
+    "documents": [
+      "Aadhaar",
+      "Land records",
+      "Bank passbook / IFSC",
+      "Mobile number"
+    ]
+  },
+  {
+    "id": "pmksy-micro-irrigation",
+    "name": "PMKSY Per Drop More Crop (drip and sprinkler subsidy)",
+    "benefit": "Subsidy on drip and sprinkler irrigation systems to save water; the subsidy rate depends on your state and farmer category",
+    "rules": {
+      "owns_land": true
+    },
+    "how_to_apply": "Apply through the agriculture / horticulture office or Rythu Seva Kendram of your mandal; they tell you the approved suppliers and the subsidy rate for your category.",
+    "verify_at": "https://pmksy.gov.in",
+    "documents": [
+      "Aadhaar",
+      "Land records (pattadar passbook / adangal)",
+      "Bank passbook",
+      "Caste certificate if applicable",
+      "Passport photo"
+    ]
+  },
+  {
+    "id": "pm-kusum",
+    "name": "PM-KUSUM (solar pump subsidy)",
+    "benefit": "Subsidy on solar-powered irrigation pumps, so you can cut diesel or electricity cost; central and state support, farmer pays the balance",
+    "rules": {
+      "owns_land": true
+    },
+    "how_to_apply": "Apply through your state nodal agency or the portal at pmkusum.mnre.gov.in; the agriculture / electricity department office tells you the current window.",
+    "verify_at": "https://pmkusum.mnre.gov.in",
+    "documents": [
+      "Aadhaar",
+      "Land records",
+      "Bank passbook",
+      "Electricity connection details if any"
+    ]
+  },
+  {
+    "id": "agri-infra-fund",
+    "name": "Agriculture Infrastructure Fund (storage and processing loans)",
+    "benefit": "Loans up to Rs 2 crore with 3% interest subvention for up to 7 years for storage, cold chain, sorting and other post-harvest facilities",
+    "rules": {
+      "is_farmer": true
+    },
+    "how_to_apply": "Apply on agriinfra.dac.gov.in with a project report and a bank; farmer groups and FPOs also qualify.",
+    "verify_at": "https://agriinfra.dac.gov.in",
+    "documents": [
+      "Aadhaar / PAN",
+      "Land or lease documents",
+      "Project report",
+      "Bank details"
+    ]
   }
 ]

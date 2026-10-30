@@ -19,6 +19,7 @@ LIMITS = {
     "/api/transcribe": int(os.getenv("RATE_VOICE_PER_MIN", "20")),
     "/api/tts": int(os.getenv("RATE_VOICE_PER_MIN", "20")),
     "/api/ask": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
+    "/api/plan": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/alerts": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
 }
 _hits: dict[tuple[str, str], deque] = defaultdict(deque)

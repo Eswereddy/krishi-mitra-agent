@@ -14,6 +14,7 @@ Small farmers in India often cannot type long questions, read English websites, 
 - **Where to sell, after transport.** A far market that pays more can leave less money in hand. `sell_plan` ranks markets by what reaches the farmer after distance, commission and loading.
 - **Which crop to grow.** `compare_crops` ranks crops for the season by expected profit per acre, with the downside if the price falls 10%, water need and duration. Yield and cost are labelled assumptions.
 - **Price alerts and weather warnings.** Set a target price once; the app tells the farmer when a live price reaches it (never from sample or old data). The Today brief warns about heat, heavy rain and strong wind.
+- **A week plan in one tap.** The agent reads the next 7 days and ranks what to do: weather warnings, sell or hold, when to irrigate, when to spray, which of 10 schemes apply.
 - **Sell now or wait.** It combines the price trend, the best markets and the weather into one clear recommendation, and says it is guidance, not a guarantee.
 - **Photo to action plan.** A crop photo goes through the same agent: likely problem and how sure it is, weather to time spraying, crop insurance if there is real loss, and a call button to a human expert when unsure. It gives no pesticide doses.
 - **You can watch it work.** Each tool call appears live while the answer is being prepared.
