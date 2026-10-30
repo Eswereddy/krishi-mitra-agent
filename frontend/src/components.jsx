@@ -44,7 +44,7 @@ export function Markdown({ text }) {
 }
 
 // ---------- rich cards for tool results ----------
-const rupee = (n) => (n == null ? "–" : "₹" + Number(n).toLocaleString("en-IN"));
+const rupee = (n) => (n == null ? "–" : (Number(n) < 0 ? "−₹" : "₹") + Math.abs(Number(n)).toLocaleString("en-IN"));
 const WX = (mm, pct) => (mm >= 10 || pct >= 80 ? "🌧️" : mm >= 1 || pct >= 50 ? "🌦️" : pct >= 25 ? "⛅" : "☀️");
 
 function SourceBadge({ source, t }) {
@@ -336,6 +336,59 @@ function KccCard({ step, t }) {
   );
 }
 
+// ---------- planning cards: where to sell after transport, which crop to grow ----------
+function SellPlanCard({ step, t }) {
+  const r = step.result, opts = r?.options;
+  if (!opts?.length) return null;
+  const top = Math.max(...opts.map((o) => o.net_revenue_rs || 0), 1);
+  return (
+    <div className="card">
+      <div className="card-head"><span>🚚 {t.plan.sellTitle} · {r.commodity} · {r.quintals} q</span><SourceBadge source={r.source} t={t} /></div>
+      <div className="rows">
+        {opts.map((o, i) => (
+          <div className={"row" + (i === 0 ? " best" : "")} key={o.market}>
+            <div className="row-main">
+              <b>{i === 0 ? "🏆 " : ""}{o.market}</b>
+              <small>{o.distance_km} {t.plan.dist} · {rupee(o.price_per_quintal)}/q · {t.plan.transport} {rupee(o.transport_rs)}</small>
+            </div>
+            <div className="row-price"><b>{rupee(o.net_revenue_rs)}</b><small>{t.plan.youGet}</small></div>
+            <div className="bar"><i style={{ width: `${((o.net_revenue_rs || 0) / top) * 100}%` }} /></div>
+          </div>
+        ))}
+      </div>
+      {r.extra_over_nearest_rs > 0 && <div className="card-foot">✅ <b className="pos">+{rupee(r.extra_over_nearest_rs)}</b> {t.plan.extra} ({r.nearest_market})</div>}
+      <div className="card-foot warn-note">⚠️ {t.plan.sellNote}</div>
+    </div>
+  );
+}
+
+function CropPlanCard({ step, t }) {
+  const r = step.result, opts = r?.options;
+  if (!opts?.length) return null;
+  const top = Math.max(...opts.map((o) => o.profit_rs), 1);
+  return (
+    <div className="card">
+      <div className="card-head"><span>🌱 {t.plan.cropTitle} · {r.district} · {r.acres} ac · {r.season}</span></div>
+      <div className="rows">
+        {opts.map((o, i) => (
+          <div className={"row" + (i === 0 ? " best" : "")} key={o.crop}>
+            <div className="row-main">
+              <b>{i === 0 ? "🏆 " : ""}{o.crop}</b>
+              <small>{t.plan.water[o.water_need]} · {o.duration_days} {t.plan.days} · {rupee(o.price_per_quintal)}/q ({t.plan.basis[o.price_basis] || o.price_basis})</small>
+            </div>
+            <div className="row-price">
+              <b className={o.profit_rs >= 0 ? "pos" : "neg"}>{rupee(o.profit_rs)}</b>
+              <small>{t.plan.ifDrop}: {rupee(o.profit_if_price_falls_10pct_rs)}</small>
+            </div>
+            <div className="bar"><i style={{ width: `${Math.max(0, (o.profit_rs / top) * 100)}%` }} /></div>
+          </div>
+        ))}
+      </div>
+      <div className="card-foot warn-note">⚠️ {t.plan.cropNote}</div>
+    </div>
+  );
+}
+
 export function ToolCards({ steps, t }) {
   // show the latest result per tool (the agent may call a tool twice)
   const seen = new Map();
@@ -357,6 +410,8 @@ export function ToolCards({ steps, t }) {
       case "hold_or_sell": return <DecisionCard step={s} t={t} />;
       case "irrigation_advice": return <IrrigationCard step={s} t={t} />;
       case "kcc_interest": return <KccCard step={s} t={t} />;
+      case "sell_plan": return <SellPlanCard step={s} t={t} />;
+      case "compare_crops": return <CropPlanCard step={s} t={t} />;
       default: return null;
     }
   };
@@ -436,5 +491,6 @@ export const I = {
   user: (p) => <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>,
   moon: (p) => <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>,
   sun: (p) => <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" {...p}><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>,
+  bell: (p) => <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" /></svg>,
   wave: (p) => <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" {...p}><path d="M4 10v4M8 6v12M12 3v18M16 7v10M20 10v4" /></svg>,
 };
