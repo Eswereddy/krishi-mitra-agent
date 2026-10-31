@@ -450,6 +450,35 @@ function SeasonCard({ step, t }) {
   );
 }
 
+const WP = {
+  en: { title: "Water plan", need: "Irrigation needed", use: "Crop use", rain: "Usable rain", litres: "litres for", acres: "acres", by: "Irrigate by", none: "Rain covers the crop this week", harvest: "Rain you could store from 100 m² of roof or pond", l: "litres", note: "FAO-56 estimate, indicative. Check the soil by hand and give only the shortfall: it saves water, pumping energy and money." },
+  te: { title: "నీటి ప్లాన్", need: "కావలసిన నీరు", use: "పంట వాడకం", rain: "వాడగల వర్షం", litres: "లీటర్లు", acres: "ఎకరాలకు", by: "ఈ తేదీలోపు నీరు పెట్టండి", none: "ఈ వారం వర్షమే పంటకు సరిపోతుంది", harvest: "100 చ.మీ. పైకప్పు లేదా కుంట నుంచి నిల్వ చేయగల వర్షం", l: "లీటర్లు", note: "FAO-56 అంచనా, సుమారు మాత్రమే. నేలను చేత్తో చూసి లోటు మాత్రమే ఇవ్వండి: నీరు, కరెంట్, డబ్బు ఆదా." },
+  hi: { title: "पानी की योजना", need: "ज़रूरी सिंचाई", use: "फसल की खपत", rain: "काम आने वाली बारिश", litres: "लीटर,", acres: "एकड़ के लिए", by: "इस तारीख तक सिंचाई करें", none: "इस हफ़्ते बारिश ही फसल के लिए काफ़ी है", harvest: "100 वर्ग मीटर छत या तालाब से जमा हो सकने वाली बारिश", l: "लीटर", note: "FAO-56 अनुमान, सांकेतिक। मिट्टी हाथ से जाँचें और सिर्फ़ कमी पूरी करें: पानी, बिजली और पैसे की बचत।" },
+};
+
+function WaterCard({ step, t }) {
+  const r = step.result || {};
+  const L = WP[t.code] || WP.en;
+  if (r.irrigation_need_week_mm == null) return null;
+  const none = r.irrigation_need_week_mm < 1;
+  return (
+    <div className="card">
+      <div className="card-head"><span>💧 {L.title} · {r.crop}</span><span className="badge badge-ok">{r.place}</span></div>
+      <div className={"decision " + (none ? "rising" : "steady")}>
+        <b>{none ? "✅ " + L.none : `${L.need}: ${r.irrigation_need_week_mm} mm`}</b>
+        {!none && <small> · {r.irrigation_need_litres.toLocaleString()} {L.litres} {r.acres} {L.acres}</small>}
+      </div>
+      <div className="stats">
+        <div><small>{L.use}</small><b>{r.crop_use_week_mm} mm</b></div>
+        <div><small>{L.rain}</small><b>{r.effective_rain_week_mm} mm</b></div>
+        {r.irrigate_by && <div><small>{L.by}</small><b>{r.irrigate_by}</b></div>}
+      </div>
+      <p className="hint">♻️ {L.harvest}: <b>{r.rain_harvest_litres_per_100m2.toLocaleString()} {L.l}</b></p>
+      <div className="card-foot">{L.note}</div>
+    </div>
+  );
+}
+
 function SellPlanCard({ step, t }) {
   const r = step.result, opts = r?.options;
   if (!opts?.length) return null;
@@ -544,6 +573,7 @@ export function ToolCards({ steps, t }) {
     switch (s.tool) {
       case "get_mandi_price":
       case "best_markets": return <PriceCard step={s} t={t} />;
+      case "water_plan": return <WaterCard step={s} t={t} />;
       case "season_check": return <SeasonCard step={s} t={t} />;
       case "crop_guide": return <CoachCard step={s} t={t} />;
       case "planting_window": return <PlantingCard step={s} t={t} />;

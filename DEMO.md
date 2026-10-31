@@ -44,6 +44,9 @@ Country Kenya, ask "Can I plant maize this week?": the planting card shows soil 
 ## Coach beat (20 seconds)
 Set a sowing date about 8 weeks ago, tap "This week": the plan shows the crop stage, jobs for this week and days to harvest. If the forecast is dry at flowering you get the red irrigation line.
 
+## Eco beat (15 seconds)
+Ask "How much water does my crop need this week?": the water card shows millimetres and litres after rain, the day to irrigate by, and the rainwater you could store. Say: "irrigating only the shortfall saves water, power and money".
+
 ## Optional wow beats (use if you have time in the 3 minutes)
 - **Where to sell:** ask "Where should I sell 10 quintals of groundnut after transport costs?". Point at the 🏆 market and the "+₹ more than the nearest market" line: a far market that pays more can lose once transport is counted.
 - **Which crop:** ask "Which crop gives more profit on 2 acres this rabi?". Show the "if price falls 10%" column and say yield/cost are labelled assumptions.

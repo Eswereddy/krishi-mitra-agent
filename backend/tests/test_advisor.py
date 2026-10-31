@@ -176,7 +176,7 @@ def test_brief_endpoint_and_registered_tools():
     assert r.status_code == 200 and r.json()["verification"]["passed"] and r.json()["steps"][0]["tool"] == "get_weather"
     assert c.post("/api/brief", json={"lang": "hi"}).json()["steps"] == []
     names = {sp["function"]["name"] for sp in tools.TOOL_SPECS}
-    assert {"irrigation_advice", "kcc_interest"} <= names and {"sell_plan", "compare_crops"} <= names and len(names) == 20
+    assert {"irrigation_advice", "kcc_interest"} <= names and {"sell_plan", "compare_crops"} <= names and len(names) == 21
 
 
 if __name__ == "__main__":
