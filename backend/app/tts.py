@@ -7,7 +7,8 @@ Uses gTTS (Google Translate voice); results are cached in memory.
 import io
 from functools import lru_cache
 
-LANGS = {"te": ("te", "com"), "hi": ("hi", "co.in"), "en": ("en", "co.in")}
+LANGS = {"te": ("te", "com"), "hi": ("hi", "co.in"), "en": ("en", "co.in"), "es": ("es", "com"), "fr": ("fr", "fr"),
+         "pt": ("pt", "com.br"), "sw": ("sw", "com"), "id": ("id", "com"), "bn": ("bn", "com")}
 MAX_CHARS = 1200
 
 

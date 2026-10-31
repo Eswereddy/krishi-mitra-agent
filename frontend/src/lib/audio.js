@@ -105,7 +105,7 @@ export function unlockAudio() {
 }
 
 export function scriptOf(text) {
-  return /[\u0C00-\u0C7F]/.test(text) ? "te" : /[\u0900-\u097F]/.test(text) ? "hi" : "en";
+  return /[\u0C00-\u0C7F]/.test(text) ? "te" : /[\u0900-\u097F]/.test(text) ? "hi" : /[\u0980-\u09FF]/.test(text) ? "bn" : "en";
 }
 
 function pickVoice(code) {
@@ -120,7 +120,7 @@ export function hasVoice(code) {
 
 // Make the answer sound natural: drop markdown, emoji and links; say "rupees" after amounts.
 export function cleanForSpeech(text, code) {
-  const rupee = { te: "రూపాయలు", hi: "रुपये", en: "rupees" }[code];
+  const rupee = { te: "రూపాయలు", hi: "रुपये", en: "rupees", bn: "টাকা" }[code] || "rupees";
   return text
     .replace(/https?:\/\/\S+/g, "")
     .replace(/₹\s?([\d,]+(?:\.\d+)?)/g, `$1 ${rupee}`)
@@ -189,11 +189,15 @@ async function serverSpeak(text, code, my, onStart) {
 }
 
 /** Speak text; resolves "done", "stopped", or "novoice" if neither a browser voice nor the server could speak. */
-export function speak(text, { onStart } = {}) {
+const VOICE_LOCALE = { te: "te-IN", hi: "hi-IN", en: "en-IN", bn: "bn-IN", es: "es-ES", fr: "fr-FR", pt: "pt-BR", sw: "sw-KE", id: "id-ID" };
+
+/** `lang` (optional) is the app language: it picks the voice for Latin-script languages (Spanish, French, Swahili...). */
+export function speak(text, { onStart, lang } = {}) {
   return new Promise((resolve) => {
     stopSpeaking();
     const my = token;
-    const code = scriptOf(text);
+    const sc = scriptOf(text);
+    const code = sc === "en" && VOICE_LOCALE[lang] ? lang : sc;
     const clean = cleanForSpeech(text, code);
     if (!clean) return resolve("empty");
     const voice = synth ? pickVoice(code) : null;
@@ -207,7 +211,7 @@ export function speak(text, { onStart } = {}) {
       if (my !== token) return resolve("stopped");
       if (i >= parts.length) return resolve("done");
       const u = new SpeechSynthesisUtterance(parts[i++]);
-      u.lang = { te: "te-IN", hi: "hi-IN", en: "en-IN" }[code];
+      u.lang = VOICE_LOCALE[code] || "en-IN";
       u.voice = voice;
       u.rate = code === "en" ? 1 : 0.95;
       if (i === 1) u.onstart = () => onStart?.();

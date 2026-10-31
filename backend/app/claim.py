@@ -7,6 +7,8 @@ officer; helpline numbers are listed for that.
 """
 from datetime import datetime, timedelta, timezone
 
+from . import locale as loc
+
 WINDOW_H = 72
 LOCALIZED = ("hailstorm", "flood_local", "landslide", "cloudburst", "fire")
 POST_HARVEST = ("post_harvest_rain",)
@@ -88,6 +90,8 @@ def build_claim(profile: dict | None, loss: dict | None, lang: str = "en", now: 
     crop = str(loss.get("crop") or profile.get("main_crop") or "[crop]")[:30]
     place = ", ".join(x for x in (profile.get("district"), profile.get("state")) if x) or "[village / district]"
     timed = cause in LOCALIZED or cause in POST_HARVEST
+    if not loc.is_india(profile):                      # PMFBY and its 72-hour rule are Indian: be generic abroad
+        return _generic(profile, cause, crop, acres, place, occurred)
     out = {"cause": cause, "cause_label": L["cause"][cause], "individual_claim": timed, "helplines": HELPLINES,
            "occurred_at": occurred.isoformat(), "checklist": L["check"] if timed else L["check"][:1],
            "how": L["how"].format(pmfby=HELPLINES["pmfby"]),
@@ -104,3 +108,24 @@ def build_claim(profile: dict | None, loss: dict | None, lang: str = "en", now: 
     else:
         out.update({"status": "area_level", "guidance": L["area"]})
     return out
+
+
+GENERIC = {
+    "guidance": "Crop insurance rules differ by country and by policy, and many require you to report a loss within a few days. "
+                "Do not wait: tell your insurer, cooperative or agricultural extension office as soon as it happens, and ask what the deadline is.",
+    "how": "Call or visit your insurer, cooperative or local agricultural extension office today, report the loss and write down the reference number they give you.",
+    "check": ["Clear photos of the damaged crop and the whole field, taken today (phone location and date switched on)",
+              "Your insurance policy or membership number", "Proof of identity and of your land or lease",
+              "Crop name, sowing date and area (acres or hectares)"],
+    "msg": ("To: My crop insurer / agricultural extension office\nSubject: Notice of crop loss\n\n"
+            "I am reporting a crop loss. Crop: {crop}. Area affected: {acres}. Cause: {cause}. Date and time of loss: {when}. "
+            "Place: {place}. Policy number: [add]. Photos are attached. Please register this and tell me the next steps.\n\nName: [add]   Phone: [add]"),
+}
+
+
+def _generic(profile, cause, crop, acres, place, occurred) -> dict:
+    cause_label = T["en"]["cause"][cause]
+    return {"cause": cause, "cause_label": cause_label, "individual_claim": True, "status": "check_policy", "helplines": {},
+            "occurred_at": occurred.isoformat(), "guidance": GENERIC["guidance"], "checklist": GENERIC["check"], "how": GENERIC["how"],
+            "message": GENERIC["msg"].format(crop=crop, acres=acres if acres is not None else "[area]", cause=cause_label,
+                                             when=occurred.strftime("%d %b %Y, %H:%M UTC"), place=place)}

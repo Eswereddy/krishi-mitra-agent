@@ -25,10 +25,14 @@ def _clean(a) -> dict | None:
     if not crop or not district or not (0 < target < 10_000_000):
         return None
     return {"id": str(a.get("id") or "")[:20], "crop": crop, "district": district, "target": round(target),
-            "direction": direction, "state": str(a.get("state") or "Andhra Pradesh").strip()[:40]}
+            "direction": direction, "state": str(a.get("state") or "Andhra Pradesh").strip()[:40],
+            "country": str(a.get("country") or "IN").upper()[:5]}
 
 
 def _check_one(a: dict) -> dict:
+    if str(a.get("country") or "IN").upper() != "IN":      # no live price feed outside India: never pretend to alert
+        return {"id": a["id"], "crop": a["crop"], "district": a["district"], "target": a["target"], "direction": a["direction"],
+                "triggered": False, "live": False, "status": "unsupported", "source": ""}
     res = tools.get_mandi_price(a["crop"], a["district"], a["state"])
     src = str(res.get("source", ""))
     row = next((r for r in (res.get("results") or []) if r.get("modal_price_per_quintal")), None)

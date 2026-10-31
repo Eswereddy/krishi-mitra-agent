@@ -114,6 +114,15 @@ The core agent runs on **Muse Spark Open** (open weights, Baseten). With a Meta 
 - **Muse Image** (`muse-image-1.0`) through `/api/advice-card` (button "Card" under an answer): turns the first sentence of an already-verified answer into a shareable card for WhatsApp groups. Only that sentence is put on the card, so no new figures can appear.
 Tested offline with a mocked Meta API (`backend/tests/test_meta_extras.py`). Run these against the live API once with your key before recording the demo.
 
+## Global mode: any country, any language (new)
+Krishi Mitra is not India-only. Pick a country in "My details" (40 countries + Other) and the app switches:
+- **Prices:** `get_market_price` reads WFP food-price data from the Humanitarian Data Exchange (open data, many developing countries). It is monthly data, so every answer says how old it is. If a country has no data, the agent asks the farmer for the price he was offered and uses `calculate_revenue`. It never invents a price.
+- **Money:** answers use the farmer's own currency (KES, NGN, BRL...). The verification layer checks currency amounts the same way it checks rupees.
+- **Languages:** Telugu, Hindi and English plus Spanish, French, Portuguese, Swahili, Indonesian and Bengali. For any other language the agent mirrors the language the farmer wrote in. Voice (Muse Voice language bias, browser voices, server TTS) follows the chosen language.
+- **India-only features stay India-only:** MSP, PMFBY claim kit, Kisan Call Centre, Agmarknet alerts and Indian schemes are switched off abroad (claim kit gives a generic "check your policy" guide), so a farmer elsewhere never sees a wrong rupee figure or wrong helpline.
+- Weather (Open-Meteo), the daily brief, week plan, Khata and photo advice work anywhere.
+- Tests: `backend/tests/test_global.py`. The HDX endpoint could not be reached from the build sandbox, so test it once live: ask for maize prices with country Kenya.
+
 ## Data honesty
 - Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.
 - Scheme details are indicative and must be confirmed with the official office (links are returned by the tool).

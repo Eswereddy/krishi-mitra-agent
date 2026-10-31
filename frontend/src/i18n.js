@@ -9,7 +9,7 @@ export const T = {
     tapStop: "ఆపడానికి తాకండి", tapInterrupt: "ఆపి మాట్లాడండి", closeVoice: "ముగించు",
     camera: "కెమెరా", gallery: "గ్యాలరీ", photo: "పంట ఫోటో", removePhoto: "ఫోటో తొలగించు",
     you: "మీరు", send: "పంపండి", listen: "వినండి", stopListen: "ఆపండి", share: "WhatsApp", copy: "కాపీ", copied: "కాపీ అయింది",
-    newChat: "కొత్త సంభాషణ", profile: "నా వివరాలు", save: "సరే", state: "రాష్ట్రం", district: "జిల్లా",
+    newChat: "కొత్త సంభాషణ", profile: "నా వివరాలు", save: "సరే", country: "దేశం", state: "రాష్ట్రం", district: "జిల్లా",
     crop: "ప్రధాన పంట", land: "నాకు సొంత భూమి ఉంది", autoSpeak: "జవాబులు గట్టిగా చదవండి",
     verified: "అన్ని సంఖ్యలు టూల్ ఫలితాలతో సరిపోలాయి", unverified: "ఈ సంఖ్యలు ధృవీకరించలేదు: ",
     steps: "ఏజెంట్ ఏం చేసింది", sample: "నమూనా డేటా", live: "లైవ్ డేటా", snapshot: "సేవ్ చేసిన డేటా",
@@ -30,7 +30,7 @@ export const T = {
     trendLast: "రోజులు",
     trendTool: "ధర ట్రెండ్",
     today: "ఈ రోజు", todaySub: "వాతావరణం, ధర, సలహా ఒక్క ట్యాప్ లో",
-    tools: { get_price_trend: "ధర ట్రెండ్", get_mandi_price: "మండి ధరలు", best_markets: "ఉత్తమ మార్కెట్లు", get_weather: "వాతావరణం", check_schemes: "పథకాల అర్హత", calculate_revenue: "ఆదాయ లెక్క", get_expert_help: "నిపుణుల సహాయం", get_msp: "కనీస మద్దతు ధర (MSP)", net_market_value: "నికర ఆదాయం", spray_window: "పిచికారీ రోజు", lookup_problem: "పంట సమస్య", hold_or_sell: "అమ్మాలా? ఆగాలా?", irrigation_advice: "నీటి తడి సలహా", kcc_interest: "KCC వడ్డీ", sell_plan: "అమ్మే చోటు (రవాణాతో)", compare_crops: "ఏ పంట వేయాలి" },
+    tools: { get_market_price: "🌍 Market price", get_price_trend: "ధర ట్రెండ్", get_mandi_price: "మండి ధరలు", best_markets: "ఉత్తమ మార్కెట్లు", get_weather: "వాతావరణం", check_schemes: "పథకాల అర్హత", calculate_revenue: "ఆదాయ లెక్క", get_expert_help: "నిపుణుల సహాయం", get_msp: "కనీస మద్దతు ధర (MSP)", net_market_value: "నికర ఆదాయం", spray_window: "పిచికారీ రోజు", lookup_problem: "పంట సమస్య", hold_or_sell: "అమ్మాలా? ఆగాలా?", irrigation_advice: "నీటి తడి సలహా", kcc_interest: "KCC వడ్డీ", sell_plan: "అమ్మే చోటు (రవాణాతో)", compare_crops: "ఏ పంట వేయాలి" },
     plan: {"sellTitle": "ఎక్కడ అమ్మాలి", "bestHere": "మీకు ఉత్తమం", "dist": "కి.మీ", "transport": "రవాణా", "youGet": "మీ చేతికి", "extra": "దగ్గరి మార్కెట్ కంటే అదనం", "sellNote": "దూరం, కమీషన్, లోడింగ్, రవాణా అంచనాలు మాత్రమే. నిజమైన కోట్ తీసుకోండి.", "cropTitle": "ఏ పంట వేయాలి", "perAcre": "లాభం/ఎకరా", "total": "మొత్తం లాభం", "ifDrop": "ధర 10% తగ్గితే", "days": "రోజులు", "water": {"low": "తక్కువ నీరు", "medium": "మధ్యస్థ నీరు", "high": "ఎక్కువ నీరు"}, "basis": {"market-live": "లైవ్ ధర", "market-saved": "సేవ్ చేసిన ధర", "msp": "MSP ధర"}, "cropNote": "దిగుబడి, ఖర్చు సుమారు అంచనాలు మాత్రమే, మీ పొలం అసలు లెక్కలు కావు."},
     al: {"title": "ధర అలర్ట్‌లు", "add": "అలర్ట్ జోడించు", "crop": "పంట", "target": "లక్ష్య ధర (₹/క్వింటాల్)", "above": "దాటితే", "below": "తగ్గితే", "empty": "ఇంకా అలర్ట్‌లు లేవు. ఒకటి జోడిస్తే ధర చేరినప్పుడు యాప్ చెబుతుంది.", "reached": "లక్ష్య ధర చేరింది", "now": "ఇప్పుడు", "check": "ఇప్పుడే చూడు", "notifyOn": "ఫోన్ నోటిఫికేషన్లు ఆన్ చేయండి", "needDistrict": "ముందు ప్రొఫైల్‌లో జిల్లా నమోదు చేయండి.", "liveOnly": "లైవ్ ధరలు మాత్రమే అలర్ట్ ఇస్తాయి", "remove": "తొలగించు", "waiting": "వేచి ఉంది", "notLive": "లైవ్ ధర ఇప్పుడు అందుబాటులో లేదు", "banner": "🔔 ధర అలర్ట్"},
     adv: {msp: "MSP", mspNote: "ప్రభుత్వం కొన్నదానికే వర్తిస్తుంది", netTitle: "నికర ఆదాయం", gross: "మొత్తం", fees: "కమీషన్ + లోడింగ్", transport: "రవాణా", net: "చేతికి వచ్చేది", assumed: "కమీషన్, లోడింగ్, రవాణా రేట్లు అంచనా మాత్రమే. నిజమైన కోట్ ఇవ్వండి.", vsMsp: "MSP కంటే", sprayGood: "పిచికారీకి మంచి రోజు", sprayBad: "వద్దు", wind: "గాలి", likely: "సాధ్యమైన కారణం", checks: "ఇలా చేయండి", askOfficer: "వ్యవసాయ అధికారిని అడగండి", urgencyHigh: "అత్యవసరం", urgencyMedium: "త్వరలో చూపించండి", urgencyLow: "గమనించండి", sellNow: "ఇప్పుడే అమ్మండి", holdShort: "కొద్ది రోజులు ఆగండి", procure: "ముందు ప్రభుత్వ కొనుగోలు అడగండి", sellOrHold: "అమ్మొచ్చు, నిల్వ ఉంటే ఆగొచ్చు", noData: "సమాచారం చాలదు", guidance: "మార్గదర్శకం మాత్రమే, హామీ కాదు", best: "ఉత్తమ మార్కెట్", now: "ఇప్పటి ధర", irrTitle: "నీటి తడి", irrSkip: "ఆగండి", irrGo: "నీరు పెట్టండి", kccTitle: "KCC రుణ వడ్డీ", loan: "రుణం", int7: "7% వడ్డీ", intPrompt: "సమయానికి చెల్లిస్తే (4%)", saved: "ఆదా", months: "నెలలు", kccNote: "బ్యాంకు తుది లెక్క చెబుతుంది. ₹3 లక్షల వరకు మాత్రమే వర్తిస్తుంది."},
@@ -58,7 +58,7 @@ export const T = {
     tapStop: "Tap to stop", tapInterrupt: "Tap to interrupt", closeVoice: "End",
     camera: "Camera", gallery: "Gallery", photo: "Crop photo", removePhoto: "Remove photo",
     you: "You", send: "Send", listen: "Listen", stopListen: "Stop", share: "WhatsApp", copy: "Copy", copied: "Copied",
-    newChat: "New conversation", profile: "My details", save: "Done", state: "State", district: "District",
+    newChat: "New conversation", profile: "My details", save: "Done", country: "Country", state: "State", district: "District",
     crop: "Main crop", land: "I own farmland", autoSpeak: "Read answers aloud",
     verified: "All figures verified against tool results", unverified: "Could not verify: ",
     steps: "What the agent did", sample: "Sample data", live: "Live data", snapshot: "Saved data",
@@ -107,7 +107,7 @@ export const T = {
     tapStop: "रोकने के लिए दबाएँ", tapInterrupt: "रोककर बोलें", closeVoice: "खत्म",
     camera: "कैमरा", gallery: "गैलरी", photo: "फसल की फोटो", removePhoto: "फोटो हटाएँ",
     you: "आप", send: "भेजें", listen: "सुनिए", stopListen: "रोकिए", share: "WhatsApp", copy: "कॉपी", copied: "कॉपी हो गया",
-    newChat: "नई बातचीत", profile: "मेरी जानकारी", save: "ठीक है", state: "राज्य", district: "ज़िला",
+    newChat: "नई बातचीत", profile: "मेरी जानकारी", save: "ठीक है", country: "देश", state: "राज्य", district: "ज़िला",
     crop: "मुख्य फसल", land: "मेरे पास अपनी ज़मीन है", autoSpeak: "जवाब ज़ोर से पढ़ें",
     verified: "सभी आंकड़े टूल के नतीजों से मेल खाते हैं", unverified: "पुष्टि नहीं हुई: ",
     steps: "एजेंट ने क्या किया", sample: "नमूना डेटा", live: "लाइव डेटा", snapshot: "सहेजा गया डेटा",
@@ -149,9 +149,101 @@ export const T = {
   },
 };
 
+// Global languages: the answers come from the model in the farmer's own language; the interface falls back to English for anything not translated here.
+T.es = {
+  ...T.en, code: "es", title: "Krishi Mitra", tagline: "Tu amigo del campo, en tu idioma",
+  hello: "¡Hola! 🙏", helloSub: "Pregunta por precios, clima, ayudas o problemas del cultivo. Habla, escribe o envía una foto.",
+  talkBtn: "Habla con Krishi Mitra", talkSub: "Conversación por voz",
+  placeholder: "Escribe tu pregunta aquí...",
+  quick: [
+      { icon: "🌾", text: "¿A cuánto está el maíz en mi mercado?" },
+      { icon: "📈", text: "¿Dónde vendo mi cosecha para ganar más?" },
+      { icon: "🌦", text: "¿Va a llover esta semana?" },
+      { icon: "️", text: "¿Qué cultivo me conviene sembrar?" },
+      { icon: "🌱", text: "¿Debo regar hoy?" },
+    ...T.en.quick.slice(-1),
+  ],
+};
+T.fr = {
+  ...T.en, code: "fr", title: "Krishi Mitra", tagline: "Votre ami agricole, dans votre langue",
+  hello: "Bonjour ! 🙏", helloSub: "Demandez les prix, la météo, les aides ou les problèmes de culture. Parlez, écrivez ou envoyez une photo.",
+  talkBtn: "Parler à Krishi Mitra", talkSub: "Conversation vocale",
+  placeholder: "Écrivez votre question ici...",
+  quick: [
+      { icon: "🌾", text: "Quel est le prix du maïs sur mon marché ?" },
+      { icon: "📈", text: "Où vendre ma récolte pour gagner plus ?" },
+      { icon: "🌦", text: "Va-t-il pleuvoir cette semaine ?" },
+      { icon: "️", text: "Quelle culture planter ?" },
+      { icon: "🌱", text: "Dois-je arroser aujourd'hui ?" },
+    ...T.en.quick.slice(-1),
+  ],
+};
+T.pt = {
+  ...T.en, code: "pt", title: "Krishi Mitra", tagline: "Seu amigo do campo, no seu idioma",
+  hello: "Olá! 🙏", helloSub: "Pergunte sobre preços, clima, apoios ou problemas da lavoura. Fale, escreva ou envie uma foto.",
+  talkBtn: "Falar com o Krishi Mitra", talkSub: "Conversa por voz",
+  placeholder: "Escreva sua pergunta aqui...",
+  quick: [
+      { icon: "🌾", text: "Quanto está o milho no meu mercado?" },
+      { icon: "📈", text: "Onde vender minha colheita para ganhar mais?" },
+      { icon: "🌦", text: "Vai chover esta semana?" },
+      { icon: "️", text: "Qual cultura plantar?" },
+      { icon: "🌱", text: "Devo irrigar hoje?" },
+    ...T.en.quick.slice(-1),
+  ],
+};
+T.sw = {
+  ...T.en, code: "sw", title: "Krishi Mitra", tagline: "Rafiki wako wa kilimo, kwa lugha yako",
+  hello: "Habari! 🙏", helloSub: "Uliza kuhusu bei, hali ya hewa, ruzuku au matatizo ya mazao. Ongea, andika au tuma picha.",
+  talkBtn: "Zungumza na Krishi Mitra", talkSub: "Mazungumzo ya sauti",
+  placeholder: "Andika swali lako hapa...",
+  quick: [
+      { icon: "🌾", text: "Bei ya mahindi sokoni kwangu ni ngapi?" },
+      { icon: "📈", text: "Niuze wapi mavuno yangu kupata zaidi?" },
+      { icon: "🌦", text: "Mvua itanyesha wiki hii?" },
+      { icon: "️", text: "Nipande zao gani?" },
+      { icon: "🌱", text: "Nimwagilie leo?" },
+    ...T.en.quick.slice(-1),
+  ],
+};
+T.id = {
+  ...T.en, code: "id", title: "Krishi Mitra", tagline: "Sahabat tani Anda, dalam bahasa Anda",
+  hello: "Halo! 🙏", helloSub: "Tanya harga, cuaca, bantuan atau masalah tanaman. Bicara, ketik, atau kirim foto.",
+  talkBtn: "Bicara dengan Krishi Mitra", talkSub: "Percakapan suara",
+  placeholder: "Tulis pertanyaan Anda di sini...",
+  quick: [
+      { icon: "🌾", text: "Berapa harga jagung di pasar saya?" },
+      { icon: "📈", text: "Di mana menjual hasil panen agar untung?" },
+      { icon: "🌦", text: "Apakah akan hujan minggu ini?" },
+      { icon: "️", text: "Tanaman apa yang sebaiknya ditanam?" },
+      { icon: "🌱", text: "Perlukah menyiram hari ini?" },
+    ...T.en.quick.slice(-1),
+  ],
+};
+T.bn = {
+  ...T.en, code: "bn", title: "কৃষি মিত্র", tagline: "আপনার চাষের বন্ধু, আপনার ভাষায়",
+  hello: "নমস্কার! 🙏", helloSub: "দাম, আবহাওয়া, সহায়তা বা ফসলের সমস্যা জিজ্ঞেস করুন। বলুন, লিখুন বা ছবি পাঠান।",
+  talkBtn: "কৃষি মিত্রের সাথে কথা বলুন", talkSub: "ভয়েস কথোপকথন",
+  placeholder: "এখানে আপনার প্রশ্ন লিখুন...",
+  quick: [
+      { icon: "🌾", text: "আমার বাজারে ধানের দাম কত?" },
+      { icon: "📈", text: "ফসল কোথায় বেচলে বেশি লাভ?" },
+      { icon: "🌦", text: "এই সপ্তাহে বৃষ্টি হবে?" },
+      { icon: "️", text: "কোন ফসল চাষ করব?" },
+      { icon: "🌱", text: "আজ কি সেচ দেব?" },
+    ...T.en.quick.slice(-1),
+  ],
+};
+
 export const LANGS = [
   { id: "auto", label: "Auto" },
   { id: "te", label: "తెలుగు" },
   { id: "en", label: "EN" },
   { id: "hi", label: "हिन्दी" },
+  { id: "es", label: "Español" },
+  { id: "fr", label: "Français" },
+  { id: "pt", label: "Português" },
+  { id: "sw", label: "Kiswahili" },
+  { id: "id", label: "Bahasa" },
+  { id: "bn", label: "বাংলা" },
 ];

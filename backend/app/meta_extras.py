@@ -30,8 +30,16 @@ async def meta_models():
     return mm.status()
 
 
+def _bias(lang: str) -> tuple[str, ...]:
+    """Language hint for Muse Voice Transcribe: the chosen language first, then the common ones (code-switching is fine)."""
+    from . import lang as langmod
+    first = langmod.NAMES.get(lang)
+    base = ["Telugu", "Hindi", "English"]
+    return tuple(([first] if first else []) + [b for b in base if b != first])
+
+
 @router.post("/api/asr")
-async def asr(audio: UploadFile = File(...)):
+async def asr(audio: UploadFile = File(...), lang: str = Form("auto")):
     """Muse Voice Transcribe (dedicated speech model) when a Meta Model API key is set; otherwise, or if that call
     fails, the existing Muse Spark Open audio path, so voice never stops working."""
     data = await audio.read(MAX_AUDIO_BYTES + 1)
@@ -40,7 +48,7 @@ async def asr(audio: UploadFile = File(...)):
     if mm.available():
         try:
             wav, _mime = await meta_client._to_wav(data)
-            text = await mm.asr_transcribe(wav)
+            text = await mm.asr_transcribe(wav, _bias(lang))
             if not text:
                 raise HTTPException(422, "Could not understand the audio. Please try again.")
             return {"text": text, "engine": mm.ASR_MODEL}

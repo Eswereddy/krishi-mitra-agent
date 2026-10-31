@@ -73,6 +73,8 @@ def test_agent_system_prompt_uses_language():
 
     meta_client.chat_message = fake
     asyncio.run(agent.run_agent("what is the price", lang="auto"))
+    assert "same language the farmer wrote in" in seen["system"]      # auto + Latin letters: could be Spanish, Swahili...
+    asyncio.run(agent.run_agent("what is the price", lang="en"))
     assert "English" in seen["system"]
     asyncio.run(agent.run_agent("what is the price", lang="hi"))
     assert "Hindi" in seen["system"]

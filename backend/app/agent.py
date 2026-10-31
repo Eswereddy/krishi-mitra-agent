@@ -5,7 +5,7 @@ import json
 from . import config, lang as langmod, meta_client, mock, tools, verify
 
 SYSTEM = (
-    "You are Krishi Mitra, an assistant for small farmers in Andhra Pradesh. "
+    "You are Krishi Mitra, an assistant for small farmers anywhere in the world (India by default; the farmer profile may give another country). "
     "Use tools for prices and scheme eligibility instead of guessing. "
     "If price data comes from sample-data, say it is approximate. If its source is agmarknet-snapshot, say it is "
     "saved data from the date in the source, not today's price. "
@@ -36,6 +36,11 @@ SYSTEM = (
     "say the cost rates are assumptions and the farmer should get real quotes). For 'which crop should I grow' or "
     "'which crop gives more profit', call compare_crops and say yield and cost per acre are indicative assumptions, "
     "price can change by harvest, and the agriculture officer should confirm. Report only figures the tools returned. "
+    "If the farmer profile country is not India (IN): use get_market_price (monthly WFP market data, say how old it is) instead of "
+    "get_mandi_price, best_markets, get_price_trend, hold_or_sell, get_msp, sell_plan or compare_crops, which are India-only. "
+    "Never mention rupees, MSP, PMFBY, PM-KISAN or the Kisan Call Centre to a farmer outside India; use the farmer's currency "
+    "from the profile; for schemes or insurance send him to the local agricultural extension office. If no price data exists, ask what "
+    "price he was offered and use calculate_revenue. Weather, irrigation, spraying and crop-problem tools work everywhere. "
     "{lang_instruction}"
 )
 GIVE_UP = {
@@ -64,7 +69,7 @@ async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "a
         return {"answer": mock.ANSWER, "steps": steps, "mock": True,
                 "verification": verify.verify_answer(mock.ANSWER, steps)}
 
-    messages = [{"role": "system", "content": SYSTEM.format(lang_instruction=langmod.instruction(code)) + _profile_text(profile)}]
+    messages = [{"role": "system", "content": SYSTEM.format(lang_instruction=langmod.instruction(code, mirror=(lang not in langmod.NAMES and code == "en"))) + _profile_text(profile)}]
     messages += _clean_history(history)
     messages.append({"role": "user", "content": _user_content(user_text, image)})
     rewrites = 0
@@ -130,7 +135,7 @@ def _emit(on_event, event: dict) -> None:
 def _profile_text(profile: dict | None) -> str:
     if not profile:
         return ""
-    keep = {k: v for k, v in profile.items() if k in ("state", "district", "owns_land", "main_crop") and v not in ("", None)}
+    keep = {k: v for k, v in profile.items() if k in ("state", "district", "owns_land", "main_crop", "country", "currency") and v not in ("", None)}
     return "\nFarmer profile: " + json.dumps(keep, ensure_ascii=False) if keep else ""
 
 
