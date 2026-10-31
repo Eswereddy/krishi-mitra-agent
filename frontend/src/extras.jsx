@@ -5,6 +5,7 @@ import { I } from "./components";
 
 const S = {
   te: {
+    savedLabel: "సేవ్ చేసిన సమాచారం (ఇంటర్నెట్ లేదు)",
     audit: "రెండో అభిప్రాయం", auditTitle: "రెండో అభిప్రాయం (Muse Wonder)", auditing: "Muse Wonder జవాబును తనిఖీ చేస్తోంది...", numsOk: "అన్ని సంఖ్యలు టూల్ ఫలితాలతో సరిపోయాయి (కోడ్ తనిఖీ)", numsBad: "ఈ సంఖ్యలు సరిపోలలేదు: ", consistent: "జవాబు డేటాకు సరిపోతోంది", issues: "గమనించాల్సినవి", caveats: "జాగ్రత్తలు", codeOnly: "Wonder తనిఖీ ఇప్పుడు లేదు; సంఖ్యల తనిఖీ మాత్రమే జరిగింది.", auditNote: "ఇది రెండో AI మోడల్ తనిఖీ. తుది నిర్ణయం మీదే; అధికారిని అడగండి.",
     week: "ఈ వారం", weekSub: "7 రోజుల ప్లాన్: ముందు ఏం చేయాలి",
     scan: "నష్టం కొలవండి", scanTitle: "ఆకు నష్టం కొలత", scanning: "SAM 3.1 ఆకును చూస్తోంది...", cardBtn: "కార్డ్", cardTitle: "షేర్ కార్డ్",
@@ -15,6 +16,7 @@ const S = {
     unavailable: "ఈ సదుపాయం ఇప్పుడు అందుబాటులో లేదు.", download: "డౌన్‌లోడ్", share: "షేర్", close: "మూసివేయి", again: "మళ్లీ ప్రయత్నించు",
   },
   en: {
+    savedLabel: "Saved guidance (no internet)",
     audit: "Second opinion", auditTitle: "Second opinion (Muse Wonder)", auditing: "Muse Wonder is checking the answer...", numsOk: "Every figure matches the tool results (checked in code)", numsBad: "These figures do not match: ", consistent: "The answer follows from the data", issues: "Points to check", caveats: "Cautions", codeOnly: "The Wonder review is not available right now; only the figure check ran.", auditNote: "A second AI model reviewed this. The final decision is yours; ask your officer for big decisions.",
     week: "This week", weekSub: "7-day plan: what to do first",
     scan: "Measure damage", scanTitle: "Leaf damage measurement", scanning: "SAM 3.1 is looking at the leaf...", cardBtn: "Card", cardTitle: "Share card",
@@ -25,6 +27,7 @@ const S = {
     unavailable: "This feature is not available right now.", download: "Download", share: "Share", close: "Close", again: "Try again",
   },
   hi: {
+    savedLabel: "सहेजी हुई सलाह (इंटरनेट नहीं)",
     audit: "दूसरी राय", auditTitle: "दूसरी राय (Muse Wonder)", auditing: "Muse Wonder जवाब की जाँच कर रहा है...", numsOk: "सभी आंकड़े टूल के नतीजों से मेल खाते हैं (कोड से जाँचा)", numsBad: "ये आंकड़े मेल नहीं खाते: ", consistent: "जवाब डेटा से मेल खाता है", issues: "ध्यान देने की बातें", caveats: "सावधानियाँ", codeOnly: "Wonder जाँच अभी उपलब्ध नहीं; सिर्फ़ आंकड़ों की जाँच हुई।", auditNote: "दूसरे AI मॉडल ने जाँचा है। अंतिम फ़ैसला आपका है; बड़े फ़ैसलों के लिए अधिकारी से पूछें।",
     week: "इस हफ़्ते", weekSub: "7 दिन की योजना: पहले क्या करें",
     scan: "नुकसान मापें", scanTitle: "पत्ती के नुकसान की माप", scanning: "SAM 3.1 पत्ती देख रहा है...", cardBtn: "कार्ड", cardTitle: "शेयर कार्ड",

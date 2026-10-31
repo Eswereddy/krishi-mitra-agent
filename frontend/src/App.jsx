@@ -42,6 +42,16 @@ async function shrink(file, max = 1024) {
   }
 }
 
+// The latest brief and week plan are kept on the device, so a farmer without signal still has yesterday's guidance.
+const SAVED = (kind) => `km-saved-${kind}`;
+function showSaved(kind, setMessages, label, userText) {
+  const d = load(SAVED(kind), null);
+  if (!d) return false;
+  const when = new Date(d.at).toLocaleString();
+  setMessages((m) => [...m, { id: uid(), role: "user", text: userText }, { id: uid(), role: "bot", text: `💾 ${label} · ${when}\n\n${d.text}`, steps: d.steps || [], verification: d.verification }]);
+  return true;
+}
+
 export default function App() {
   const [lang, setLang] = useState(() => load("km-lang", "auto"));
   const [theme, setTheme] = useState(() => load("km-theme", window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
@@ -302,7 +312,7 @@ export default function App() {
   async function dailyBrief() {
     unlockAudio();
     if (busyRef.current) return;
-    if (!navigator.onLine) { setToast(tRef.current.offline); return; }
+    if (!navigator.onLine) { if (!showSaved("brief", setMessages, ex(t.code).savedLabel, t.today)) setToast(tRef.current.offline); return; }
     busyRef.current = true;
     setBusy(true);
     stopSpeaking();
@@ -316,6 +326,7 @@ export default function App() {
       });
       if (!r.ok) throw new Error(`Error ${r.status}`);
       const data = await r.json();
+      save(SAVED("brief"), { at: Date.now(), text: data.answer, steps: data.steps || [], verification: data.verification });
       setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", text: data.answer, steps: data.steps || [], verification: data.verification } : x)));
       if (autoSpeakRef.current) speakMessage(bid, data.answer);
     } catch (e) {
@@ -330,7 +341,7 @@ export default function App() {
   async function weekPlan() {
     unlockAudio();
     if (busyRef.current) return;
-    if (!navigator.onLine) { setToast(tRef.current.offline); return; }
+    if (!navigator.onLine) { if (!showSaved("plan", setMessages, ex(t.code).savedLabel, "📅 " + ex(t.code).week)) setToast(tRef.current.offline); return; }
     busyRef.current = true;
     setBusy(true);
     stopSpeaking();
@@ -341,7 +352,8 @@ export default function App() {
       const r = await fetch("/api/plan", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profile, lang: lang === "auto" ? "te" : lang }) });
       if (!r.ok) throw new Error(`Error ${r.status}`);
       const data = await r.json();
-      const keep = (data.steps || []).filter((s) => ["week_plan", "check_schemes", "hold_or_sell"].includes(s.tool));
+      const keep = (data.steps || []).filter((s) => ["week_plan", "check_schemes", "hold_or_sell", "crop_guide", "water_plan", "season_check"].includes(s.tool));
+      save(SAVED("plan"), { at: Date.now(), text: data.answer, steps: keep, verification: data.verification });
       setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", text: data.answer, steps: keep, verification: data.verification } : x)));
       if (autoSpeakRef.current) speakMessage(bid, data.answer);
     } catch (e) {

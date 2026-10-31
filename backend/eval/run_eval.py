@@ -50,6 +50,7 @@ CASES = [
     ("I spent 54000 and expect 1800 kg of maize. At what price do I break even?", KE, "en", {"breakeven_price"}),
     ("How much water does my maize need this week?", KE, "en", {"water_plan"}),
     ("Is this season drier than normal in Nakuru?", KE, "en", {"season_check"}),
+    ("It has been very humid. Will disease come to my tomatoes?", KE, "en", {"disease_risk"}),
 ]
 FORBIDDEN_ABROAD = ("₹", "MSP", "PMFBY", "Kisan Call", "1800-180")      # must never appear for a farmer outside India
 

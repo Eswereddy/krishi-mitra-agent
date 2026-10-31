@@ -24,6 +24,7 @@ T = {
         "water": "💧 Water plan: your crop needs about {mm} mm of irrigation this week after rain (about {litres} litres per acre){by}. Give only the shortfall: it saves water and pumping cost.",
         "water_by": ", irrigate by {d}",
         "water_none": "💧 Water plan: rain should cover your crop this week, so no irrigation is needed. Rain falling on a 100 m² roof or pond catchment could give about {harvest} litres to store.",
+        "disease": "🍄 Disease watch: humid, mild weather on {d} ({h} humid hours) favours fungal disease. Check leaves and avoid watering them late in the evening.",
         "coach": "🌱 {crop}, day {day} · {stage} ({left} days to expected harvest): {tasks}",
         "coach_before": "🌱 {crop}: sowing date is {n} days away. Check the planting window before you sow.",
         "coach_late": "🌱 {crop}: this is past the usual harvest time. Check the crop and plan harvest and storage.",
@@ -43,6 +44,7 @@ T = {
         "water": "💧 నీటి ప్లాన్: వర్షం పోగా ఈ వారం మీ పంటకు సుమారు {mm} మి.మీ. నీరు కావాలి (ఎకరాకు సుమారు {litres} లీటర్లు){by}. లోటు మాత్రమే ఇవ్వండి: నీరు, కరెంట్ ఖర్చు ఆదా.",
         "water_by": ", {d} లోపు నీరు పెట్టండి",
         "water_none": "💧 నీటి ప్లాన్: ఈ వారం వర్షమే పంటకు సరిపోతుంది, నీరు పెట్టాల్సిన అవసరం లేదు. 100 చ.మీ. పైకప్పు లేదా కుంటపై పడే వర్షంతో సుమారు {harvest} లీటర్లు నిల్వ చేయవచ్చు.",
+        "disease": "🍄 తెగులు హెచ్చరిక: {d} న తేమ, మితమైన వాతావరణం ({h} తేమ గంటలు) శిలీంధ్ర తెగుళ్లకు అనుకూలం. ఆకులను చూడండి, సాయంత్రం ఆలస్యంగా ఆకులపై నీరు పోయవద్దు.",
         "coach": "🌱 {crop}, {day}వ రోజు · {stage} (కోతకు సుమారు {left} రోజులు): {tasks}",
         "coach_before": "🌱 {crop}: విత్తే తేదీకి ఇంకా {n} రోజులు. విత్తే ముందు విత్తే సమయం చూడండి.",
         "coach_late": "🌱 {crop}: సాధారణ కోత సమయం దాటింది. పంటను చూసి కోత, నిల్వ ప్లాన్ చేయండి.",
@@ -62,6 +64,7 @@ T = {
         "water": "💧 पानी की योजना: बारिश के बाद इस हफ़्ते फसल को लगभग {mm} मिमी सिंचाई चाहिए (प्रति एकड़ लगभग {litres} लीटर){by}। सिर्फ़ कमी पूरी करें: पानी और बिजली की बचत।",
         "water_by": ", {d} तक सिंचाई करें",
         "water_none": "💧 पानी की योजना: इस हफ़्ते बारिश ही फसल के लिए काफ़ी है, सिंचाई की ज़रूरत नहीं। 100 वर्ग मीटर छत या तालाब पर गिरे पानी से लगभग {harvest} लीटर जमा हो सकता है।",
+        "disease": "🍄 रोग चेतावनी: {d} को नम और हल्का मौसम ({h} नम घंटे) फफूँद रोगों के अनुकूल है। पत्तियाँ देखें, शाम को देर से उन पर पानी न डालें।",
         "coach": "🌱 {crop}, दिन {day} · {stage} (अनुमानित कटाई में {left} दिन): {tasks}",
         "coach_before": "🌱 {crop}: बुवाई की तारीख में अभी {n} दिन हैं। बुवाई से पहले बुवाई का समय जाँचें।",
         "coach_late": "🌱 {crop}: सामान्य कटाई का समय निकल चुका है। फसल देखकर कटाई और भंडारण की योजना बनाएँ।",
@@ -125,6 +128,10 @@ def decide(code: str, profile: dict, res: dict) -> tuple[list[dict], list[dict]]
             add("soon", "water", L["water"].format(mm=round(wp["irrigation_need_week_mm"]), litres=wp["irrigation_need_litres"], by=by))
         else:
             add("info", "water", L["water_none"].format(harvest=wp["rain_harvest_litres_per_100m2"]))
+    dr = res.get("disease_risk") or {}
+    if dr.get("worst_risk") in ("moderate", "high"):
+        hrs = next((d["wet_hours"] for d in dr["days"] if d["date"] == dr["worst_day"]), 0)
+        add("urgent" if dr["worst_risk"] == "high" else "soon", "disease", L["disease"].format(d=dr["worst_day"], h=hrs))
     ni = (res.get("irrigation_advice") or {}).get("next_irrigation_day")
     if irr:
         add("soon", "irrigate", L["irr_on"].format(d=ni) if ni else L["irr_none"])
@@ -163,6 +170,7 @@ async def build_plan(profile: dict | None, lang: str = "auto") -> dict:
         plan.append(("check_schemes", {"owns_land": bool(profile.get("owns_land")), "state": state}))
     plan.append(("season_check", {"place": district, "country": profile.get("country") or "IN"}))
     if crop:
+        plan.append(("disease_risk", {"crop": crop, "place": district, "country": profile.get("country") or "IN"}))
         plan.append(("water_plan", {"crop": crop, "place": district, "sowing_date": profile.get("sowing_date") or "",
                                     "country": profile.get("country") or "IN"}))
     if crop and profile.get("sowing_date"):
