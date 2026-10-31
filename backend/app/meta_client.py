@@ -27,11 +27,26 @@ async def chat_message(messages: list[dict], use_open_model: bool = False, **ext
     else:
         base, key, model = config.CHAT_BASE, config.CHAT_KEY, config.CHAT_MODEL
 
+    try:
+        return await _post_chat(base, key, model, messages, extra)
+    except (httpx.TransportError, httpx.HTTPStatusError) as e:
+        if config.GLIMMER_BASE_URL and _retryable(e):
+            # main model unavailable: fall back to the open-weight Muse Glimmer so the farmer still gets an answer
+            return await _post_chat(config.GLIMMER_BASE_URL, config.GLIMMER_API_KEY, config.GLIMMER_MODEL, messages, extra)
+        raise
+
+
+def _retryable(e: Exception) -> bool:
+    """Server trouble or timeouts are worth a fallback; our own bad request (4xx other than rate limit) is not."""
+    if isinstance(e, httpx.HTTPStatusError):
+        return e.response.status_code >= 500 or e.response.status_code == 429
+    return True
+
+
+async def _post_chat(base: str, key: str, model: str, messages: list[dict], extra: dict) -> dict:
     payload = {"model": model, "messages": messages, **extra}
     async with httpx.AsyncClient(timeout=config.REQUEST_TIMEOUT) as client:
-        r = await client.post(
-            f"{base}/chat/completions", json=payload, headers=_headers(key)
-        )
+        r = await client.post(f"{base}/chat/completions", json=payload, headers=_headers(key))
         r.raise_for_status()
         return r.json()["choices"][0]["message"]
 

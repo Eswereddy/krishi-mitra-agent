@@ -41,6 +41,8 @@ def status() -> dict:
     return {
         "muse_spark_open": {"model": config.OPEN_MODEL, "role": "chat, tool calling, vision, audio (open weights)",
                             "configured": bool(config.BASETEN_API_KEY) or config.PROVIDER != "baseten"},
+        "muse_glimmer": {"model": config.GLIMMER_MODEL, "role": "open-weight fallback when the main model call fails",
+                         "configured": bool(config.GLIMMER_BASE_URL)},
         "muse_voice_transcribe": {"model": ASR_MODEL, "role": "speech to text (/api/asr)", "configured": available()},
         "sam": {"model": SAM_MODEL, "role": "leaf damage measurement (/api/leaf-scan)", "configured": available()},
         "muse_wonder": {"model": WONDER_MODEL, "role": "independent second-opinion audit of answers (/api/second-opinion)", "configured": available()},
