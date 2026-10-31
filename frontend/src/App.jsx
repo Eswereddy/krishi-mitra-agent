@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { T, LANGS } from "./i18n";
 import { startListening, speak, stopSpeaking, extFor, unlockAudio } from "./lib/audio";
 import { Markdown, ToolCards, StepChips, LiveSteps, SourcesLine, I } from "./components";
-import { ExtraSheet, ex, leafScan, adviceCard } from "./extras";
+import { ExtraSheet, ex, leafScan, adviceCard, secondOpinion } from "./extras";
 import { KhataSheet, ClaimSheet, kx } from "./khata";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
@@ -509,6 +509,7 @@ export default function App() {
     }
   }
   const scanPhoto = () => photo?.file && runExtra("scan", () => leafScan(photo.file, ex(t.code).unavailable));
+  const audit = (m) => runExtra("audit", () => secondOpinion(m.text, m.steps, lang, ex(t.code).unavailable));
   const makeCard = (m) => runExtra("card", () => adviceCard(m.text, lang, profile.main_crop, ex(t.code).unavailable));
 
   // ---------- misc ----------
@@ -655,6 +656,7 @@ export default function App() {
                           <button className="pill" onClick={() => shareWhatsApp(m)}><I.whatsapp />{t.share}</button>
                           <button className="pill" onClick={() => copyText(m)}><I.copy />{t.copy}</button>
                           <button className="pill" onClick={() => makeCard(m)}>🖼️ {ex(t.code).cardBtn}</button>
+                          {m.steps?.some((x) => x.result && !x.result.error) && <button className="pill" onClick={() => audit(m)}>🔍 {ex(t.code).audit}</button>}
                         </div>
                       </>
                     )}

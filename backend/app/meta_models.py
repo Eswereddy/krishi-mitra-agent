@@ -19,6 +19,7 @@ BASE = os.getenv("META_BASE_URL", "https://api.meta.ai/v1").rstrip("/")
 ASR_MODEL = "muse-voice-transcribe-1.0"
 SAM_MODEL = "sam-3.1"
 IMAGE_MODEL = "muse-image-1.0"
+WONDER_MODEL = os.getenv("WONDER_MODEL", "muse-wonder-1.0")
 TIMEOUT = float(os.getenv("REQUEST_TIMEOUT", "60"))
 MIN_CONFIDENCE = 0.3
 MAX_SIDE = 1024
@@ -42,6 +43,7 @@ def status() -> dict:
                             "configured": bool(config.BASETEN_API_KEY) or config.PROVIDER != "baseten"},
         "muse_voice_transcribe": {"model": ASR_MODEL, "role": "speech to text (/api/asr)", "configured": available()},
         "sam": {"model": SAM_MODEL, "role": "leaf damage measurement (/api/leaf-scan)", "configured": available()},
+        "muse_wonder": {"model": WONDER_MODEL, "role": "independent second-opinion audit of answers (/api/second-opinion)", "configured": available()},
         "muse_image": {"model": IMAGE_MODEL, "role": "shareable advice card (/api/advice-card)", "configured": available()},
     }
 
@@ -65,6 +67,30 @@ async def asr_transcribe(wav: bytes, languages: tuple[str, ...] = ("Telugu", "Hi
                                 "audio": ("question.wav", wav, "audio/wav")})
         r.raise_for_status()
         return str(r.json().get("transcript") or "").strip()
+
+
+# ---------------------------------------------------------------- Muse Wonder (reasoning model)
+
+def _output_text(body: dict) -> str:
+    """Text of a Responses API reply: `output_text` if present, else the text parts of the output messages."""
+    if isinstance(body.get("output_text"), str):
+        return body["output_text"].strip()
+    parts = []
+    for item in body.get("output") or []:
+        for c in (item.get("content") or []) if isinstance(item, dict) else []:
+            if isinstance(c, dict) and isinstance(c.get("text"), str) and c.get("type", "output_text") == "output_text":
+                parts.append(c["text"])
+    return "".join(parts).strip()
+
+
+async def wonder(instructions: str, text: str, effort: str = "medium", max_tokens: int = 1500) -> str:
+    """One call to Muse Wonder (reasoning model) through the Responses API. Returns its text."""
+    body = {"model": WONDER_MODEL, "instructions": instructions, "input": text,
+            "reasoning": {"effort": effort}, "max_output_tokens": max_tokens}
+    async with _client() as c:
+        r = await c.post(f"{BASE}/responses", headers=_auth(), json=body)
+        r.raise_for_status()
+        return _output_text(r.json())
 
 
 # ---------------------------------------------------------------- Muse Image

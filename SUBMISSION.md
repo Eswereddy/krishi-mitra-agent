@@ -24,6 +24,9 @@ Small farmers in India often cannot type long questions, read English websites, 
 ## Built for farmers everywhere
 Not only India: 40 countries, 9 languages plus mirror-language for any other, local currency, and open WFP price data. India-only schemes, MSP and claim rules are gated so no farmer abroad gets a wrong figure. Where no price data exists the agent says so and helps with the farmer's own offered price.
 
+## Two models cross-check each other
+Muse Spark Open writes the answer; Muse Wonder independently audits it against the tool results; code verifies every figure. No answer is called "checked" on a model's word alone.
+
 ## How Meta models are used
 - **Muse Spark Open** (open weights, served on Baseten) does the chat, tool calling, image understanding and speech transcription. One model for text, vision and audio keeps the app simple.
 - **SAM 3.1** measures how much of a leaf is marked: it finds lesions and the leaf, and the percentage is computed in code from the masks, not guessed by a model.
