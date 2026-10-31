@@ -363,6 +363,7 @@ from . import advisor  # noqa: E402  (advisor imports tools lazily, so this orde
 
 from . import planner  # noqa: E402
 from . import globalprices  # noqa: E402
+from . import agro  # noqa: E402
 
 TOOL_FUNCS.update(advisor.FUNCS)
 TOOL_SPECS.extend(advisor.SPECS)
@@ -370,6 +371,8 @@ TOOL_FUNCS.update(planner.FUNCS)
 TOOL_SPECS.extend(planner.SPECS)
 TOOL_FUNCS.update(globalprices.FUNCS)
 TOOL_SPECS.extend(globalprices.SPECS)
+TOOL_FUNCS.update(agro.FUNCS)
+TOOL_SPECS.extend(agro.SPECS)
 
 
 def run_tool(name: str, args: dict) -> dict:

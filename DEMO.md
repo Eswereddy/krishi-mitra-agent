@@ -38,6 +38,9 @@ Switch country to Kenya, language to Kiswahili, ask "Bei ya mahindi Nakuru ni ng
 ## Cross-check beat (15 seconds, for "Best Agentic Use-Case" and Meta tooling)
 After an answer with a price card, tap "Second opinion": Muse Wonder audits it, and the figure check from code is shown next to it.
 
+## Planting beat (15 seconds)
+Country Kenya, ask "Can I plant maize this week?": the planting card shows soil temperature against what maize needs, rain and coldest night, then a clear sow / wait.
+
 ## Optional wow beats (use if you have time in the 3 minutes)
 - **Where to sell:** ask "Where should I sell 10 quintals of groundnut after transport costs?". Point at the 🏆 market and the "+₹ more than the nearest market" line: a far market that pays more can lose once transport is counted.
 - **Which crop:** ask "Which crop gives more profit on 2 acres this rabi?". Show the "if price falls 10%" column and say yield/cost are labelled assumptions.

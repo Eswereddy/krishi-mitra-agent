@@ -36,6 +36,7 @@ T = {
         "above": "above", "below": "below",
         "foot": "Guidance only, not a guarantee.",
         "risk_heat": "🔥 Heat alert: up to {n}°C on {d}. Water crops early morning or evening and protect workers and animals.",
+        "risk_frost": "❄️ Frost risk: night down to {n}°C on {d}. Cover young plants and avoid irrigating late in the evening.",
         "risk_rain": "⛈️ Heavy rain alert: {n} mm expected on {d}. Do not spray or fertilise before it; clear field drains and protect harvested produce.",
         "risk_wind": "💨 Strong wind alert: up to {n} km/h on {d}. Do not spray; support tall crops.",
     },
@@ -67,6 +68,7 @@ T = {
         "above": "ఎక్కువ", "below": "తక్కువ",
         "foot": "మార్గదర్శకం మాత్రమే, హామీ కాదు.",
         "risk_heat": "🔥 వేడి హెచ్చరిక: {d} న {n}°C వరకు. ఉదయం లేదా సాయంత్రం నీరు పెట్టండి, కూలీలను, పశువులను కాపాడండి.",
+        "risk_frost": "❄️ మంచు హెచ్చరిక: {d} రాత్రి {n}°C వరకు. లేత మొక్కలను కప్పండి, సాయంత్రం ఆలస్యంగా నీరు పెట్టవద్దు.",
         "risk_rain": "⛈️ భారీ వర్షం హెచ్చరిక: {d} న {n} mm వర్షం వచ్చే అవకాశం. ముందు పిచికారీ, ఎరువులు వద్దు; కాలువలు శుభ్రం చేయండి, కోసిన పంటను కాపాడండి.",
         "risk_wind": "💨 బలమైన గాలి హెచ్చరిక: {d} న {n} km/h వరకు. పిచికారీ వద్దు; ఎత్తైన పంటలకు ఆసరా ఇవ్వండి.",
     },
@@ -98,6 +100,7 @@ T = {
         "above": "ज़्यादा", "below": "कम",
         "foot": "सिर्फ़ मार्गदर्शन, गारंटी नहीं।",
         "risk_heat": "🔥 गर्मी की चेतावनी: {d} को {n}°C तक। सुबह या शाम को सिंचाई करें, मज़दूरों और पशुओं को बचाएँ।",
+        "risk_frost": "❄️ पाले की चेतावनी: {d} की रात {n}°C तक। छोटे पौधों को ढकें, शाम को देर से सिंचाई न करें।",
         "risk_rain": "⛈️ भारी बारिश की चेतावनी: {d} को {n} mm बारिश की संभावना। उससे पहले छिड़काव या खाद न दें; नालियाँ साफ़ करें, कटी फ़सल बचाएँ।",
         "risk_wind": "💨 तेज़ हवा की चेतावनी: {d} को {n} km/h तक। छिड़काव न करें; ऊँची फ़सलों को सहारा दें।",
     },
@@ -108,7 +111,7 @@ def _n(x) -> str:
     return f"{int(round(x)):,}"
 
 
-HEAT_C, HEAVY_RAIN_MM, STRONG_WIND_KMH = 40, 25, 40
+HEAT_C, HEAVY_RAIN_MM, STRONG_WIND_KMH, FROST_C = 40, 25, 40, 2
 
 
 def risk_lines(L: dict, days: list[dict]) -> list[str]:
@@ -120,6 +123,9 @@ def risk_lines(L: dict, days: list[dict]) -> list[str]:
         worst = max((d for d in days if (d.get(field) or 0) >= limit), key=lambda d: d[field], default=None)
         if worst:
             out.append(L[key].format(n=fmt(worst[field]), d=worst["date"]))
+    cold = min((d for d in days if d.get("min_c") is not None and d["min_c"] <= FROST_C), key=lambda d: d["min_c"], default=None)
+    if cold:
+        out.append(L["risk_frost"].format(n=round(cold["min_c"]), d=cold["date"]))
     return out
 
 

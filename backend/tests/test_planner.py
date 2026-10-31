@@ -140,7 +140,7 @@ def test_uploads_are_validated():
     assert r.status_code == 413
     r = c.post("/api/transcribe", files={"audio": ("a.webm", b"0" * (10 * 1024 * 1024 + 5), "audio/webm")})
     assert r.status_code == 413
-    assert c.get("/api/health").json()["tools"] == 17
+    assert c.get("/api/health").json()["tools"] == 18
 
 
 def test_agent_gives_up_in_the_farmers_language():

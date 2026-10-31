@@ -126,6 +126,11 @@ Krishi Mitra is not India-only. Pick a country in "My details" (40 countries + O
 ## Second opinion with Muse Wonder (new)
 Under every answer that used tools, a "Second opinion" button asks **Muse Wonder** (Meta's reasoning model, `muse-wonder-1.0`) to audit the answer written by Muse Spark Open. Wonder sees only the tool results and the answer, and says whether the advice follows from the data and which caution is missing. The number check still runs in code and always wins: if a figure is not in the tool results the verdict is "issues" whatever the model says. Two Meta models, one hard code check. Endpoint: `POST /api/second-opinion`; works without a key as a code-only check. Tests: `backend/tests/test_audit.py`.
 
+## Planting window, frost warning and a self-run evaluation (new)
+- **Planting window** (`planting_window`, any country): soil temperature, soil moisture, coming rain and frost from Open-Meteo decide "sow now / wait", computed in code. Germination temperatures are indicative guidance (`data/crop_planting.json`); the card tells the farmer to check the soil by hand.
+- **Frost warning** in the daily brief (night at or below 2 C), in all brief languages.
+- **Evaluation:** `cd backend && python eval/run_eval.py --out ../EVAL.md` runs 20 questions (India, Kenya, Brazil; 6 languages) through the live agent and reports right-tool rate, share of answers whose figures all verify (and with no India-only terms abroad), rewrites and latency. Run it once on your deployment and quote the numbers.
+
 ## Data honesty
 - Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.
 - Scheme details are indicative and must be confirmed with the official office (links are returned by the tool).
