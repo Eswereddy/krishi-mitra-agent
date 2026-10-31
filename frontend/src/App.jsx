@@ -520,7 +520,7 @@ export default function App() {
       setExtra({ kind, error: e.message, run });
     }
   }
-  const scanPhoto = () => photo?.file && runExtra("scan", () => leafScan(photo.file, ex(t.code).unavailable));
+  const scanPhoto = () => photo?.file && runExtra("scan", () => leafScan(photo.file, ex(t.code).unavailable, t.code));
   const audit = (m) => runExtra("audit", () => secondOpinion(m.text, m.steps, lang, ex(t.code).unavailable));
   const makeCard = (m) => runExtra("card", () => adviceCard(m.text, lang, profile.main_crop, ex(t.code).unavailable));
 

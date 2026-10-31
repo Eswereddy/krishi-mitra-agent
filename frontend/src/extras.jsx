@@ -5,6 +5,7 @@ import { I } from "./components";
 
 const S = {
   te: {
+    rel: { clear: "నమ్మదగిన కొలత", uncertain: "ఖచ్చితంగా తెలియదు", retake: "ఫోటో మళ్లీ తీయండి" }, conf: "మోడల్ నమ్మకం", photoQ: "ఫోటో నాణ్యత", why: "ఎందుకు ఖచ్చితం కాదు", safe: "సురక్షిత చర్యలు (మందు లేకుండా)", escalate: "నిపుణుడు చూడాలి", sharp: "స్పష్టత", light: "వెలుతురు",
     savedLabel: "సేవ్ చేసిన సమాచారం (ఇంటర్నెట్ లేదు)",
     audit: "రెండో అభిప్రాయం", auditTitle: "రెండో అభిప్రాయం (Muse Wonder)", auditing: "Muse Wonder జవాబును తనిఖీ చేస్తోంది...", numsOk: "అన్ని సంఖ్యలు టూల్ ఫలితాలతో సరిపోయాయి (కోడ్ తనిఖీ)", numsBad: "ఈ సంఖ్యలు సరిపోలలేదు: ", consistent: "జవాబు డేటాకు సరిపోతోంది", issues: "గమనించాల్సినవి", caveats: "జాగ్రత్తలు", codeOnly: "Wonder తనిఖీ ఇప్పుడు లేదు; సంఖ్యల తనిఖీ మాత్రమే జరిగింది.", auditNote: "ఇది రెండో AI మోడల్ తనిఖీ. తుది నిర్ణయం మీదే; అధికారిని అడగండి.",
     week: "ఈ వారం", weekSub: "7 రోజుల ప్లాన్: ముందు ఏం చేయాలి",
@@ -16,6 +17,7 @@ const S = {
     unavailable: "ఈ సదుపాయం ఇప్పుడు అందుబాటులో లేదు.", download: "డౌన్‌లోడ్", share: "షేర్", close: "మూసివేయి", again: "మళ్లీ ప్రయత్నించు",
   },
   en: {
+    rel: { clear: "Reliable measurement", uncertain: "Not fully sure", retake: "Please retake the photo" }, conf: "Model confidence", photoQ: "Photo quality", why: "Why not sure", safe: "Safe steps (no chemicals)", escalate: "An expert should look at this", sharp: "Sharpness", light: "Brightness",
     savedLabel: "Saved guidance (no internet)",
     audit: "Second opinion", auditTitle: "Second opinion (Muse Wonder)", auditing: "Muse Wonder is checking the answer...", numsOk: "Every figure matches the tool results (checked in code)", numsBad: "These figures do not match: ", consistent: "The answer follows from the data", issues: "Points to check", caveats: "Cautions", codeOnly: "The Wonder review is not available right now; only the figure check ran.", auditNote: "A second AI model reviewed this. The final decision is yours; ask your officer for big decisions.",
     week: "This week", weekSub: "7-day plan: what to do first",
@@ -27,6 +29,7 @@ const S = {
     unavailable: "This feature is not available right now.", download: "Download", share: "Share", close: "Close", again: "Try again",
   },
   hi: {
+    rel: { clear: "भरोसेमंद माप", uncertain: "पूरी तरह पक्का नहीं", retake: "कृपया फोटो दोबारा लें" }, conf: "मॉडल का भरोसा", photoQ: "फोटो की गुणवत्ता", why: "पक्का क्यों नहीं", safe: "सुरक्षित कदम (बिना रसायन)", escalate: "विशेषज्ञ को देखना चाहिए", sharp: "स्पष्टता", light: "रोशनी",
     savedLabel: "सहेजी हुई सलाह (इंटरनेट नहीं)",
     audit: "दूसरी राय", auditTitle: "दूसरी राय (Muse Wonder)", auditing: "Muse Wonder जवाब की जाँच कर रहा है...", numsOk: "सभी आंकड़े टूल के नतीजों से मेल खाते हैं (कोड से जाँचा)", numsBad: "ये आंकड़े मेल नहीं खाते: ", consistent: "जवाब डेटा से मेल खाता है", issues: "ध्यान देने की बातें", caveats: "सावधानियाँ", codeOnly: "Wonder जाँच अभी उपलब्ध नहीं; सिर्फ़ आंकड़ों की जाँच हुई।", auditNote: "दूसरे AI मॉडल ने जाँचा है। अंतिम फ़ैसला आपका है; बड़े फ़ैसलों के लिए अधिकारी से पूछें।",
     week: "इस हफ़्ते", weekSub: "7 दिन की योजना: पहले क्या करें",
@@ -57,8 +60,9 @@ async function fail(r, fallback) {
   throw new Error(r.status === 503 ? fallback : d || `Error ${r.status}`);
 }
 
-export async function leafScan(file, unavailable) {
+export async function leafScan(file, unavailable, lang = "en") {
   const form = new FormData();
+  form.append("lang", lang === "auto" ? "te" : lang);
   form.append("image", await shrink(file), "leaf.jpg");
   const r = await fetch("/api/leaf-scan", { method: "POST", body: form });
   if (!r.ok) await fail(r, unavailable);
@@ -128,7 +132,17 @@ export function ExtraSheet({ extra, lang, onClose, onRetry }) {
             {data.found && data.basis === "photo" && <small> {t.photoBasis}</small>}
           </div>
           {data.found && <p className="hint">{data.spot_count} {t.spots}</p>}
-          {data.needs_expert && <p className="warn-note">☎️ {t.expert}</p>}
+          {data.reliability && (
+            <div className={"decision " + (data.reliability === "clear" ? "rising" : data.reliability === "retake" ? "falling" : "steady")}>
+              <b>{data.reliability === "clear" ? "✅ " : "⚠️ "}{t.rel[data.reliability]}</b>
+              {data.confidence && <small> · {t.conf}: {Math.round(data.confidence.mean * 100)}% ({Math.round(data.confidence.lowest * 100)}% min)</small>}
+            </div>
+          )}
+          {data.photo && <p className="hint">📷 {t.photoQ}: {t.sharp} {data.photo.sharpness} · {t.light} {data.photo.brightness}</p>}
+          {data.reason_texts?.length > 0 && <><b>{t.why}</b><ul className="plain">{data.reason_texts.map((r) => <li key={r.code}>{r.text}</li>)}</ul></>}
+          {data.escalation?.needed && <p className="warn-note">☎️ {t.escalate}{data.escalation_texts?.length ? `: ${data.escalation_texts.join(" ")}` : ""}</p>}
+          {data.steps?.length > 0 && <><b>{t.safe}</b><ul className="plain">{data.steps.map((x) => <li key={x.code}>{x.text}</li>)}</ul></>}
+          {!data.reliability && data.needs_expert && <p className="warn-note">☎️ {t.expert}</p>}
           <p className="hint">{t.note}</p>
         </>
       )}

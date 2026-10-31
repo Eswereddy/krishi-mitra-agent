@@ -12,7 +12,7 @@ import re
 import httpx
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
-from . import audit, config, meta_client, meta_models as mm, ratelimit
+from . import audit, config, doctor, meta_client, meta_models as mm, ratelimit
 
 router = APIRouter()
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
@@ -67,7 +67,7 @@ async def asr(audio: UploadFile = File(...), lang: str = Form("auto")):
 
 
 @router.post("/api/leaf-scan")
-async def leaf_scan(image: UploadFile = File(...)):
+async def leaf_scan(image: UploadFile = File(...), lang: str = Form("en")):
     """Measure how much of a leaf is damaged. SAM 3.1 segments 'diseased leaf spot' and 'leaf'; we compute the share.
     This is a measurement of the photo, not a diagnosis: it never names a disease or a pesticide."""
     _need_key()
@@ -87,7 +87,11 @@ async def leaf_scan(image: UploadFile = File(...)):
         raise HTTPException(502, f"Meta API error: {e.response.text[:300]}")
     except httpx.HTTPError as e:
         raise HTTPException(502, f"Model service unavailable ({type(e).__name__}). Please try again in a moment.")
-    result["needs_expert"] = result["band"] == "severe"
+    quality = doctor.photo_quality(base)
+    a = doctor.assess(result, quality)
+    result.update(a)
+    result.update(doctor.localize(result, a, lang))
+    result["needs_expert"] = a["escalation"]["needed"] or result["band"] == "severe"
     result["model"] = mm.SAM_MODEL
     result["note"] = ("Measured from the photo with SAM 3.1. This is how much of the visible leaf is marked, "
                       "not a diagnosis. Ask the agriculture officer or call the Kisan Call Centre 1800-180-1551.")

@@ -35,8 +35,17 @@ LOW_CONF = "<0f>" + _record(1, 100, 100, 199, 199, 1.0, conf=0.1)
 
 
 def _photo(color=(60, 140, 60)) -> bytes:
+    """A leaf-green photo with texture (a perfectly flat image would rightly be flagged as blurry)."""
+    import random
+    rnd = random.Random(1)
+    img = Image.new("RGB", (W, H), color)
+    px = img.load()
+    for x in range(W):
+        for y in range(H):
+            n = rnd.randint(-40, 40)
+            px[x, y] = tuple(max(0, min(255, c + n)) for c in color)
     b = io.BytesIO()
-    Image.new("RGB", (W, H), color).save(b, "JPEG")
+    img.save(b, "JPEG", quality=95)
     return b.getvalue()
 
 
