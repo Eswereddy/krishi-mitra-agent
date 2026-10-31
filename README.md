@@ -123,6 +123,9 @@ Krishi Mitra is not India-only. Pick a country in "My details" (40 countries + O
 - Weather (Open-Meteo), the daily brief, week plan, Khata and photo advice work anywhere.
 - Tests: `backend/tests/test_global.py`. The HDX endpoint could not be reached from the build sandbox, so test it once live: ask for maize prices with country Kenya.
 
+## Second opinion with Muse Wonder (new)
+Under every answer that used tools, a "Second opinion" button asks **Muse Wonder** (Meta's reasoning model, `muse-wonder-1.0`) to audit the answer written by Muse Spark Open. Wonder sees only the tool results and the answer, and says whether the advice follows from the data and which caution is missing. The number check still runs in code and always wins: if a figure is not in the tool results the verdict is "issues" whatever the model says. Two Meta models, one hard code check. Endpoint: `POST /api/second-opinion`; works without a key as a code-only check. Tests: `backend/tests/test_audit.py`.
+
 ## Data honesty
 - Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.
 - Scheme details are indicative and must be confirmed with the official office (links are returned by the tool).

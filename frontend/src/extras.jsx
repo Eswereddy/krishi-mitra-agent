@@ -5,6 +5,7 @@ import { I } from "./components";
 
 const S = {
   te: {
+    audit: "రెండో అభిప్రాయం", auditTitle: "రెండో అభిప్రాయం (Muse Wonder)", auditing: "Muse Wonder జవాబును తనిఖీ చేస్తోంది...", numsOk: "అన్ని సంఖ్యలు టూల్ ఫలితాలతో సరిపోయాయి (కోడ్ తనిఖీ)", numsBad: "ఈ సంఖ్యలు సరిపోలలేదు: ", consistent: "జవాబు డేటాకు సరిపోతోంది", issues: "గమనించాల్సినవి", caveats: "జాగ్రత్తలు", codeOnly: "Wonder తనిఖీ ఇప్పుడు లేదు; సంఖ్యల తనిఖీ మాత్రమే జరిగింది.", auditNote: "ఇది రెండో AI మోడల్ తనిఖీ. తుది నిర్ణయం మీదే; అధికారిని అడగండి.",
     week: "ఈ వారం", weekSub: "7 రోజుల ప్లాన్: ముందు ఏం చేయాలి",
     scan: "నష్టం కొలవండి", scanTitle: "ఆకు నష్టం కొలత", scanning: "SAM 3.1 ఆకును చూస్తోంది...", cardBtn: "కార్డ్", cardTitle: "షేర్ కార్డ్",
     making: "Muse Image కార్డ్ తయారుచేస్తోంది...", pct: "ఆకులో నష్టం", spots: "మచ్చల ప్రాంతాలు", photoBasis: "(ఫోటోలో శాతం)",
@@ -14,6 +15,7 @@ const S = {
     unavailable: "ఈ సదుపాయం ఇప్పుడు అందుబాటులో లేదు.", download: "డౌన్‌లోడ్", share: "షేర్", close: "మూసివేయి", again: "మళ్లీ ప్రయత్నించు",
   },
   en: {
+    audit: "Second opinion", auditTitle: "Second opinion (Muse Wonder)", auditing: "Muse Wonder is checking the answer...", numsOk: "Every figure matches the tool results (checked in code)", numsBad: "These figures do not match: ", consistent: "The answer follows from the data", issues: "Points to check", caveats: "Cautions", codeOnly: "The Wonder review is not available right now; only the figure check ran.", auditNote: "A second AI model reviewed this. The final decision is yours; ask your officer for big decisions.",
     week: "This week", weekSub: "7-day plan: what to do first",
     scan: "Measure damage", scanTitle: "Leaf damage measurement", scanning: "SAM 3.1 is looking at the leaf...", cardBtn: "Card", cardTitle: "Share card",
     making: "Muse Image is making the card...", pct: "of the leaf is marked", spots: "marked areas", photoBasis: "(of the whole photo)",
@@ -23,6 +25,7 @@ const S = {
     unavailable: "This feature is not available right now.", download: "Download", share: "Share", close: "Close", again: "Try again",
   },
   hi: {
+    audit: "दूसरी राय", auditTitle: "दूसरी राय (Muse Wonder)", auditing: "Muse Wonder जवाब की जाँच कर रहा है...", numsOk: "सभी आंकड़े टूल के नतीजों से मेल खाते हैं (कोड से जाँचा)", numsBad: "ये आंकड़े मेल नहीं खाते: ", consistent: "जवाब डेटा से मेल खाता है", issues: "ध्यान देने की बातें", caveats: "सावधानियाँ", codeOnly: "Wonder जाँच अभी उपलब्ध नहीं; सिर्फ़ आंकड़ों की जाँच हुई।", auditNote: "दूसरे AI मॉडल ने जाँचा है। अंतिम फ़ैसला आपका है; बड़े फ़ैसलों के लिए अधिकारी से पूछें।",
     week: "इस हफ़्ते", weekSub: "7 दिन की योजना: पहले क्या करें",
     scan: "नुकसान मापें", scanTitle: "पत्ती के नुकसान की माप", scanning: "SAM 3.1 पत्ती देख रहा है...", cardBtn: "कार्ड", cardTitle: "शेयर कार्ड",
     making: "Muse Image कार्ड बना रहा है...", pct: "पत्ती पर निशान", spots: "निशान वाले हिस्से", photoBasis: "(पूरी फ़ोटो का हिस्सा)",
@@ -59,6 +62,13 @@ export async function leafScan(file, unavailable) {
   return r.json();
 }
 
+export async function secondOpinion(answer, steps, lang, unavailable) {
+  const slim = (steps || []).filter((x) => x?.result && !x.result.error).map((x) => ({ tool: x.tool, result: x.result }));
+  const r = await fetch("/api/second-opinion", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ answer, steps: slim, lang: lang === "auto" ? "te" : lang }) });
+  if (!r.ok) await fail(r, unavailable);
+  return r.json();
+}
+
 export async function adviceCard(text, lang, crop, unavailable) {
   const r = await fetch("/api/advice-card", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, lang: lang === "auto" ? "te" : lang, crop }) });
   if (!r.ok) await fail(r, unavailable);
@@ -82,6 +92,27 @@ export function ExtraSheet({ extra, lang, onClose, onRetry }) {
   if (!extra) return null;
   const { kind, loading, data, error } = extra;
   const isScan = kind === "scan";
+  if (kind === "audit") {
+    const d = data;
+    return (
+      <Sheet title={"🔍 " + t.auditTitle} onClose={onClose} close={t.close}>
+        {loading && <p className="hint"><b className="mini-spin" /> {t.auditing}</p>}
+        {error && <><p className="hint">⚠️ {error}</p><button className="pill" onClick={onRetry}>↻ {t.again}</button></>}
+        {d && (
+          <>
+            <div className={"decision " + (d.numbers_checked_in_code.passed ? "rising" : "falling")}>
+              <b>{d.numbers_checked_in_code.passed ? "✅ " + t.numsOk : "⚠️ " + t.numsBad + d.numbers_checked_in_code.unverified.join(", ")}</b>
+            </div>
+            {d.available && d.verdict === "consistent" && <p className="hint">✅ {t.consistent}</p>}
+            {d.reason && d.reason !== "no_tool_results" && <p className="hint">{t.codeOnly}</p>}
+            {d.issues.length > 0 && <><b>{t.issues}</b><ul className="plain">{d.issues.map((i, n) => <li key={n}><b>{i.claim}</b> {i.problem}</li>)}</ul></>}
+            {d.missing_caveats.length > 0 && <><b>{t.caveats}</b><ul className="plain">{d.missing_caveats.map((c, n) => <li key={n}>{c}</li>)}</ul></>}
+            <p className="hint">{t.auditNote}</p>
+          </>
+        )}
+      </Sheet>
+    );
+  }
   return (
     <Sheet title={(isScan ? "🔬 " + t.scanTitle : "🖼️ " + t.cardTitle)} onClose={onClose} close={t.close}>
       {loading && <p className="hint"><b className="mini-spin" /> {isScan ? t.scanning : t.making}</p>}

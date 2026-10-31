@@ -3,6 +3,7 @@
   GET  /api/meta-models   which Meta models this deployment uses
   POST /api/asr           speech to text: Muse Voice Transcribe when MODEL_API_KEY is set, else the existing Spark Open path
   POST /api/leaf-scan     SAM 3.1 finds lesions + leaf; the damage percentage is computed in code from the masks
+  POST /api/second-opinion  Muse Wonder audits an answer against its tool results (numbers are also checked in code)
   POST /api/advice-card   Muse Image makes a shareable advice card from a verified answer
 """
 import asyncio
@@ -11,13 +12,13 @@ import re
 import httpx
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
-from . import config, meta_client, meta_models as mm, ratelimit
+from . import audit, config, meta_client, meta_models as mm, ratelimit
 
 router = APIRouter()
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 ratelimit.LIMITS.update({"/api/asr": ratelimit.LIMITS["/api/transcribe"],
-                         "/api/leaf-scan": 6, "/api/advice-card": 6})   # image models cost real credits
+                         "/api/leaf-scan": 6, "/api/advice-card": 6, "/api/second-opinion": 8})   # image models cost real credits
 
 
 def _need_key() -> None:
@@ -126,3 +127,15 @@ async def advice_card(payload: dict):
         raise HTTPException(502, f"Image service unavailable ({type(e).__name__}). Please try again.")
     import base64
     return {"image": "data:image/png;base64," + base64.b64encode(png).decode(), "text": line, "model": mm.IMAGE_MODEL}
+
+
+@router.post("/api/second-opinion")
+async def second_opinion(payload: dict):
+    """A second Meta model (Muse Wonder) reviews an answer against the tool results the agent saw. The number check
+    runs in code and works even without a key; the reasoning review needs MODEL_API_KEY."""
+    answer = str(payload.get("answer") or "").strip()
+    if not answer:
+        raise HTTPException(400, "answer required")
+    from . import lang as langmod
+    lang = payload.get("lang") if payload.get("lang") in langmod.NAMES else "en"
+    return await audit.second_opinion(answer, payload.get("steps") or [], lang)

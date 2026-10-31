@@ -30,6 +30,7 @@ jobs:
           python tests/test_meta_extras.py
           python tests/test_plan.py
           python tests/test_global.py
+          python tests/test_audit.py
           python tests/test_khata.py
 
   frontend:
