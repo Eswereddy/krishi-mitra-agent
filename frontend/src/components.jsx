@@ -45,6 +45,8 @@ export function Markdown({ text }) {
 
 // ---------- rich cards for tool results ----------
 const rupee = (n) => (n == null ? "–" : (Number(n) < 0 ? "−₹" : "₹") + Math.abs(Number(n)).toLocaleString("en-IN"));
+// Money in the farmer's own currency (global mode): "KES 72", never a rupee sign.
+const money = (n, cur) => (n == null ? "–" : `${cur || ""} ${Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 })}`.trim());
 const WX = (mm, pct) => (mm >= 10 || pct >= 80 ? "🌧️" : mm >= 1 || pct >= 50 ? "🌦️" : pct >= 25 ? "⛅" : "☀️");
 
 function SourceBadge({ source, t }) {
@@ -337,6 +339,36 @@ function KccCard({ step, t }) {
 }
 
 // ---------- planning cards: where to sell after transport, which crop to grow ----------
+function GlobalPriceCard({ step, t }) {
+  const r = step.result || {};
+  const rows = (r.results || []).slice(0, 5);
+  if (!rows.length) return null;
+  const tr = r.trend;
+  const arrow = tr?.trend === "rising" ? "📈" : tr?.trend === "falling" ? "📉" : "➡️";
+  const label = tr?.trend === "rising" ? t.trendRising : tr?.trend === "falling" ? t.trendFalling : t.trendSteady;
+  return (
+    <div className="card">
+      <div className="card-head">
+        <span>🌍 {rows[0].commodity || r.commodity} · {r.country}</span>
+        <span className="badge snap">{t.snapshot}</span>
+      </div>
+      <div className="rows">
+        {rows.map((x, i) => (
+          <div className="row" key={i}>
+            <div className="row-main"><b>{x.market}</b><small>{[x.admin1, x.date].filter(Boolean).join(" · ")}</small></div>
+            <div className="row-price">
+              <b>{money(x.price, x.currency)}</b>
+              <small>/ {String(x.unit || "").toLowerCase()}{x.usd_price != null ? ` · ≈ $${x.usd_price}` : ""}</small>
+            </div>
+          </div>
+        ))}
+      </div>
+      {tr && <div className="card-foot">{arrow} {label}: {money(tr.series[0].price, rows[0].currency)} → <b>{money(tr.series[tr.series.length - 1].price, rows[0].currency)}</b> ({tr.change_pct > 0 ? "+" : ""}{tr.change_pct}%)</div>}
+      <div className="card-foot">{r.source}</div>
+    </div>
+  );
+}
+
 function SellPlanCard({ step, t }) {
   const r = step.result, opts = r?.options;
   if (!opts?.length) return null;
@@ -431,6 +463,7 @@ export function ToolCards({ steps, t }) {
     switch (s.tool) {
       case "get_mandi_price":
       case "best_markets": return <PriceCard step={s} t={t} />;
+      case "get_market_price": return <GlobalPriceCard step={s} t={t} />;
       case "get_price_trend": return <TrendCard step={s} t={t} />;
       case "get_weather": return <WeatherCard step={s} t={t} />;
       case "check_schemes": return <SchemeCard step={s} t={t} />;

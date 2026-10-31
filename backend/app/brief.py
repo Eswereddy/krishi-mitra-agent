@@ -5,7 +5,7 @@ and every figure in it comes straight from a tool (it still passes through the s
 """
 import asyncio
 
-from . import lang as langmod, tools, verify
+from . import lang as langmod, locale as loc, tools, verify
 
 T = {
     "en": {
@@ -146,7 +146,7 @@ def compose(code: str, profile: dict, steps: list[dict]) -> str:
     if spray:
         lines.append(L["spray_head"].format(x=L["spray"][spray["code"]]))
     crop = profile.get("main_crop")
-    if crop:
+    if crop and loc.is_india(profile):
         price = res.get("get_mandi_price", {})
         row = (price.get("results") or [None])[0]
         src = str(price.get("source", ""))
@@ -171,8 +171,8 @@ def compose(code: str, profile: dict, steps: list[dict]) -> str:
 
 
 async def build_brief(profile: dict | None, lang: str = "auto") -> dict:
-    profile = {k: v for k, v in (profile or {}).items() if k in ("state", "district", "main_crop", "owns_land")}
-    code = lang if lang in T else "te"
+    profile = {k: v for k, v in (profile or {}).items() if k in ("state", "district", "main_crop", "owns_land", "country")}
+    code = lang if lang in T else ("te" if lang == "auto" else "en")
     district, crop = str(profile.get("district") or "").strip(), str(profile.get("main_crop") or "").strip()
     if not district:
         return {"answer": T[code]["need"], "steps": [], "mock": False,
@@ -180,7 +180,7 @@ async def build_brief(profile: dict | None, lang: str = "auto") -> dict:
     state = profile.get("state") or "Andhra Pradesh"
     plan = [("get_weather", {"place": district, "days": 3}), ("irrigation_advice", {"place": district, "days": 3}),
             ("spray_window", {"place": district, "days": 3})]
-    if crop:
+    if crop and loc.is_india(profile):          # Indian mandi prices and MSP only make sense in India
         plan += [("get_mandi_price", {"commodity": crop, "district": district, "state": state}),
                  ("hold_or_sell", {"commodity": crop, "district": district, "state": state})]
     results = await asyncio.gather(*(asyncio.to_thread(tools.run_tool, n, a) for n, a in plan))

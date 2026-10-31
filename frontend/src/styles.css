@@ -259,3 +259,9 @@ html[data-size="lg"] .welcome > p, html[data-size="lg"] .voice-answer, html[data
 .claim-out h5 { margin: 4px 0 0; } .claim-out ul { margin: 0; padding-left: 18px; font-size: 14px; }
 .sheet select { padding: 11px 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface2); font-size: 16px; color: var(--text); width: 100%; box-sizing: border-box; }
 .sheet input[type=datetime-local] { width: 100%; box-sizing: border-box; }
+
+/* ten languages: the switcher scrolls sideways instead of squeezing the header */
+.seg { max-width: min(52vw, 360px); overflow-x: auto; scrollbar-width: none; }
+.seg::-webkit-scrollbar { display: none; }
+.seg button { flex: 0 0 auto; white-space: nowrap; }
+.top-actions { min-width: 0; }

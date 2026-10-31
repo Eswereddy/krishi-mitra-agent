@@ -16,8 +16,11 @@ import re
 _TELUGU_DIGITS = str.maketrans("౦౧౨౩౪౫౬౭౮౯०१२३४५६७८९", "01234567890123456789")
 _NUM = re.compile(r"\d[\d,]*(?:\.\d+)?")
 
-_MONEY_PRE = r"(?:₹|Rs\.?|INR|రూ\.?|रु\.?)"
-_MONEY_POST = r"(?:₹|Rs\b\.?|INR|rupees?|రూపాయ\w*|రూ\b\.?|रुपय\w*|रु\b\.?|/-|per\s*quintal|/\s*quintal)"
+_CUR = (r"\$|€|£|₦|₱|₫|฿|৳|R\$|KSh|USh|TSh|GH₵|USD|EUR|GBP|KES|UGX|TZS|NGN|GHS|ZAR|ETB|RWF|XOF|XAF|BDT|PKR|NPR|LKR|IDR|PHP|VND|THB|"
+        r"MMK|KHR|BRL|MXN|COP|PEN|ARS|CLP|MAD|EGP|MWK|ZMW|MZN|GTQ|HNL")
+_CUR_WORDS = r"dollars?|euros?|pesos?|shillings?|naira|cedis?|francs?|reais|real|rupiah|baht|dong|birr|kwacha"
+_MONEY_PRE = rf"(?:₹|Rs\.?|INR|రూ\.?|रु\.?|{_CUR})"
+_MONEY_POST = rf"(?:₹|Rs\b\.?|INR|rupees?|రూపాయ\w*|రూ\b\.?|रुपय\w*|रु\b\.?|/-|per\s*quintal|/\s*quintal|{_CUR}|{_CUR_WORDS})"
 _CLAIM = re.compile(
     rf"(?P<pre>{_MONEY_PRE}\s*)?(?P<num>\d[\d,]*(?:\.\d+)?)"
     rf"(?P<post>\s*(?:%|°\s*[CcFf]?|mm\b|మి\.?\s?మీ|मिमी|{_MONEY_POST}))?",

@@ -32,6 +32,9 @@
 - [ ] Optional: post the demo on X and add the post link (Most Viral prize)
 - [ ] Revoke any API key that was ever pasted in a chat or screenshot
 
+## Global beat (20 seconds, strong for a global judging panel)
+Switch country to Kenya, language to Kiswahili, ask "Bei ya mahindi Nakuru ni ngapi?". Show the KSh price card with its date and trend, then point out that MSP and Indian schemes disappeared on purpose.
+
 ## Optional wow beats (use if you have time in the 3 minutes)
 - **Where to sell:** ask "Where should I sell 10 quintals of groundnut after transport costs?". Point at the 🏆 market and the "+₹ more than the nearest market" line: a far market that pays more can lose once transport is counted.
 - **Which crop:** ask "Which crop gives more profit on 2 acres this rabi?". Show the "if price falls 10%" column and say yield/cost are labelled assumptions.

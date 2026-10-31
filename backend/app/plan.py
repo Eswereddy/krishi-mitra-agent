@@ -7,7 +7,7 @@ still passes the verification layer. Guidance, not a guarantee.
 """
 import asyncio
 
-from . import brief, tools, verify
+from . import brief, locale as loc, tools, verify
 
 T = {
     "en": {
@@ -103,8 +103,8 @@ def compose(code: str, profile: dict, priorities: list[dict]) -> str:
 
 
 async def build_plan(profile: dict | None, lang: str = "auto") -> dict:
-    profile = {k: v for k, v in (profile or {}).items() if k in ("state", "district", "main_crop", "owns_land")}
-    code = lang if lang in T else "te"
+    profile = {k: v for k, v in (profile or {}).items() if k in ("state", "district", "main_crop", "owns_land", "country")}
+    code = lang if lang in T else ("te" if lang == "auto" else "en")
     district, crop = str(profile.get("district") or "").strip(), str(profile.get("main_crop") or "").strip()
     if not district:
         return {"answer": T[code]["need"], "steps": [], "mock": False,
@@ -112,8 +112,10 @@ async def build_plan(profile: dict | None, lang: str = "auto") -> dict:
     state = profile.get("state") or "Andhra Pradesh"
     plan = [("get_weather", {"place": district, "days": 7}), ("irrigation_advice", {"place": district, "days": 7}),
             ("spray_window", {"place": district, "days": 7}),
-            ("check_schemes", {"owns_land": bool(profile.get("owns_land")), "state": state})]
-    if crop:
+            ]
+    if loc.is_india(profile):
+        plan.append(("check_schemes", {"owns_land": bool(profile.get("owns_land")), "state": state}))
+    if crop and loc.is_india(profile):
         plan.append(("hold_or_sell", {"commodity": crop, "district": district, "state": state}))
     results = await asyncio.gather(*(asyncio.to_thread(tools.run_tool, n, a) for n, a in plan))
     steps = [{"tool": n, "args": a, "result": r} for (n, a), r in zip(plan, results)]

@@ -4,8 +4,11 @@ import { startListening, speak, stopSpeaking, extFor, unlockAudio } from "./lib/
 import { Markdown, ToolCards, StepChips, LiveSteps, SourcesLine, I } from "./components";
 import { ExtraSheet, ex, leafScan, adviceCard } from "./extras";
 import { KhataSheet, ClaimSheet, kx } from "./khata";
+import { COUNTRIES, countryRow, isIndia } from "./countries";
 
-const DEFAULT_PROFILE = { state: "Andhra Pradesh", district: "", owns_land: false, main_crop: "" };
+// quick questions that only make sense in India (MSP, KCC, Indian schemes, quintals)
+const INDIA_ONLY = /KCC|MSP|పథక|योजना|scheme|క్వింటా|क्विंटल|quintal|వరి|రబీ|రబీ/i;
+const DEFAULT_PROFILE = { country: "IN", state: "Andhra Pradesh", district: "", owns_land: false, main_crop: "" };
 const uid = () => Math.random().toString(36).slice(2, 9);
 const load = (k, fb) => {
   try {
@@ -69,6 +72,8 @@ export default function App() {
   const [draft, setDraft] = useState({ crop: "", target: "", direction: "above" });
 
   const t = T[lang === "auto" ? "te" : lang];
+  const langRef = useRef(lang);
+  langRef.current = lang;
   const tRef = useRef(t);
   tRef.current = t;
   const messagesRef = useRef(messages);
@@ -132,7 +137,7 @@ export default function App() {
     const list = alertsRef.current;
     if (!list.length || !navigator.onLine) return;
     try {
-      const r = await fetch("/api/alerts/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ alerts: list.map((a) => ({ ...a, state: profile.state })) }) });
+      const r = await fetch("/api/alerts/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ alerts: list.map((a) => ({ ...a, state: profile.state, country: profile.country || "IN" })) }) });
       if (!r.ok) return;
       const { results } = await r.json();
       setAlertRes(Object.fromEntries(results.map((x) => [x.id, x])));
@@ -147,7 +152,7 @@ export default function App() {
       save("km-alerts-seen", seen);
       if (manual) setToast(tRef.current.al.check + " ✓");
     } catch { /* offline or server busy: try again at the next check */ }
-  }, [profile.state]);
+  }, [profile.state, profile.country]);
   useEffect(() => {
     checkAlerts();
     const id = setInterval(checkAlerts, 15 * 60 * 1000);
@@ -174,7 +179,7 @@ export default function App() {
   // ---------- speaking ----------
   async function speakMessage(id, answer) {
     setSpeakingId(id);
-    const res = await speak(answer);
+    const res = await speak(answer, { lang: tRef.current.code });
     setSpeakingId((s) => (s === id ? null : s));
     if (res === "novoice") setToast(tRef.current.noVoice);
     return res;
@@ -384,6 +389,7 @@ export default function App() {
   async function transcribe(blob) {
     const form = new FormData();
     form.append("audio", blob, `question.${extFor(blob.type)}`);
+    form.append("lang", langRef.current);
     const r = await fetch("/api/asr", { method: "POST", body: form }); // Muse Voice Transcribe when configured, else Spark Open
     if (r.status === 422) {
       const e = new Error(tRef.current.unclear);
@@ -555,7 +561,7 @@ export default function App() {
         <div className="top-actions">
           <div className="seg" role="group" aria-label="Language">
             {LANGS.map((l) => (
-              <button key={l.id} className={lang === l.id ? "on" : ""} onClick={() => setLang(l.id)}>{l.label}</button>
+              <button key={l.id} className={lang === l.id ? "on" : ""} onClick={(e) => { setLang(l.id); e.currentTarget.scrollIntoView?.({ inline: "center", block: "nearest" }); }}>{l.label}</button>
             ))}
           </div>
           <button className="icon-btn" aria-label={t.theme} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
@@ -602,7 +608,7 @@ export default function App() {
             {installEvt && <button className="pill" onClick={installApp}>{t.install}</button>}
             <h4>{t.tryAsk}</h4>
             <div className="quick">
-              {t.quick.map((q) => (
+              {(isIndia(profile) ? t.quick : t.quick.filter((q) => !INDIA_ONLY.test(q.text))).map((q) => (
                 <button key={q.text} onClick={() => quick(q)}>
                   <span>{q.icon}</span>{q.label || q.text}
                 </button>
@@ -783,9 +789,15 @@ export default function App() {
         <div className="sheet-bg" onClick={() => setShowProfile(false)}>
           <div className="sheet" onClick={(e) => e.stopPropagation()}>
             <h3>{t.profile}</h3>
+            <label>{t.country || "Country"}
+              <select value={profile.country || "IN"} onChange={(e) => { const c = e.target.value; setProfile({ ...profile, country: c, state: c === "IN" ? (profile.state || "Andhra Pradesh") : "" }); }}>
+                {COUNTRIES.map((c) => <option key={c[0]} value={c[0]}>{c[1]} ({c[3]})</option>)}
+                <option value="OTHER">Other country</option>
+              </select>
+            </label>
             <label>{t.state}<input value={profile.state} onChange={(e) => setProfile({ ...profile, state: e.target.value })} /></label>
-            <label>{t.district}<input value={profile.district} onChange={(e) => setProfile({ ...profile, district: e.target.value })} placeholder="Kurnool" /></label>
-            <label>{t.crop}<input value={profile.main_crop} onChange={(e) => setProfile({ ...profile, main_crop: e.target.value })} placeholder="Groundnut" /></label>
+            <label>{t.district}<input value={profile.district} onChange={(e) => setProfile({ ...profile, district: e.target.value })} placeholder={isIndia(profile) ? "Kurnool" : "Nakuru"} /></label>
+            <label>{t.crop}<input value={profile.main_crop} onChange={(e) => setProfile({ ...profile, main_crop: e.target.value })} placeholder={isIndia(profile) ? "Groundnut" : "Maize"} /></label>
             <label className="check"><input type="checkbox" checked={profile.owns_land} onChange={(e) => setProfile({ ...profile, owns_land: e.target.checked })} />{t.land}</label>
             <label className="check"><input type="checkbox" checked={big} onChange={(e) => setBig(e.target.checked)} />{t.bigText}</label>
             <label className="check"><input type="checkbox" checked={autoSpeak} onChange={(e) => setAutoSpeak(e.target.checked)} />{t.autoSpeak}</label>

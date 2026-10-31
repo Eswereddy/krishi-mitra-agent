@@ -292,8 +292,12 @@ def _get_weather_uncached(place: str, days: int = 3) -> dict:
         return {"error": f"weather service unavailable ({type(e).__name__})"}
 
 
-def get_expert_help() -> dict:
+def get_expert_help(country: str = "IN") -> dict:
     """Where to get a human expert when the problem is serious or the agent is unsure."""
+    if str(country or "IN").upper() != "IN":
+        return {"local": "Your local agricultural extension officer or farmers' cooperative; the national ministry of "
+                         "agriculture's farmer helpline if your country has one; FAO country office resources.",
+                "note": "No national helpline number is listed for this country: ask the extension office for the right number."}
     return {
         "kisan_call_centre": "1800-180-1551",
         "note": "Toll-free Kisan Call Centre: farm experts answer in regional languages.",
@@ -302,8 +306,11 @@ def get_expert_help() -> dict:
 
 
 def check_schemes(owns_land: bool = False, grows_notified_crop: bool = True,
-                  state: str = "Andhra Pradesh") -> dict:
-    """Return schemes whose simple eligibility rules match the farmer's profile."""
+                  state: str = "Andhra Pradesh", country: str = "IN") -> dict:
+    """Return schemes whose simple eligibility rules match the farmer's profile (India only)."""
+    if str(country or "IN").upper() != "IN":
+        return {"matched": [], "disclaimer": "The scheme list covers India only. Ask the local agricultural extension office "
+                "or farmers' cooperative about subsidies, insurance and credit programmes in your country."}
     schemes = json.loads((DATA / "schemes.json").read_text())
     profile = {"owns_land": owns_land, "grows_notified_crop": grows_notified_crop,
                "is_farmer": True, "state": state}
@@ -334,9 +341,9 @@ TOOL_SPECS = [
          "district": {"type": "string"}, "state": {"type": "string"}}, ["commodity"]),
     _fn("get_weather", "Get a 1-7 day weather forecast (temperature, rain) for a village/town/district.",
         {"place": {"type": "string"}, "days": {"type": "integer"}}, ["place"]),
-    _fn("check_schemes", "Find government schemes a farmer may be eligible for.",
+    _fn("check_schemes", "Find government schemes a farmer may be eligible for (India only; pass the profile country).",
         {"owns_land": {"type": "boolean"}, "grows_notified_crop": {"type": "boolean"},
-         "state": {"type": "string"}}, ["owns_land"]),
+         "state": {"type": "string"}, "country": {"type": "string"}}, ["owns_land"]),
     _fn("best_markets", "Find which markets in the state pay the highest price for a crop (where to sell).",
         {"commodity": {"type": "string"}, "state": {"type": "string"}}, ["commodity"]),
     _fn("calculate_revenue", "Exact income calculation: quintals x price per quintal minus expenses. "
@@ -347,19 +354,22 @@ TOOL_SPECS = [
         "Use it for 'should I sell now or wait' questions.",
         {"commodity": {"type": "string"}, "market": {"type": "string"}, "district": {"type": "string"},
          "state": {"type": "string"}}, ["commodity"]),
-    _fn("get_expert_help", "Get the Kisan Call Centre number and local expert contacts. Use when the problem "
-        "is serious, uncertain, or needs a human expert."),
+    _fn("get_expert_help", "Get a human expert contact (Kisan Call Centre in India, the local extension office elsewhere). "
+        "Use when the problem is serious, uncertain, or needs a human expert.", {"country": {"type": "string"}}),
 ]
 
 
 from . import advisor  # noqa: E402  (advisor imports tools lazily, so this order is safe)
 
 from . import planner  # noqa: E402
+from . import globalprices  # noqa: E402
 
 TOOL_FUNCS.update(advisor.FUNCS)
 TOOL_SPECS.extend(advisor.SPECS)
 TOOL_FUNCS.update(planner.FUNCS)
 TOOL_SPECS.extend(planner.SPECS)
+TOOL_FUNCS.update(globalprices.FUNCS)
+TOOL_SPECS.extend(globalprices.SPECS)
 
 
 def run_tool(name: str, args: dict) -> dict:
