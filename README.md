@@ -129,7 +129,7 @@ Under every answer that used tools, a "Second opinion" button asks **Muse Wonder
 ## Planting window, frost warning and a self-run evaluation (new)
 - **Planting window** (`planting_window`, any country): soil temperature, soil moisture, coming rain and frost from Open-Meteo decide "sow now / wait", computed in code. Germination temperatures are indicative guidance (`data/crop_planting.json`); the card tells the farmer to check the soil by hand.
 - **Frost warning** in the daily brief (night at or below 2 C), in all brief languages.
-- **Evaluation:** `cd backend && python eval/run_eval.py --out ../EVAL.md` runs 27 questions (India, Kenya, Brazil; 6 languages) through the live agent and reports right-tool rate, share of answers whose figures all verify (and with no India-only terms abroad), rewrites and latency. Run it once on your deployment and quote the numbers.
+- **Evaluation:** `cd backend && python eval/run_eval.py --out ../EVAL.md` runs 28 questions (India, Kenya, Brazil; 6 languages) through the live agent and reports right-tool rate, share of answers whose figures all verify (and with no India-only terms abroad), rewrites and latency. Run it once on your deployment and quote the numbers.
 
 ## Crop coach: a guide for every farmer (new)
 Enter the sowing date in "My details" and Krishi Mitra becomes a coach (`crop_guide`, any country, 16 crops): it works out the growth stage, lists the few jobs that matter this week (weeding, scouting, feeding check, harvest and storage planning), counts days to the expected harvest, and raises an urgent line when the most water-sensitive stage meets a dry week (rain forecast from Open-Meteo). It also appears in the week plan, in Telugu, Hindi and English. Durations are indicative and labelled so; it never names pesticides or doses. Tests: `backend/tests/test_coach.py`.
@@ -150,6 +150,9 @@ Five more tools, all computed in code, any country, no medical or chemical advic
 
 ## WhatsApp, now global (new)
 The WhatsApp channel (the app farmers already use) works worldwide: `/country KE` (or a country name), `/sowing 2026-09-01`, `/lang es|fr|pt|sw|id|bn|te|hi|en`, `/brief` and `/plan` (today and this week, no model call, in the chosen language or a country-based default). All new tools (planting, water, coach, season, disease, storage, loans...) answer through the same agent. Voice notes go to Muse Voice Transcribe with the farmer's language as a hint (falling back to Spark Open) and voice replies use the chosen language. Tests: `backend/tests/test_whatsapp_global.py`.
+
+## Best months to sell (new)
+`price_seasonality` (outside India): from up to six years of WFP monthly prices it computes a seasonal index per calendar month (each price divided by that year's average, so inflation cancels), shows the months that are usually highest and lowest and the gap between them. Most smallholders sell at harvest, when prices are lowest; this turns "should I store and wait?" into a number to weigh against storage cost, losses and interest. It refuses when there are fewer than two usable years. History, not a forecast. Tests: `backend/tests/test_seasonality.py`.
 
 ## Data honesty
 - Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.

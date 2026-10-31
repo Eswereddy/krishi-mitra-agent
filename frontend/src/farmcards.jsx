@@ -157,3 +157,40 @@ export function DiseaseCard({ step, t }) {
     </div>
   );
 }
+
+const MONTHS = {
+  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  te: ["జన", "ఫిబ్ర", "మార్చి", "ఏప్రి", "మే", "జూన్", "జూలై", "ఆగ", "సెప్టెం", "అక్టో", "నవం", "డిసెం"],
+  hi: ["जन", "फ़र", "मार्च", "अप्रै", "मई", "जून", "जुला", "अग", "सित", "अक्टू", "नव", "दिस"],
+};
+const SZ = {
+  en: { title: "Best months to sell", high: "Usually highest", low: "Usually lowest", gap: "Gap between best and worst month", note: "Past pattern at one market, not a forecast. Storing pays only if the gap is bigger than your storage cost, losses and interest.", idx: "100 = yearly average" },
+  te: { title: "అమ్మడానికి మంచి నెలలు", high: "సాధారణంగా ఎక్కువ ధర", low: "సాధారణంగా తక్కువ ధర", gap: "మంచి, చెడ్డ నెల మధ్య తేడా", note: "ఒక మార్కెట్ లో గత ధోరణి మాత్రమే, ఫోర్కాస్ట్ కాదు. నిల్వ ఖర్చు, నష్టం, వడ్డీ కంటే తేడా ఎక్కువైతేనే నిల్వ లాభం.", idx: "100 = ఏడాది సగటు" },
+  hi: { title: "बेचने के अच्छे महीने", high: "आमतौर पर सबसे ऊँचा", low: "आमतौर पर सबसे नीचा", gap: "सबसे अच्छे और बुरे महीने का अंतर", note: "एक मंडी का पिछला रुझान, पूर्वानुमान नहीं। भंडारण तभी फ़ायदेमंद जब अंतर भंडारण खर्च, नुकसान और ब्याज से ज़्यादा हो।", idx: "100 = सालाना औसत" },
+};
+
+export function SeasonalityCard({ step, t }) {
+  const r = step.result || {}, L = SZ[t.code] || SZ.en, M = MONTHS[t.code] || MONTHS.en;
+  if (!r.index_by_month) return null;
+  const hi = Math.max(...r.index_by_month.map((x) => x.index));
+  return (
+    <div className="card">
+      <div className="card-head"><span>📅 {L.title} · {r.commodity}</span><span className="badge snap">{r.country}</span></div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 3, alignItems: "end", height: 70, margin: "8px 0 4px" }}>
+        {r.index_by_month.map((x) => {
+          const top = r.highest_months.includes(x.month), low = r.lowest_months.includes(x.month);
+          return <div key={x.month} title={`${M[x.month - 1]} ${x.index}`} style={{ height: `${(x.index / hi) * 100}%`, borderRadius: 3, background: top ? "var(--green)" : low ? "var(--gold)" : "var(--surface2)" }} />;
+        })}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 3, fontSize: 9, textAlign: "center", color: "var(--muted)" }}>
+        {r.index_by_month.map((x) => <span key={x.month}>{M[x.month - 1]}</span>)}
+      </div>
+      <div className="stats">
+        <div className="stat-profit"><small>{L.high}</small><b>{r.highest_months.map((m) => M[m - 1]).join(", ")}</b></div>
+        <div><small>{L.low}</small><b>{r.lowest_months.map((m) => M[m - 1]).join(", ")}</b></div>
+        <div><small>{L.gap}</small><b>{r.peak_vs_trough_pct}%</b></div>
+      </div>
+      <div className="card-foot">{L.idx} · {r.market}, {r.years_used.length} · {L.note}</div>
+    </div>
+  );
+}

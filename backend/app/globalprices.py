@@ -16,7 +16,7 @@ from . import locale as loc
 CKAN = "https://data.humdata.org/api/3/action"
 TIMEOUT = 40
 MAX_BYTES = 40 * 1024 * 1024
-KEEP_MONTHS = 24
+KEEP_MONTHS = 72
 
 
 def _get_json(path: str, params: dict) -> dict:
