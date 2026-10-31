@@ -39,3 +39,5 @@
 - **SAM 3.1 leaf measurement:** add a leaf photo, tap 🔬 Measure damage: the overlay shows the marked lesions and the percentage. Say that the model finds the regions and code computes the percentage, and that it is not a diagnosis. (needs `MODEL_API_KEY`)
 - **Muse Image card:** tap 🖼️ Card under an answer and share it to WhatsApp. (needs `MODEL_API_KEY`)
 - **This week:** tap 📅 This week. Show the 🔴 Do first items and the 7-day strip; say it decides and ranks the actions itself and every figure is verified.
+- **Khata:** tap 📒, say "sold 8 quintals groundnut at 7000", confirm, then "urea 1500"; tap Season report. Say the records stay on the phone and the model only extracts, code does the maths.
+- **Crop loss:** tap 🌧️, choose Hailstorm, tap Get deadline: the 72-hour countdown, checklist, helpline and message. Then switch the cause to Drought to show it does not invent a deadline.

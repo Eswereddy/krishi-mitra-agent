@@ -41,7 +41,7 @@ See [DEMO.md](DEMO.md) for the 3-minute demo script and submission checklist.
 
 ## Tests (offline, no API key needed)
 ```bash
-cd backend && python tests/test_verify.py && python tests/test_tools.py && python tests/test_stream.py && python tests/test_hardening.py && python tests/test_grounding.py && python tests/test_whatsapp.py && python tests/test_advisor.py && python tests/test_planner.py && python tests/test_meta_extras.py && python tests/test_plan.py
+cd backend && python tests/test_verify.py && python tests/test_tools.py && python tests/test_stream.py && python tests/test_hardening.py && python tests/test_grounding.py && python tests/test_whatsapp.py && python tests/test_advisor.py && python tests/test_planner.py && python tests/test_meta_extras.py && python tests/test_plan.py && python tests/test_khata.py
 ```
 
 ## Run locally
@@ -98,6 +98,10 @@ The chat shows a card for each. MSP figures were checked on 29 Oct 2026; update 
 - **Weather risk warnings in the Today brief:** heat (40 degC or more), heavy rain (25 mm or more) and strong wind (40 km/h or more) are called out with the worst day and what to do, in Telugu, Hindi and English, and pass the same verification layer.
 - **Hardening:** the rate limiter now trusts only the address added by the proxy (a client can no longer dodge it with a fake `X-Forwarded-For`), idle clients are swept from memory, uploads are type- and size-checked (photos 8 MB, audio 10 MB), and the agent's "could not finish" message is in the farmer's language. `/api/health` reports the tool count and whether live prices are on.
 - 16 tools in total; 10 new offline tests in `backend/tests/test_planner.py`.
+
+## Khata and crop-loss kit (new)
+- **📒 Khata (voice farm ledger):** say "bought urea for 1500" or "sold 8 quintals groundnut at 7000" in Telugu, Hindi or English (typed or by voice). The model only **extracts** one entry (`/api/ledger/parse`, with a rule-based fallback if the model is down); an amount that is not clearly in the farmer's own words is flagged, and the farmer always confirms before saving. Entries stay **on the phone** (no account). One tap gives a **season report** (income, cost of cultivation, net, cost per acre, where the money went, per crop), computed exactly in code, shareable on WhatsApp or as CSV: the record a bank or insurer asks for and most farmers do not have.
+- **🌧️ Crop-loss kit (`/api/claim/draft`):** the PMFBY rule that costs farmers their claims is the **72-hour intimation window** for localized calamities (hailstorm, local flooding, landslide, cloudburst, fire) and for harvested crop drying in the field. The kit computes the exact deadline with a live countdown, gives the checklist (photos, policy number, land records), the helpline numbers and a ready message to send, in three languages. It is honest where there is no individual claim: for drought or widespread pest it says losses are assessed area-wide by the government and sends the farmer to the agriculture officer instead of inventing a deadline. Rules are summarised from the PMFBY guidelines: confirm with the insurer.
 
 ## Week plan and more schemes (new)
 - **📅 This week (`/api/plan`):** one tap and the agent looks at the next 7 days and decides what to do, ranked **Do first / This week / Good to know**: heavy rain, heat or wind warnings, sell-or-hold and "below MSP" for the main crop, the next good irrigation day, the best spraying day, and the schemes the farmer qualifies for, with a 7-day strip (weather, irrigate, spray). Fixed rules and templates in Telugu, Hindi and English, no model call, and every figure passes the verification layer. If the forecast is unavailable it says so instead of planning blind.

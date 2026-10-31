@@ -245,3 +245,17 @@ html[data-size="lg"] .welcome > p, html[data-size="lg"] .voice-answer, html[data
 .plan-item p { margin: 2px 0 0; font-size: 14.5px; line-height: 1.4; }
 .plan-item.urgent { outline: 1.5px solid color-mix(in srgb, var(--red) 55%, transparent); }
 .plan-days { overflow-x: auto; }
+
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+.talk-cta.mini { padding: 12px; gap: 10px; text-align: left; }
+.talk-cta.mini small { font-size: 11.5px; line-height: 1.25; }
+.sheet.tall { max-height: 92vh; overflow-y: auto; }
+.khata-add { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; }
+.khata-add input { min-width: 0; }
+.khata-draft { display: grid; gap: 8px; background: var(--surface2); border-radius: 14px; padding: 12px; }
+.khata-list { display: grid; gap: 6px; }
+.khata-report pre, .claim-msg { white-space: pre-wrap; font: inherit; font-size: 13.5px; background: var(--surface2); border-radius: 12px; padding: 10px 12px; margin: 0 0 8px; }
+.claim-out { display: grid; gap: 8px; }
+.claim-out h5 { margin: 4px 0 0; } .claim-out ul { margin: 0; padding-left: 18px; font-size: 14px; }
+.sheet select { padding: 11px 10px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface2); font-size: 16px; color: var(--text); width: 100%; box-sizing: border-box; }
+.sheet input[type=datetime-local] { width: 100%; box-sizing: border-box; }
