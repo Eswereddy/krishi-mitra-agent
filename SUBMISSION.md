@@ -24,6 +24,9 @@ Small farmers in India often cannot type long questions, read English websites, 
 ## Built for farmers everywhere
 Not only India: 40 countries, 9 languages plus mirror-language for any other, local currency, and open WFP price data. India-only schemes, MSP and claim rules are gated so no farmer abroad gets a wrong figure. Where no price data exists the agent says so and helps with the farmer's own offered price.
 
+## Climate context and resilience
+A farmer can ask "is this a drought year?" and get "rain is 45% of normal" from 10 years of data, and the plan adjusts. If the main model is down, an open-weight Muse Glimmer takes over, so the app works where connectivity and budgets are thin.
+
 ## A coach, not just an answer machine
 With the sowing date, the app knows where the crop is today and tells the farmer what to do this week, warns before a dry spell hits the flowering stage, and counts down to harvest and the best place to sell. It works in 40 countries.
 

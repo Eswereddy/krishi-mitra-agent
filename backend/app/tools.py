@@ -365,6 +365,7 @@ from . import planner  # noqa: E402
 from . import globalprices  # noqa: E402
 from . import agro  # noqa: E402
 from . import coach  # noqa: E402
+from . import climate  # noqa: E402
 
 TOOL_FUNCS.update(advisor.FUNCS)
 TOOL_SPECS.extend(advisor.SPECS)
@@ -376,6 +377,8 @@ TOOL_FUNCS.update(agro.FUNCS)
 TOOL_SPECS.extend(agro.SPECS)
 TOOL_FUNCS.update(coach.FUNCS)
 TOOL_SPECS.extend(coach.SPECS)
+TOOL_FUNCS.update(climate.FUNCS)
+TOOL_SPECS.extend(climate.SPECS)
 
 
 def run_tool(name: str, args: dict) -> dict:

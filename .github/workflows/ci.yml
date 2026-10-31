@@ -33,6 +33,7 @@ jobs:
           python tests/test_audit.py
           python tests/test_agro.py
           python tests/test_coach.py
+          python tests/test_climate.py
           python tests/test_eval.py
           python tests/test_khata.py
 

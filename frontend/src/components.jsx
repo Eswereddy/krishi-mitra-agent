@@ -426,6 +426,30 @@ function CoachCard({ step, t }) {
   );
 }
 
+const SC = {
+  en: { title: "Season check", rain: "Rain, last 30 days", normal: "normal", temp: "Temperature", of: "of normal", much_below: "Much drier than normal", below: "Drier than normal", normal_: "Normal", above: "Wetter than normal", much_above: "Much wetter than normal", note: "Compared with the same 30 days in the last 10 years. A signal to plan with, not a forecast." },
+  te: { title: "సీజన్ పరిశీలన", rain: "గత 30 రోజుల వర్షం", normal: "సాధారణం", temp: "ఉష్ణోగ్రత", of: "సాధారణంలో", much_below: "సాధారణం కంటే చాలా పొడి", below: "సాధారణం కంటే పొడి", normal_: "సాధారణం", above: "సాధారణం కంటే ఎక్కువ వర్షం", much_above: "సాధారణం కంటే చాలా ఎక్కువ వర్షం", note: "గత 10 ఏళ్ల ఇదే 30 రోజులతో పోలిక. ప్లాన్ కోసం సూచన మాత్రమే, ఫోర్కాస్ట్ కాదు." },
+  hi: { title: "मौसम की जाँच", rain: "पिछले 30 दिन की बारिश", normal: "सामान्य", temp: "तापमान", of: "सामान्य का", much_below: "सामान्य से बहुत सूखा", below: "सामान्य से सूखा", normal_: "सामान्य", above: "सामान्य से ज़्यादा बारिश", much_above: "सामान्य से बहुत ज़्यादा बारिश", note: "पिछले 10 साल के इन्हीं 30 दिनों से तुलना। योजना के लिए संकेत, पूर्वानुमान नहीं।" },
+};
+
+function SeasonCard({ step, t }) {
+  const r = step.result || {};
+  const L = SC[t.code] || SC.en;
+  if (r.rain_mm == null) return null;
+  const cls = r.rain_band === "normal" ? "rising" : r.rain_band === "above" || r.rain_band === "below" ? "steady" : "falling";
+  return (
+    <div className="card">
+      <div className="card-head"><span>🌦️ {L.title} · {r.place}</span><span className="badge badge-ok">{r.period.days}d</span></div>
+      <div className={"decision " + cls}><b>{L[r.rain_band === "normal" ? "normal_" : r.rain_band]}{r.rain_vs_normal_pct != null ? ` · ${r.rain_vs_normal_pct}% ${L.of}` : ""}</b></div>
+      <div className="stats">
+        <div><small>{L.rain}</small><b>{r.rain_mm} mm</b><small>{L.normal} {r.normal_rain_mm} mm</small></div>
+        <div><small>{L.temp}</small><b>{r.temp_c}°C</b><small>{L.normal} {r.normal_temp_c}°C</small></div>
+      </div>
+      <div className="card-foot">{L.note}</div>
+    </div>
+  );
+}
+
 function SellPlanCard({ step, t }) {
   const r = step.result, opts = r?.options;
   if (!opts?.length) return null;
@@ -520,6 +544,7 @@ export function ToolCards({ steps, t }) {
     switch (s.tool) {
       case "get_mandi_price":
       case "best_markets": return <PriceCard step={s} t={t} />;
+      case "season_check": return <SeasonCard step={s} t={t} />;
       case "crop_guide": return <CoachCard step={s} t={t} />;
       case "planting_window": return <PlantingCard step={s} t={t} />;
       case "get_market_price": return <GlobalPriceCard step={s} t={t} />;

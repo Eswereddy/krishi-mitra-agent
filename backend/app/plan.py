@@ -19,6 +19,8 @@ T = {
         "spray_none": "🧴 No good spraying day this week (rain or wind). Wait.",
         "schemes": "🏛️ Schemes you may qualify for: {names}. Open the Schemes card for documents.",
         "sell": "💰 {crop}: ", "foot": "Guidance only, not a guarantee.",
+        "season_dry": "🏜️ Season check: rain in the last 30 days is {pct}% of normal ({mm} mm against {normal} mm). Plan irrigation and sowing carefully.",
+        "season_wet": "🌧️ Season check: rain in the last 30 days is {pct}% of normal ({mm} mm against {normal} mm). Watch for waterlogging and delay field work on wet days.",
         "coach": "🌱 {crop}, day {day} · {stage} ({left} days to expected harvest): {tasks}",
         "coach_before": "🌱 {crop}: sowing date is {n} days away. Check the planting window before you sow.",
         "coach_late": "🌱 {crop}: this is past the usual harvest time. Check the crop and plan harvest and storage.",
@@ -33,6 +35,8 @@ T = {
         "spray_none": "🧴 ఈ వారం పిచికారీకి మంచి రోజు లేదు (వర్షం లేదా గాలి). ఆగండి.",
         "schemes": "🏛️ మీకు వర్తించే పథకాలు: {names}. పత్రాల కోసం పథకాల కార్డు చూడండి.",
         "sell": "💰 {crop}: ", "foot": "మార్గదర్శకం మాత్రమే, హామీ కాదు.",
+        "season_dry": "🏜️ సీజన్ పరిశీలన: గత 30 రోజుల్లో వర్షం సాధారణంలో {pct}% ({mm} మి.మీ., సాధారణం {normal} మి.మీ.). నీటి తడులు, విత్తనం జాగ్రత్తగా ప్లాన్ చేయండి.",
+        "season_wet": "🌧️ సీజన్ పరిశీలన: గత 30 రోజుల్లో వర్షం సాధారణంలో {pct}% ({mm} మి.మీ., సాధారణం {normal} మి.మీ.). నీరు నిలవకుండా చూడండి.",
         "coach": "🌱 {crop}, {day}వ రోజు · {stage} (కోతకు సుమారు {left} రోజులు): {tasks}",
         "coach_before": "🌱 {crop}: విత్తే తేదీకి ఇంకా {n} రోజులు. విత్తే ముందు విత్తే సమయం చూడండి.",
         "coach_late": "🌱 {crop}: సాధారణ కోత సమయం దాటింది. పంటను చూసి కోత, నిల్వ ప్లాన్ చేయండి.",
@@ -47,6 +51,8 @@ T = {
         "spray_none": "🧴 इस हफ़्ते छिड़काव का अच्छा दिन नहीं (बारिश या हवा)। रुकें।",
         "schemes": "🏛️ आपके लिए योजनाएँ: {names}। दस्तावेज़ों के लिए योजना कार्ड देखें।",
         "sell": "💰 {crop}: ", "foot": "सिर्फ़ मार्गदर्शन, गारंटी नहीं।",
+        "season_dry": "🏜️ मौसम की जाँच: पिछले 30 दिनों में बारिश सामान्य की {pct}% ({mm} मिमी, सामान्य {normal} मिमी)। सिंचाई और बुवाई सोच-समझकर करें।",
+        "season_wet": "🌧️ मौसम की जाँच: पिछले 30 दिनों में बारिश सामान्य की {pct}% ({mm} मिमी, सामान्य {normal} मिमी)। जलभराव पर नज़र रखें।",
         "coach": "🌱 {crop}, दिन {day} · {stage} (अनुमानित कटाई में {left} दिन): {tasks}",
         "coach_before": "🌱 {crop}: बुवाई की तारीख में अभी {n} दिन हैं। बुवाई से पहले बुवाई का समय जाँचें।",
         "coach_late": "🌱 {crop}: सामान्य कटाई का समय निकल चुका है। फसल देखकर कटाई और भंडारण की योजना बनाएँ।",
@@ -98,6 +104,11 @@ def decide(code: str, profile: dict, res: dict) -> tuple[list[dict], list[dict]]
         add("info", "coach", L["coach_before"].format(crop=cg["crop"], n=cg["days_until_sowing"]))
     elif cg.get("status") == "past_expected_harvest":
         add("soon", "coach", L["coach_late"].format(crop=cg["crop"]))
+    sc = res.get("season_check") or {}
+    if sc.get("rain_band") in ("much_below", "below") and sc.get("rain_vs_normal_pct") is not None:
+        add("soon", "season", L["season_dry"].format(pct=sc["rain_vs_normal_pct"], mm=sc["rain_mm"], normal=sc["normal_rain_mm"]))
+    elif sc.get("rain_band") in ("much_above", "above"):
+        add("soon", "season", L["season_wet"].format(pct=sc["rain_vs_normal_pct"], mm=sc["rain_mm"], normal=sc["normal_rain_mm"]))
     ni = (res.get("irrigation_advice") or {}).get("next_irrigation_day")
     if irr:
         add("soon", "irrigate", L["irr_on"].format(d=ni) if ni else L["irr_none"])
@@ -134,6 +145,7 @@ async def build_plan(profile: dict | None, lang: str = "auto") -> dict:
             ]
     if loc.is_india(profile):
         plan.append(("check_schemes", {"owns_land": bool(profile.get("owns_land")), "state": state}))
+    plan.append(("season_check", {"place": district, "country": profile.get("country") or "IN"}))
     if crop and profile.get("sowing_date"):
         plan.append(("crop_guide", {"crop": crop, "sowing_date": profile["sowing_date"], "place": district,
                                     "country": profile.get("country") or "IN"}))

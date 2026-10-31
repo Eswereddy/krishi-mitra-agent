@@ -17,6 +17,12 @@ BASETEN_BASE_URL = os.getenv("BASETEN_BASE_URL", "https://inference.baseten.co/v
 BASETEN_API_KEY = os.getenv("BASETEN_API_KEY", "")
 OPEN_MODEL = os.getenv("OPEN_MODEL", "meta-models/muse-spark-open-1026")
 
+# Optional open-weight fallback: Muse Glimmer (Apache 2.0, ~30B, runs on one GPU) behind any OpenAI-compatible server
+# (vLLM, SGLang, Fireworks, Modal...). Used only when the main model call fails, so the app keeps answering.
+GLIMMER_BASE_URL = os.getenv("GLIMMER_BASE_URL", "").rstrip("/")
+GLIMMER_API_KEY = os.getenv("GLIMMER_API_KEY", "")
+GLIMMER_MODEL = os.getenv("GLIMMER_MODEL", "meta-models/Muse-Glimmer-30B")
+
 if PROVIDER == "baseten":
     CHAT_BASE, CHAT_KEY, CHAT_MODEL = BASETEN_BASE_URL, BASETEN_API_KEY, OPEN_MODEL
 else:
