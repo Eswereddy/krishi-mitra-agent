@@ -266,3 +266,4 @@ html[data-size="lg"] .welcome > p, html[data-size="lg"] .voice-answer, html[data
 .seg button { flex: 0 0 auto; white-space: nowrap; }
 .top-actions { min-width: 0; }
 .sheet ul.plain { margin: 6px 0 10px; padding-left: 18px; font-size: 14px; line-height: 1.45; }
+.row-price b.neg { color: var(--red); } .row-price b.pos { color: var(--green); }

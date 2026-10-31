@@ -369,6 +369,7 @@ from . import climate  # noqa: E402
 from . import water  # noqa: E402
 from . import farmtools  # noqa: E402
 from . import pestwatch  # noqa: E402
+from . import seasonality  # noqa: E402
 
 TOOL_FUNCS.update(advisor.FUNCS)
 TOOL_SPECS.extend(advisor.SPECS)
@@ -388,6 +389,8 @@ TOOL_FUNCS.update(farmtools.FUNCS)
 TOOL_SPECS.extend(farmtools.SPECS)
 TOOL_FUNCS.update(pestwatch.FUNCS)
 TOOL_SPECS.extend(pestwatch.SPECS)
+TOOL_FUNCS.update(seasonality.FUNCS)
+TOOL_SPECS.extend(seasonality.SPECS)
 
 
 def run_tool(name: str, args: dict) -> dict:

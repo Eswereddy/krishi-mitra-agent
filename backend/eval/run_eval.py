@@ -51,6 +51,7 @@ CASES = [
     ("How much water does my maize need this week?", KE, "en", {"water_plan"}),
     ("Is this season drier than normal in Nakuru?", KE, "en", {"season_check"}),
     ("It has been very humid. Will disease come to my tomatoes?", KE, "en", {"disease_risk"}),
+    ("Should I store my maize and sell later? Which month is usually best?", KE, "en", {"price_seasonality"}),
 ]
 FORBIDDEN_ABROAD = ("₹", "MSP", "PMFBY", "Kisan Call", "1800-180")      # must never appear for a farmer outside India
 
