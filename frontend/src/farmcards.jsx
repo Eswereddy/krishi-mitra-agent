@@ -31,6 +31,9 @@ const F = {
     foot: "सिर्फ़ मार्गदर्शन। स्थानीय कृषि अधिकारी से पूछें।",
   },
 };
+F.en.disease = { title: "Disease weather watch", risk: { low: "Low risk", moderate: "Watch the crop", high: "High risk" }, wet: "humid hours", blight: "Late-blight conditions: look at leaves every day and ask your officer.", acts: { scout_leaves: "Walk the field and check leaves (also the underside)", avoid_overhead_irrigation_evening: "Avoid watering leaves late in the evening", improve_airflow: "Keep rows open and remove dense weeds for airflow", ask_officer_if_spots: "If you see spots or mould, send a photo or ask your officer" } };
+F.te.disease = { title: "తెగులు వాతావరణ హెచ్చరిక", risk: { low: "తక్కువ ప్రమాదం", moderate: "పంటను గమనించండి", high: "ఎక్కువ ప్రమాదం" }, wet: "తేమ గంటలు", blight: "ఆకుమాడు తెగులుకు అనుకూల వాతావరణం: ప్రతిరోజూ ఆకులు చూడండి, అధికారిని అడగండి.", acts: { scout_leaves: "పొలం తిరిగి ఆకులను (అడుగు భాగం కూడా) చూడండి", avoid_overhead_irrigation_evening: "సాయంత్రం ఆలస్యంగా ఆకులపై నీరు పోయవద్దు", improve_airflow: "వరుసల మధ్య గాలి తగిలేలా కలుపు తీయండి", ask_officer_if_spots: "మచ్చలు లేదా బూజు కనిపిస్తే ఫోటో పంపండి లేదా అధికారిని అడగండి" } };
+F.hi.disease = { title: "रोग मौसम चेतावनी", risk: { low: "कम जोखिम", moderate: "फसल पर नज़र रखें", high: "ज़्यादा जोखिम" }, wet: "नम घंटे", blight: "झुलसा रोग के अनुकूल मौसम: रोज़ पत्तियाँ देखें, अधिकारी से पूछें।", acts: { scout_leaves: "खेत में घूमकर पत्तियाँ (नीचे की तरफ़ भी) देखें", avoid_overhead_irrigation_evening: "शाम को देर से पत्तियों पर पानी न डालें", improve_airflow: "कतारों में हवा के लिए खरपतवार हटाएँ", ask_officer_if_spots: "धब्बे या फफूँद दिखे तो फोटो भेजें या अधिकारी से पूछें" } };
 const num = (n) => Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 });
 const lg = (t) => F[t.code] || F.en;
 
@@ -127,6 +130,29 @@ export function BreakevenCard({ step, t }) {
         <div className="stat-profit"><small>{L.need} {r.unit}</small><b>{num(r.breakeven_price_per_unit)}</b></div>
         <div><small>{L.margin} {r.target_margin_pct}%</small><b>{num(r.price_for_margin_per_unit)}</b></div>
       </div>
+      <div className="card-foot">{r.note}</div>
+    </div>
+  );
+}
+
+export function DiseaseCard({ step, t }) {
+  const r = step.result || {}, L = lg(t).disease || F.en.disease;
+  if (!r.days) return null;
+  const cls = (k) => (k === "low" ? "rising" : k === "moderate" ? "steady" : "falling");
+  return (
+    <div className="card">
+      <div className="card-head"><span>🍄 {L.title} · {r.crop}</span><span className="badge badge-ok">{r.place}</span></div>
+      <div className={"decision " + cls(r.worst_risk)}><b>{L.risk[r.worst_risk]}</b> <small>· {r.worst_day}</small></div>
+      <div className="rows">
+        {r.days.map((d) => (
+          <div className="row" key={d.date}>
+            <div className="row-main"><b>{d.date}</b><small>{d.wet_hours} {L.wet}</small></div>
+            <div className="row-price"><small>{L.risk[d.risk]}</small></div>
+          </div>
+        ))}
+      </div>
+      {r.late_blight_period && <p className="warn-note">⚠️ {L.blight}</p>}
+      {r.actions?.length > 0 && <ul className="plain">{r.actions.map((a) => <li key={a}>{L.acts[a]}</li>)}</ul>}
       <div className="card-foot">{r.note}</div>
     </div>
   );

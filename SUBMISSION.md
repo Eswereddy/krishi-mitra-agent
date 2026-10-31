@@ -24,6 +24,9 @@ Small farmers in India often cannot type long questions, read English websites, 
 ## Built for farmers everywhere
 Not only India: 40 countries, 9 languages plus mirror-language for any other, local currency, and open WFP price data. India-only schemes, MSP and claim rules are gated so no farmer abroad gets a wrong figure. Where no price data exists the agent says so and helps with the farmer's own offered price.
 
+## Works where signal is weak
+The latest plan and brief are kept on the phone and shown, clearly labelled, when there is no internet. A weather-based disease warning tells the farmer to inspect the crop before damage shows.
+
 ## Real problems, not demos
 Farmers lose money to damp-grain spoilage, heat-stressed animals, expensive credit and wrongly priced inputs. The agent now answers these with checkable arithmetic: is my grain dry enough, will my cows suffer this week, what does this loan really cost per year, which fertiliser gives the cheapest nutrient, and at what price do I break even.
 
