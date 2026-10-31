@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, alerts, brief, config, meta_extras, plan as planmod, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
+from . import agent, alerts, brief, claim as claimmod, config, ledger, meta_extras, plan as planmod, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -134,6 +134,25 @@ async def week_plan(payload: dict):
     """7-day plan with ranked actions (urgent / this week / good to know). No model call: instant and checkable."""
     profile = payload.get("profile") if isinstance(payload.get("profile"), dict) else {}
     return await planmod.build_plan(profile, payload.get("lang") or "auto")
+
+
+@app.post("/api/ledger/parse")
+async def ledger_parse(payload: dict):
+    """One spoken or typed sentence -> one farm money entry for the farmer to confirm (model extracts, rules back it up)."""
+    return await ledger.parse_entry(payload.get("text") or "", str(payload.get("crop") or ""))
+
+
+@app.post("/api/ledger/report")
+async def ledger_report(payload: dict):
+    """Season report (income, cost, net, cost per acre, where the money went) computed exactly from the entries."""
+    return ledger.report(payload.get("entries"), payload.get("acres"), payload.get("lang") or "en")
+
+
+@app.post("/api/claim/draft")
+async def claim_draft(payload: dict):
+    """Crop-loss kit: 72-hour deadline, checklist, helplines and a ready message (PMFBY)."""
+    return claimmod.build_claim(payload.get("profile") if isinstance(payload.get("profile"), dict) else {},
+                                payload.get("loss") if isinstance(payload.get("loss"), dict) else {}, payload.get("lang") or "en")
 
 
 @app.post("/api/alerts/check")

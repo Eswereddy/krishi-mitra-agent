@@ -3,6 +3,7 @@ import { T, LANGS } from "./i18n";
 import { startListening, speak, stopSpeaking, extFor, unlockAudio } from "./lib/audio";
 import { Markdown, ToolCards, StepChips, LiveSteps, SourcesLine, I } from "./components";
 import { ExtraSheet, ex, leafScan, adviceCard } from "./extras";
+import { KhataSheet, ClaimSheet, kx } from "./khata";
 
 const DEFAULT_PROFILE = { state: "Andhra Pradesh", district: "", owns_land: false, main_crop: "" };
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -56,6 +57,7 @@ export default function App() {
   const [showAttach, setShowAttach] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [toast, setToast] = useState("");
+  const [panel, setPanel] = useState(null); // "khata" | "claim"
   const [extra, setExtra] = useState(null); // { kind: "scan" | "card", loading, data, error, run }
   const [big, setBig] = useState(() => load("km-big", false));
   const [online, setOnline] = useState(() => navigator.onLine !== false);
@@ -593,6 +595,10 @@ export default function App() {
               <span className="talk-ico">📅</span>
               <span><b>{ex(t.code).week}</b><small>{ex(t.code).weekSub}</small></span>
             </button>
+            <div className="duo">
+              <button className="talk-cta mini" onClick={() => setPanel("khata")}><span className="talk-ico">📒</span><span><b>{kx(t.code).khata}</b><small>{kx(t.code).khataSub}</small></span></button>
+              <button className="talk-cta mini" onClick={() => setPanel("claim")}><span className="talk-ico">🌧️</span><span><b>{kx(t.code).claim}</b><small>{kx(t.code).claimSub}</small></span></button>
+            </div>
             {installEvt && <button className="pill" onClick={installApp}>{t.install}</button>}
             <h4>{t.tryAsk}</h4>
             <div className="quick">
@@ -723,6 +729,8 @@ export default function App() {
         </div>
       )}
 
+      {panel === "khata" && <KhataSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
+      {panel === "claim" && <ClaimSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
       <ExtraSheet extra={extra} lang={t.code} onClose={() => setExtra(null)} onRetry={() => extra?.run && runExtra(extra.kind, extra.run)} />
 
       {/* ---------- price alerts sheet ---------- */}
