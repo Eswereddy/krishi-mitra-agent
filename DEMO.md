@@ -47,6 +47,9 @@ Set a sowing date about 8 weeks ago, tap "This week": the plan shows the crop st
 ## Eco beat (15 seconds)
 Ask "How much water does my crop need this week?": the water card shows millimetres and litres after rain, the day to irrigate by, and the rainwater you could store. Say: "irrigating only the shortfall saves water, power and money".
 
+## Protection beat (20 seconds, strong emotional moment)
+Ask "A trader offers me a loan at 3% a month for 12 months, flat. Is that fair?" The loan card shows the real yearly rate next to a bank offer. Say: "the farmer sees what the loan really costs".
+
 ## Optional wow beats (use if you have time in the 3 minutes)
 - **Where to sell:** ask "Where should I sell 10 quintals of groundnut after transport costs?". Point at the 🏆 market and the "+₹ more than the nearest market" line: a far market that pays more can lose once transport is counted.
 - **Which crop:** ask "Which crop gives more profit on 2 acres this rabi?". Show the "if price falls 10%" column and say yield/cost are labelled assumptions.

@@ -24,6 +24,9 @@ Small farmers in India often cannot type long questions, read English websites, 
 ## Built for farmers everywhere
 Not only India: 40 countries, 9 languages plus mirror-language for any other, local currency, and open WFP price data. India-only schemes, MSP and claim rules are gated so no farmer abroad gets a wrong figure. Where no price data exists the agent says so and helps with the farmer's own offered price.
 
+## Real problems, not demos
+Farmers lose money to damp-grain spoilage, heat-stressed animals, expensive credit and wrongly priced inputs. The agent now answers these with checkable arithmetic: is my grain dry enough, will my cows suffer this week, what does this loan really cost per year, which fertiliser gives the cheapest nutrient, and at what price do I break even.
+
 ## Eco-friendly by design
 The water plan tells a farmer exactly how much to irrigate after rain (FAO-56, computed in code), saving water, pumping energy and money, and shows how much rainwater a roof or pond could store. Less over-irrigation also means less waterlogging and fertiliser loss.
 

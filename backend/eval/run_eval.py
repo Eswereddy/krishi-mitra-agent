@@ -44,6 +44,12 @@ CASES = [
     ("¿Cuál es el precio de la soja?", BR, "es", {"get_market_price"}),
     ("Quando devo plantar soja?", BR, "pt", {"planting_window"}),
     ("Who can I call about a crop disease?", KE, "en", {"get_expert_help", "lookup_problem"}),
+    ("My maize grain is at 16% moisture, can I store it?", KE, "en", {"storage_check"}),
+    ("Will the heat be too much for my cows this week?", KE, "en", {"livestock_heat"}),
+    ("A trader offers 1000 for 12 months at 3% a month flat. Is that a fair loan?", KE, "en", {"loan_compare"}),
+    ("I spent 54000 and expect 1800 kg of maize. At what price do I break even?", KE, "en", {"breakeven_price"}),
+    ("How much water does my maize need this week?", KE, "en", {"water_plan"}),
+    ("Is this season drier than normal in Nakuru?", KE, "en", {"season_check"}),
 ]
 FORBIDDEN_ABROAD = ("₹", "MSP", "PMFBY", "Kisan Call", "1800-180")      # must never appear for a farmer outside India
 

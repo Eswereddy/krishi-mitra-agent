@@ -367,6 +367,7 @@ from . import agro  # noqa: E402
 from . import coach  # noqa: E402
 from . import climate  # noqa: E402
 from . import water  # noqa: E402
+from . import farmtools  # noqa: E402
 
 TOOL_FUNCS.update(advisor.FUNCS)
 TOOL_SPECS.extend(advisor.SPECS)
@@ -382,6 +383,8 @@ TOOL_FUNCS.update(climate.FUNCS)
 TOOL_SPECS.extend(climate.SPECS)
 TOOL_FUNCS.update(water.FUNCS)
 TOOL_SPECS.extend(water.SPECS)
+TOOL_FUNCS.update(farmtools.FUNCS)
+TOOL_SPECS.extend(farmtools.SPECS)
 
 
 def run_tool(name: str, args: dict) -> dict:

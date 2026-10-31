@@ -35,6 +35,7 @@ jobs:
           python tests/test_coach.py
           python tests/test_climate.py
           python tests/test_water.py
+          python tests/test_farmtools.py
           python tests/test_eval.py
           python tests/test_khata.py
 
