@@ -25,6 +25,7 @@ jobs:
           python tests/test_hardening.py
           python tests/test_grounding.py
           python tests/test_whatsapp.py
+          python tests/test_whatsapp_global.py
           python tests/test_advisor.py
           python tests/test_planner.py
           python tests/test_meta_extras.py

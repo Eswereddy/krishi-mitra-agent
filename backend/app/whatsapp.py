@@ -20,7 +20,7 @@ import time
 import httpx
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, Response
 
-from . import agent, lang as langmod, meta_client, ratelimit, tts as ttsmod
+from . import agent, lang as langmod, locale as loc, meta_client, meta_models as mm, ratelimit, tts as ttsmod
 
 log = logging.getLogger("krishi.whatsapp")
 router = APIRouter()
@@ -39,7 +39,8 @@ HELP = (
     "🌾 *Krishi Mitra*\n"
     "Send a question (text or voice note) or a crop photo. / మీ ప్రశ్న (టెక్స్ట్ లేదా వాయిస్) లేదా పంట ఫోటో పంపండి. / "
     "सवाल (टेक्स्ट या वॉइस) या फसल की फोटो भेजें.\n\n"
-    "Commands: /district Kurnool · /crop Groundnut · /brief (today's weather, price, advice) · /land yes|no · /state Andhra Pradesh · /reset"
+    "Commands: /country KE (any country) · /district Nakuru · /crop Maize · /sowing 2026-09-01 · /lang es|fr|pt|sw|id|bn|te|hi|en · "
+    "/brief (today) · /plan (this week) · /land yes|no · /state Andhra Pradesh · /reset"
 )
 SORRY = {
     "te": "క్షమించండి, ఇప్పుడు సమాధానం ఇవ్వలేకపోయాను. కొద్దిసేపటి తర్వాత మళ్లీ ప్రయత్నించండి.",
@@ -163,8 +164,30 @@ def _command(sess: dict, text: str) -> str | None:
         return HELP
     if cmd == "reset":
         sess["history"].clear()
+        sess.pop("lang", None)
         sess["profile"] = {"state": "Andhra Pradesh"}
         return "✓ Reset. / రీసెట్ అయింది."
+    if cmd == "country" and arg:
+        code = _country_code(arg)
+        if not code:
+            return "Unknown country. Send the 2-letter code, e.g. /country KE, or /country other."
+        prof["country"] = code
+        if code != "IN":
+            prof.pop("state", None)                      # Indian state only makes sense in India
+        return f"✓ country: {loc.COUNTRIES[code][0]} ({loc.COUNTRIES[code][1]})"
+    if cmd == "sowing" and arg:
+        from . import coach
+        d = coach._parse(arg)
+        if not d:
+            return "Send the sowing date like /sowing 2026-09-01"
+        prof["sowing_date"] = d.isoformat()
+        return f"✓ sowing date: {d.isoformat()}"
+    if cmd == "lang" and arg:
+        c = arg.lower()[:2]
+        if c not in langmod.NAMES:
+            return "Languages: " + ", ".join(langmod.NAMES)
+        sess["lang"] = c
+        return f"✓ language: {langmod.NAMES[c]}"
     if cmd in ("district", "crop", "state") and arg:
         prof["main_crop" if cmd == "crop" else cmd] = arg[:60]
         return f"✓ {cmd}: {arg[:60]}"
@@ -175,6 +198,15 @@ def _command(sess: dict, text: str) -> str | None:
 
 
 # ---------------------------------------------------------------- formatting
+def _country_code(arg: str) -> str | None:
+    a = arg.strip()
+    if a.lower() in ("other", "others"):
+        return "OTHER"
+    if a.upper() in loc.COUNTRIES:
+        return a.upper()
+    return next((k for k, v in loc.COUNTRIES.items() if v[0].lower() == a.lower()), None)
+
+
 def to_whatsapp(text: str) -> str:
     """Our answers use **bold** and # headings; WhatsApp uses *bold*."""
     text = re.sub(r"\*\*(.+?)\*\*", r"*\1*", text)
@@ -200,7 +232,7 @@ def split_text(text: str, limit: int = MAX_TEXT) -> list[str]:
 
 
 def speech_text(text: str, code: str) -> str:
-    rupee = {"te": "రూపాయలు", "hi": "रुपये", "en": "rupees"}.get(code, "rupees")
+    rupee = {"te": "రూపాయలు", "hi": "रुपये", "en": "rupees", "bn": "টাকা"}.get(code, "rupees")
     text = re.sub(r"https?://\S+", "", text)
     text = re.sub(r"₹\s?([\d,]+(?:\.\d+)?)", rf"\1 {rupee}", text)
     text = re.sub(r"[*_`#>|]", "", text)
@@ -269,6 +301,21 @@ async def _ask(sess: dict, text: str, image: tuple[bytes, str] | None = None) ->
     return result
 
 
+async def _transcribe(data: bytes, mime: str, lang: str) -> str:
+    """Muse Voice Transcribe (with the farmer's language as a hint) when a Meta Model API key is set; otherwise, or if it
+    fails, the existing Muse Spark Open audio path."""
+    if mm.available():
+        try:
+            from . import meta_extras
+            wav, _m = await meta_client._to_wav(data)
+            text = await mm.asr_transcribe(wav, meta_extras._bias(lang))
+            if text:
+                return text
+        except Exception:
+            pass
+    return await meta_client.transcribe(data, "voice.ogg", mime)
+
+
 async def _reply(to: str, result: dict, code: str, heard: str = "", voice: bool = False) -> None:
     answer = to_whatsapp(result["answer"])
     prefix = f"🎤 _{heard}_\n\n" if heard else ""
@@ -295,25 +342,26 @@ async def handle_message(msg: dict) -> None:
     try:
         kind = msg["type"]
         if kind == "text":
-            bm = re.match(r"^/(?:brief|today)\b\s*(te|hi|en)?\s*$", msg["text"].strip(), re.I)
-            if bm:                                       # /brief [te|hi|en]: one-tap daily brief, Telugu by default
-                from . import brief
-                bcode = (bm.group(1) or "te").lower()
-                return await _reply(sender, await brief.build_brief(sess["profile"], bcode), bcode)
+            bm = re.match(r"^/(brief|today|plan|week)\b\s*([a-z]{2})?\s*$", msg["text"].strip(), re.I)
+            if bm:                                       # /brief or /plan [lang]: one-tap guidance, no model call
+                from . import brief, plan as planmod
+                bcode = (bm.group(2) or sess.get("lang") or ("te" if loc.is_india(sess["profile"]) else "en")).lower()
+                build = planmod.build_plan if bm.group(1).lower() in ("plan", "week") else brief.build_brief
+                return await _reply(sender, await build(sess["profile"], bcode), bcode if bcode in FOOTER else "en")
             reply = _command(sess, msg["text"])
             if reply is not None:
                 return await _send_text(sender, reply)
             if not msg["text"].strip():
                 return
-            return await _reply(sender, await _ask(sess, msg["text"]), code)
+            return await _reply(sender, await _ask(sess, msg["text"]), sess.get("lang") or code)
         if kind == "audio":
             data, mime = await _download_media(msg["media_id"], msg["mime"])
             try:
-                heard = await meta_client.transcribe(data, "voice.ogg", mime)
+                heard = await _transcribe(data, mime, sess.get("lang") or "auto")
             except meta_client.AudioNotUnderstood:
                 # the spoken language is unknown here, so ask in Telugu, Hindi and English
                 return await _send_text(sender, "\n".join(NOT_HEARD[k] for k in ("te", "hi", "en")))
-            code = langmod.detect(heard)
+            code = sess.get("lang") or langmod.detect(heard)
             return await _reply(sender, await _ask(sess, heard), code, heard=heard, voice=True)
         if kind == "image":
             data, mime = await _download_media(msg["media_id"], msg["mime"])
