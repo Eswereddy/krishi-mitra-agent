@@ -148,6 +148,9 @@ Five more tools, all computed in code, any country, no medical or chemical advic
 - **Disease weather watch** (`disease_risk`, any country): from the hourly forecast it counts the humid (90% or more), mild (10 to 30 C) hours per day, a standard leaf-wetness proxy for fungal disease, and warns when to inspect the crop. For potato and tomato it also applies the classic late-blight "Smith period" rule. It is a weather warning, never a diagnosis, and never names a chemical. Appears as a card and in the week plan (te/hi/en). Tests: `backend/tests/test_pestwatch.py`.
 - **Offline guidance:** the latest daily brief and week plan are saved on the device. With no signal, tapping Today or This week shows the saved version labelled "Saved guidance (no internet)" with its time, so a farmer in a dead zone still has yesterday's advice.
 
+## WhatsApp, now global (new)
+The WhatsApp channel (the app farmers already use) works worldwide: `/country KE` (or a country name), `/sowing 2026-09-01`, `/lang es|fr|pt|sw|id|bn|te|hi|en`, `/brief` and `/plan` (today and this week, no model call, in the chosen language or a country-based default). All new tools (planting, water, coach, season, disease, storage, loans...) answer through the same agent. Voice notes go to Muse Voice Transcribe with the farmer's language as a hint (falling back to Spark Open) and voice replies use the chosen language. Tests: `backend/tests/test_whatsapp_global.py`.
+
 ## Data honesty
 - Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.
 - Scheme details are indicative and must be confirmed with the official office (links are returned by the tool).
