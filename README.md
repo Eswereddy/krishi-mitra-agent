@@ -154,6 +154,9 @@ The WhatsApp channel (the app farmers already use) works worldwide: `/country KE
 ## Best months to sell (new)
 `price_seasonality` (outside India): from up to six years of WFP monthly prices it computes a seasonal index per calendar month (each price divided by that year's average, so inflation cancels), shows the months that are usually highest and lowest and the gap between them. Most smallholders sell at harvest, when prices are lowest; this turns "should I store and wait?" into a number to weigh against storage cost, losses and interest. It refuses when there are fewer than two usable years. History, not a forecast. Tests: `backend/tests/test_seasonality.py`.
 
+## Farm Doctor visual evidence (new)
+`/api/leaf-scan` (SAM 3.1) now returns evidence, not just a percentage: **photo quality** (brightness and sharpness, simple image statistics with heuristic thresholds), **reliability** (`clear`, `uncertain` or `retake`) with the reasons (low or doubtful mask confidence, whole leaf not found, damage close to a severity boundary, bad photo), the **model confidence** (mean and lowest), an **escalation** flag (severe damage, or a measurement not reliable enough to act on alone) and **non-chemical safe steps** in Telugu, Hindi or English (`lang` form field). It never names a disease, a pesticide or a dose, and always says not to spray until an officer confirms. A blurry, dark or unrecognised photo asks for a retake with concrete tips instead of guessing. `needs_expert` stays for compatibility. Photo-quality thresholds were checked on synthetic images only: tune them on real field photos. Tests: `backend/tests/test_doctor.py`.
+
 ## Data honesty
 - Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.
 - Scheme details are indicative and must be confirmed with the official office (links are returned by the tool).

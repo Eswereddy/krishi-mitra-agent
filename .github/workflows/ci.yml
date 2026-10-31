@@ -39,6 +39,7 @@ jobs:
           python tests/test_farmtools.py
           python tests/test_pestwatch.py
           python tests/test_seasonality.py
+          python tests/test_doctor.py
           python tests/test_eval.py
           python tests/test_khata.py
 
