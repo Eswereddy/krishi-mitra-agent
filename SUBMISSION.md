@@ -24,6 +24,9 @@ Small farmers in India often cannot type long questions, read English websites, 
 ## Built for farmers everywhere
 Not only India: 40 countries, 9 languages plus mirror-language for any other, local currency, and open WFP price data. India-only schemes, MSP and claim rules are gated so no farmer abroad gets a wrong figure. Where no price data exists the agent says so and helps with the farmer's own offered price.
 
+## Eco-friendly by design
+The water plan tells a farmer exactly how much to irrigate after rain (FAO-56, computed in code), saving water, pumping energy and money, and shows how much rainwater a roof or pond could store. Less over-irrigation also means less waterlogging and fertiliser loss.
+
 ## Climate context and resilience
 A farmer can ask "is this a drought year?" and get "rain is 45% of normal" from 10 years of data, and the plan adjusts. If the main model is down, an open-weight Muse Glimmer takes over, so the app works where connectivity and budgets are thin.
 

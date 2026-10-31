@@ -29,7 +29,7 @@ _CLAIM = re.compile(
 _MONEY_KEYS = ("price", "revenue", "profit", "expenses", "highest", "lowest", "rs")
 _PCT_KEYS = ("pct", "chance", "percent")
 _TEMP_KEYS = ("max_c", "min_c", "temp")
-_MM_KEYS = ("rain_mm", "precip")
+_MM_KEYS = ("rain_mm", "precip", "_mm")
 _TOLERANCE = {"pct": 1.0, "temp": 0.5, "mm": 0.5}
 
 

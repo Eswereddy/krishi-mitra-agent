@@ -138,6 +138,9 @@ Enter the sowing date in "My details" and Krishi Mitra becomes a coach (`crop_gu
 - **Season check** (`season_check`, any country): rain and temperature of the last 30 days against the same 30 days of the last 10 years (Open-Meteo historical archive), computed in code: "rain is 45% of normal". Shown as a card, in the week plan (dry or wet season line in te/hi/en) and available to the agent for "is this a drought year?". Archive data lags about 5 days and covers a grid cell, so it is a planning signal, not a forecast.
 - **Muse Glimmer fallback** (open weights, Apache 2.0, about 30B, runs on one GPU): set `GLIMMER_BASE_URL` (any OpenAI-compatible server: vLLM, SGLang, Fireworks, Modal), optional `GLIMMER_API_KEY` and `GLIMMER_MODEL` (default `meta-models/Muse-Glimmer-30B`). If the main model call fails with a timeout, connection error, 5xx or 429, the same request goes to Glimmer so the farmer still gets an answer. A cooperative can also run it on a local machine. Shown in `/api/meta-models`. Tests: `backend/tests/test_climate.py`.
 
+## Water plan: save water, energy and money (new)
+`water_plan` (any country, 16 crops) uses the FAO-56 method in code: crop water use = reference evapotranspiration (Open-Meteo forecast) x crop coefficient that follows the growth stage from the sowing date, minus the rain the soil can use. The result: millimetres and litres for the farmer's acres this week, the day to irrigate by, and how much rain 100 m² of roof or pond catchment could store (rainwater harvesting). It appears as a card and as a line in the week plan (te/hi/en). Crop coefficients are typical FAO-56 values, indicative. Tests: `backend/tests/test_water.py`.
+
 ## Data honesty
 - Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.
 - Scheme details are indicative and must be confirmed with the official office (links are returned by the tool).

@@ -1,0 +1,7 @@
+{
+  "_note": "Typical FAO-56 crop coefficients (Kc) at the initial, mid-season and end stages, rounded. Real values depend on variety, climate and management: use as an indicative planning guide.",
+  "kc": {"maize": [0.30, 1.20, 0.60], "rice": [1.05, 1.20, 0.90], "wheat": [0.30, 1.15, 0.30], "sorghum": [0.30, 1.00, 0.55],
+         "millet": [0.30, 1.00, 0.30], "beans": [0.40, 1.15, 0.35], "soybean": [0.40, 1.15, 0.50], "groundnut": [0.40, 1.15, 0.60],
+         "chickpea": [0.40, 1.00, 0.35], "lentil": [0.40, 1.10, 0.30], "pigeonpea": [0.40, 1.15, 0.50], "cotton": [0.35, 1.15, 0.70],
+         "sunflower": [0.35, 1.00, 0.35], "potato": [0.50, 1.15, 0.75], "tomato": [0.60, 1.15, 0.80], "cassava": [0.30, 0.80, 0.30]}
+}
