@@ -369,6 +369,31 @@ function GlobalPriceCard({ step, t }) {
   );
 }
 
+const PW = {
+  en: { title: "Planting window", good: "Good time to sow", too_cold: "Soil too cold, wait", frost_risk: "Frost risk, wait", too_dry: "Soil too dry", dry_rain_coming: "Dry, but rain is coming: wait for it", too_wet: "Too wet, wait", soil: "Soil temp", need: "needs", moist: "Soil moisture", rain: "Rain, 3 days", night: "Coldest night", note: "Guide only: check the soil by hand and ask your extension officer." },
+  te: { title: "విత్తే సమయం", good: "విత్తడానికి మంచి సమయం", too_cold: "నేల చల్లగా ఉంది, ఆగండి", frost_risk: "మంచు ప్రమాదం, ఆగండి", too_dry: "నేల పొడిగా ఉంది", dry_rain_coming: "పొడిగా ఉంది, వర్షం వస్తోంది: ఆగండి", too_wet: "చాలా తడిగా ఉంది, ఆగండి", soil: "నేల ఉష్ణోగ్రత", need: "కావాలి", moist: "నేల తేమ", rain: "3 రోజుల వర్షం", night: "అత్యంత చల్లని రాత్రి", note: "మార్గదర్శకం మాత్రమే: నేలను చేత్తో చూడండి, వ్యవసాయ అధికారిని అడగండి." },
+  hi: { title: "बुवाई का समय", good: "बुवाई के लिए अच्छा समय", too_cold: "मिट्टी ठंडी है, रुकें", frost_risk: "पाले का खतरा, रुकें", too_dry: "मिट्टी सूखी है", dry_rain_coming: "सूखा है, बारिश आ रही है: रुकें", too_wet: "बहुत गीली है, रुकें", soil: "मिट्टी का तापमान", need: "चाहिए", moist: "मिट्टी की नमी", rain: "3 दिन की बारिश", night: "सबसे ठंडी रात", note: "सिर्फ़ मार्गदर्शन: मिट्टी हाथ से जाँचें, अधिकारी से पूछें।" },
+};
+
+function PlantingCard({ step, t }) {
+  const r = step.result || {};
+  const L = PW[t.code] || PW.en;
+  if (!r.verdict) return null;
+  return (
+    <div className="card">
+      <div className="card-head"><span>🌱 {L.title} · {r.crop}</span><span className="badge badge-ok">{r.place}</span></div>
+      <div className={"decision " + (r.sow_now ? "rising" : "falling")}><b>{r.sow_now ? "✅ " : "⏳ "}{L[r.verdict]}</b></div>
+      <div className="stats">
+        <div><small>{L.soil}</small><b>{r.soil_temp_c}°C</b><small>{L.need} {r.min_soil_temp_needed_c}°C</small></div>
+        {r.soil_moisture_m3m3 != null && <div><small>{L.moist}</small><b>{r.soil_moisture_m3m3}</b></div>}
+        <div><small>{L.rain}</small><b>{r.rain_next_3_days_mm} mm</b></div>
+        {r.coldest_night_next_5_days_c != null && <div><small>{L.night}</small><b>{r.coldest_night_next_5_days_c}°C</b></div>}
+      </div>
+      <div className="card-foot">{L.note}</div>
+    </div>
+  );
+}
+
 function SellPlanCard({ step, t }) {
   const r = step.result, opts = r?.options;
   if (!opts?.length) return null;
@@ -463,6 +488,7 @@ export function ToolCards({ steps, t }) {
     switch (s.tool) {
       case "get_mandi_price":
       case "best_markets": return <PriceCard step={s} t={t} />;
+      case "planting_window": return <PlantingCard step={s} t={t} />;
       case "get_market_price": return <GlobalPriceCard step={s} t={t} />;
       case "get_price_trend": return <TrendCard step={s} t={t} />;
       case "get_weather": return <WeatherCard step={s} t={t} />;

@@ -1,0 +1,21 @@
+{
+  "_note": "INDICATIVE minimum soil temperature (deg C at about 6 cm) for good seed germination, from common agronomy guidance. Varieties, sowing depth and local practice differ: treat as a planning guide and confirm with the local extension officer.",
+  "crops": [
+    {"id": "maize", "names": ["maize", "corn", "mahindi", "maiz", "mais", "milho", "jagung", "makka", "mokkajonna"], "min_soil_c": 10, "frost_hardy": false},
+    {"id": "rice", "names": ["rice", "paddy", "vari", "arroz", "riz", "padi", "mchele", "dhan", "arroz"], "min_soil_c": 15, "frost_hardy": false},
+    {"id": "wheat", "names": ["wheat", "trigo", "ble", "blé", "gandum", "ngano", "gehu", "godhuma"], "min_soil_c": 4, "frost_hardy": true},
+    {"id": "sorghum", "names": ["sorghum", "jowar", "sorgo", "mtama", "jonna"], "min_soil_c": 15, "frost_hardy": false},
+    {"id": "millet", "names": ["millet", "bajra", "ragi", "mijo", "mawele", "uwele", "mil"], "min_soil_c": 15, "frost_hardy": false},
+    {"id": "beans", "names": ["beans", "bean", "frijol", "frijoles", "haricot", "haricots", "feijao", "feijão", "maharage", "kacang"], "min_soil_c": 15, "frost_hardy": false},
+    {"id": "soybean", "names": ["soybean", "soy", "soja", "soya", "kedelai"], "min_soil_c": 10, "frost_hardy": false},
+    {"id": "groundnut", "names": ["groundnut", "peanut", "verusenaga", "cacahuete", "mani", "arachide", "amendoim", "karanga", "kacang tanah"], "min_soil_c": 18, "frost_hardy": false},
+    {"id": "cotton", "names": ["cotton", "algodon", "algodón", "coton", "algodao", "algodão", "pamba", "kapas", "patti"], "min_soil_c": 15, "frost_hardy": false},
+    {"id": "potato", "names": ["potato", "papa", "patata", "pomme de terre", "batata", "viazi", "kentang", "aloo"], "min_soil_c": 7, "frost_hardy": false},
+    {"id": "tomato", "names": ["tomato", "tomate", "nyanya", "tamata"], "min_soil_c": 15, "frost_hardy": false},
+    {"id": "cassava", "names": ["cassava", "yuca", "manioc", "mandioca", "muhogo", "singkong", "tapioca"], "min_soil_c": 18, "frost_hardy": false},
+    {"id": "sunflower", "names": ["sunflower", "girasol", "tournesol", "alizeti", "bunga matahari"], "min_soil_c": 8, "frost_hardy": false},
+    {"id": "chickpea", "names": ["chickpea", "gram", "chana", "garbanzo", "pois chiche", "grao-de-bico", "dengu"], "min_soil_c": 8, "frost_hardy": true},
+    {"id": "lentil", "names": ["lentil", "lentils", "lenteja", "lentilles", "lentilha", "dengu ndogo", "masoor"], "min_soil_c": 5, "frost_hardy": true},
+    {"id": "pigeonpea", "names": ["pigeon pea", "pigeonpea", "tur", "arhar", "redgram", "red gram", "kandi", "mbaazi"], "min_soil_c": 18, "frost_hardy": false}
+  ]
+}
