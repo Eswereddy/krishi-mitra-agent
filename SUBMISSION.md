@@ -24,6 +24,9 @@ Small farmers in India often cannot type long questions, read English websites, 
 ## Built for farmers everywhere
 Not only India: 40 countries, 9 languages plus mirror-language for any other, local currency, and open WFP price data. India-only schemes, MSP and claim rules are gated so no farmer abroad gets a wrong figure. Where no price data exists the agent says so and helps with the farmer's own offered price.
 
+## A coach, not just an answer machine
+With the sowing date, the app knows where the crop is today and tells the farmer what to do this week, warns before a dry spell hits the flowering stage, and counts down to harvest and the best place to sell. It works in 40 countries.
+
 ## Two models cross-check each other
 Muse Spark Open writes the answer; Muse Wonder independently audits it against the tool results; code verifies every figure. No answer is called "checked" on a model's word alone.
 

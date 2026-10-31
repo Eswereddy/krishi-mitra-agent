@@ -7,7 +7,7 @@ still passes the verification layer. Guidance, not a guarantee.
 """
 import asyncio
 
-from . import brief, locale as loc, tools, verify
+from . import brief, coach, locale as loc, tools, verify
 
 T = {
     "en": {
@@ -19,6 +19,9 @@ T = {
         "spray_none": "🧴 No good spraying day this week (rain or wind). Wait.",
         "schemes": "🏛️ Schemes you may qualify for: {names}. Open the Schemes card for documents.",
         "sell": "💰 {crop}: ", "foot": "Guidance only, not a guarantee.",
+        "coach": "🌱 {crop}, day {day} · {stage} ({left} days to expected harvest): {tasks}",
+        "coach_before": "🌱 {crop}: sowing date is {n} days away. Check the planting window before you sow.",
+        "coach_late": "🌱 {crop}: this is past the usual harvest time. Check the crop and plan harvest and storage.",
         "lv": {"urgent": "Do first", "soon": "This week", "info": "Good to know"},
     },
     "te": {
@@ -30,6 +33,9 @@ T = {
         "spray_none": "🧴 ఈ వారం పిచికారీకి మంచి రోజు లేదు (వర్షం లేదా గాలి). ఆగండి.",
         "schemes": "🏛️ మీకు వర్తించే పథకాలు: {names}. పత్రాల కోసం పథకాల కార్డు చూడండి.",
         "sell": "💰 {crop}: ", "foot": "మార్గదర్శకం మాత్రమే, హామీ కాదు.",
+        "coach": "🌱 {crop}, {day}వ రోజు · {stage} (కోతకు సుమారు {left} రోజులు): {tasks}",
+        "coach_before": "🌱 {crop}: విత్తే తేదీకి ఇంకా {n} రోజులు. విత్తే ముందు విత్తే సమయం చూడండి.",
+        "coach_late": "🌱 {crop}: సాధారణ కోత సమయం దాటింది. పంటను చూసి కోత, నిల్వ ప్లాన్ చేయండి.",
         "lv": {"urgent": "ముందు చేయండి", "soon": "ఈ వారంలో", "info": "తెలుసుకోండి"},
     },
     "hi": {
@@ -41,6 +47,9 @@ T = {
         "spray_none": "🧴 इस हफ़्ते छिड़काव का अच्छा दिन नहीं (बारिश या हवा)। रुकें।",
         "schemes": "🏛️ आपके लिए योजनाएँ: {names}। दस्तावेज़ों के लिए योजना कार्ड देखें।",
         "sell": "💰 {crop}: ", "foot": "सिर्फ़ मार्गदर्शन, गारंटी नहीं।",
+        "coach": "🌱 {crop}, दिन {day} · {stage} (अनुमानित कटाई में {left} दिन): {tasks}",
+        "coach_before": "🌱 {crop}: बुवाई की तारीख में अभी {n} दिन हैं। बुवाई से पहले बुवाई का समय जाँचें।",
+        "coach_late": "🌱 {crop}: सामान्य कटाई का समय निकल चुका है। फसल देखकर कटाई और भंडारण की योजना बनाएँ।",
         "lv": {"urgent": "पहले करें", "soon": "इस हफ़्ते", "info": "जानने लायक"},
     },
 }
@@ -79,6 +88,16 @@ def decide(code: str, profile: dict, res: dict) -> tuple[list[dict], list[dict]]
         gap, msp = hs.get("current_vs_msp_rs_per_quintal"), hs.get("msp_price_per_quintal")
         if msp and gap is not None and gap < 0:
             add("urgent", "below_msp", B["msp"].format(msp=brief._n(msp), gap=brief._n(abs(gap)), dir=B["below"]))
+    cg = res.get("crop_guide") or {}
+    if cg.get("status") == "growing":
+        tasks = " ".join(coach.text(t["code"], code) for t in cg["tasks"][:2])
+        add("urgent" if cg.get("dry_week_ahead") else "soon", "coach",
+            L["coach"].format(crop=cg["crop"], day=cg["day_of_crop"], stage=coach.stage_label(cg["stage"], code),
+                              left=cg["days_to_expected_harvest"], tasks=tasks))
+    elif cg.get("status") == "not_sown":
+        add("info", "coach", L["coach_before"].format(crop=cg["crop"], n=cg["days_until_sowing"]))
+    elif cg.get("status") == "past_expected_harvest":
+        add("soon", "coach", L["coach_late"].format(crop=cg["crop"]))
     ni = (res.get("irrigation_advice") or {}).get("next_irrigation_day")
     if irr:
         add("soon", "irrigate", L["irr_on"].format(d=ni) if ni else L["irr_none"])
@@ -103,7 +122,7 @@ def compose(code: str, profile: dict, priorities: list[dict]) -> str:
 
 
 async def build_plan(profile: dict | None, lang: str = "auto") -> dict:
-    profile = {k: v for k, v in (profile or {}).items() if k in ("state", "district", "main_crop", "owns_land", "country")}
+    profile = {k: v for k, v in (profile or {}).items() if k in ("state", "district", "main_crop", "owns_land", "country", "sowing_date")}
     code = lang if lang in T else ("te" if lang == "auto" else "en")
     district, crop = str(profile.get("district") or "").strip(), str(profile.get("main_crop") or "").strip()
     if not district:
@@ -115,6 +134,9 @@ async def build_plan(profile: dict | None, lang: str = "auto") -> dict:
             ]
     if loc.is_india(profile):
         plan.append(("check_schemes", {"owns_land": bool(profile.get("owns_land")), "state": state}))
+    if crop and profile.get("sowing_date"):
+        plan.append(("crop_guide", {"crop": crop, "sowing_date": profile["sowing_date"], "place": district,
+                                    "country": profile.get("country") or "IN"}))
     if crop and loc.is_india(profile):
         plan.append(("hold_or_sell", {"commodity": crop, "district": district, "state": state}))
     results = await asyncio.gather(*(asyncio.to_thread(tools.run_tool, n, a) for n, a in plan))

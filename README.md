@@ -131,6 +131,9 @@ Under every answer that used tools, a "Second opinion" button asks **Muse Wonder
 - **Frost warning** in the daily brief (night at or below 2 C), in all brief languages.
 - **Evaluation:** `cd backend && python eval/run_eval.py --out ../EVAL.md` runs 20 questions (India, Kenya, Brazil; 6 languages) through the live agent and reports right-tool rate, share of answers whose figures all verify (and with no India-only terms abroad), rewrites and latency. Run it once on your deployment and quote the numbers.
 
+## Crop coach: a guide for every farmer (new)
+Enter the sowing date in "My details" and Krishi Mitra becomes a coach (`crop_guide`, any country, 16 crops): it works out the growth stage, lists the few jobs that matter this week (weeding, scouting, feeding check, harvest and storage planning), counts days to the expected harvest, and raises an urgent line when the most water-sensitive stage meets a dry week (rain forecast from Open-Meteo). It also appears in the week plan, in Telugu, Hindi and English. Durations are indicative and labelled so; it never names pesticides or doses. Tests: `backend/tests/test_coach.py`.
+
 ## Data honesty
 - Mandi prices are live only when `DATA_GOV_API_KEY` is set and data.gov.in responds; otherwise the tool returns clearly labelled **sample data**.
 - Scheme details are indicative and must be confirmed with the official office (links are returned by the tool).

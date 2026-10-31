@@ -135,7 +135,7 @@ def _emit(on_event, event: dict) -> None:
 def _profile_text(profile: dict | None) -> str:
     if not profile:
         return ""
-    keep = {k: v for k, v in profile.items() if k in ("state", "district", "owns_land", "main_crop", "country", "currency") and v not in ("", None)}
+    keep = {k: v for k, v in profile.items() if k in ("state", "district", "owns_land", "main_crop", "country", "currency", "sowing_date") and v not in ("", None)}
     return "\nFarmer profile: " + json.dumps(keep, ensure_ascii=False) if keep else ""
 
 

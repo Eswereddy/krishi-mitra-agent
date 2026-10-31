@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { COACH_TASKS, COACH_STAGES } from "./coachText";
 
 // ---------- tiny markdown: **bold**, bullets, numbered lists, paragraphs ----------
 function inline(text) {
@@ -394,6 +395,37 @@ function PlantingCard({ step, t }) {
   );
 }
 
+const CG = {
+  en: { title: "Crop coach", day: "Day", left: "days to expected harvest", next: "Next stage in", days: "days", thisWeek: "This week", before: "Sowing is", after: "days away. Check the planting window first.", late: "Past the usual harvest time: check the crop and plan harvest and storage.", note: "Durations are indicative; watch your crop and ask your extension officer." },
+  te: { title: "పంట గురువు", day: "రోజు", left: "రోజులు కోతకు సుమారు", next: "తర్వాతి దశ", days: "రోజుల్లో", thisWeek: "ఈ వారం", before: "విత్తడానికి ఇంకా", after: "రోజులు. ముందు విత్తే సమయం చూడండి.", late: "సాధారణ కోత సమయం దాటింది: పంట చూసి కోత, నిల్వ ప్లాన్ చేయండి.", note: "కాలాలు సుమారు మాత్రమే; మీ పంటను చూడండి, వ్యవసాయ అధికారిని అడగండి." },
+  hi: { title: "फसल गुरु", day: "दिन", left: "दिन कटाई में (अनुमान)", next: "अगली अवस्था", days: "दिन में", thisWeek: "इस हफ़्ते", before: "बुवाई में अभी", after: "दिन हैं। पहले बुवाई का समय जाँचें।", late: "सामान्य कटाई का समय निकल गया: फसल देखें, कटाई और भंडारण की योजना बनाएँ।", note: "अवधि अनुमानित है; अपनी फसल देखें, कृषि अधिकारी से पूछें।" },
+};
+
+function CoachCard({ step, t }) {
+  const r = step.result || {};
+  const L = CG[t.code] || CG.en;
+  const tx = (c, fallback) => (COACH_TASKS[c] && (COACH_TASKS[c][t.code] || COACH_TASKS[c].en)) || fallback;
+  const order = ["establishment", "vegetative", "flowering", "filling", "maturity"];
+  if (!r.status) return null;
+  return (
+    <div className="card">
+      <div className="card-head"><span>🌱 {L.title} · {r.crop}</span>{r.status === "growing" && <span className="badge badge-ok">{L.day} {r.day_of_crop}</span>}</div>
+      {r.status === "not_sown" && <p className="hint">{L.before} {r.days_until_sowing} {L.after}</p>}
+      {r.status === "past_expected_harvest" && <p className="hint">{L.late}</p>}
+      {r.status === "growing" && (
+        <>
+          <div className="bar"><i style={{ width: `${r.progress_pct}%` }} /></div>
+          <div className="decision steady"><b>{(COACH_STAGES[r.stage] || {})[t.code] || r.stage_label}</b> <small>· {r.days_to_expected_harvest} {L.left}</small></div>
+          {r.next_stage && <p className="hint">{L.next} {r.next_stage.in_days} {L.days}: {(COACH_STAGES[r.next_stage.stage] || {})[t.code] || r.next_stage.stage}</p>}
+          <b>{L.thisWeek}</b>
+          <ul className="plain">{r.tasks.map((k) => <li key={k.code}>{tx(k.code, k.text)}</li>)}</ul>
+        </>
+      )}
+      <div className="card-foot">{L.note}</div>
+    </div>
+  );
+}
+
 function SellPlanCard({ step, t }) {
   const r = step.result, opts = r?.options;
   if (!opts?.length) return null;
@@ -488,6 +520,7 @@ export function ToolCards({ steps, t }) {
     switch (s.tool) {
       case "get_mandi_price":
       case "best_markets": return <PriceCard step={s} t={t} />;
+      case "crop_guide": return <CoachCard step={s} t={t} />;
       case "planting_window": return <PlantingCard step={s} t={t} />;
       case "get_market_price": return <GlobalPriceCard step={s} t={t} />;
       case "get_price_trend": return <TrendCard step={s} t={t} />;
