@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { COACH_TASKS, COACH_STAGES } from "./coachText";
+import { StorageCard, HeatCard, LoanCard, InputsCard, BreakevenCard } from "./farmcards";
 
 // ---------- tiny markdown: **bold**, bullets, numbered lists, paragraphs ----------
 function inline(text) {
@@ -573,6 +574,11 @@ export function ToolCards({ steps, t }) {
     switch (s.tool) {
       case "get_mandi_price":
       case "best_markets": return <PriceCard step={s} t={t} />;
+      case "storage_check": return <StorageCard step={s} t={t} />;
+      case "livestock_heat": return <HeatCard step={s} t={t} />;
+      case "loan_compare": return <LoanCard step={s} t={t} />;
+      case "compare_inputs": return <InputsCard step={s} t={t} />;
+      case "breakeven_price": return <BreakevenCard step={s} t={t} />;
       case "water_plan": return <WaterCard step={s} t={t} />;
       case "season_check": return <SeasonCard step={s} t={t} />;
       case "crop_guide": return <CoachCard step={s} t={t} />;
