@@ -1,0 +1,26 @@
+{
+  "_note": "INDICATIVE crop durations (days from sowing to harvest) and stage boundaries as a share of that duration. Varieties, season and climate change them by weeks: treat as a planning guide and confirm with the local extension officer.",
+  "durations": {"maize": 115, "rice": 130, "wheat": 120, "sorghum": 110, "millet": 85, "beans": 75, "soybean": 100,
+                "groundnut": 110, "chickpea": 100, "lentil": 100, "pigeonpea": 165, "cotton": 170, "sunflower": 100,
+                "potato": 100, "tomato": 110, "cassava": 300},
+  "types": {"maize": "cereal", "rice": "cereal", "wheat": "cereal", "sorghum": "cereal", "millet": "cereal",
+            "beans": "legume", "soybean": "legume", "groundnut": "legume", "chickpea": "legume", "lentil": "legume", "pigeonpea": "legume",
+            "cotton": "fruiting", "sunflower": "fruiting", "potato": "fruiting", "tomato": "fruiting", "cassava": "fruiting"},
+  "stages": {
+    "cereal": [["establishment", 0, 15, ["check_emergence", "fill_gaps", "keep_weed_free"], false],
+               ["vegetative", 15, 45, ["weed_first", "check_nutrition", "scout"], false],
+               ["flowering", 45, 65, ["water_critical", "scout"], true],
+               ["filling", 65, 88, ["water_steady", "scout"], false],
+               ["maturity", 88, 101, ["stop_water", "watch_maturity", "plan_harvest", "dry_storage"], false]],
+    "legume": [["establishment", 0, 15, ["check_emergence", "fill_gaps", "keep_weed_free"], false],
+               ["vegetative", 15, 40, ["weed_first", "scout"], false],
+               ["flowering", 40, 70, ["water_critical", "scout"], true],
+               ["filling", 70, 90, ["water_steady", "scout"], false],
+               ["maturity", 90, 101, ["stop_water", "watch_maturity", "plan_harvest", "dry_storage"], false]],
+    "fruiting": [["establishment", 0, 12, ["check_emergence", "fill_gaps", "keep_weed_free"], false],
+                 ["vegetative", 12, 40, ["weed_first", "check_nutrition", "scout"], false],
+                 ["flowering", 40, 70, ["water_critical", "scout"], true],
+                 ["filling", 70, 92, ["water_steady", "scout"], false],
+                 ["maturity", 92, 101, ["stop_water", "watch_maturity", "plan_harvest", "dry_storage"], false]]
+  }
+}

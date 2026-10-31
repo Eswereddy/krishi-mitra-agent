@@ -8,7 +8,7 @@ import { COUNTRIES, countryRow, isIndia } from "./countries";
 
 // quick questions that only make sense in India (MSP, KCC, Indian schemes, quintals)
 const INDIA_ONLY = /KCC|MSP|పథక|योजना|scheme|క్వింటా|क्विंटल|quintal|వరి|రబీ|రబీ/i;
-const DEFAULT_PROFILE = { country: "IN", state: "Andhra Pradesh", district: "", owns_land: false, main_crop: "" };
+const DEFAULT_PROFILE = { country: "IN", state: "Andhra Pradesh", district: "", owns_land: false, main_crop: "", sowing_date: "" };
 const uid = () => Math.random().toString(36).slice(2, 9);
 const load = (k, fb) => {
   try {
@@ -800,6 +800,7 @@ export default function App() {
             <label>{t.state}<input value={profile.state} onChange={(e) => setProfile({ ...profile, state: e.target.value })} /></label>
             <label>{t.district}<input value={profile.district} onChange={(e) => setProfile({ ...profile, district: e.target.value })} placeholder={isIndia(profile) ? "Kurnool" : "Nakuru"} /></label>
             <label>{t.crop}<input value={profile.main_crop} onChange={(e) => setProfile({ ...profile, main_crop: e.target.value })} placeholder={isIndia(profile) ? "Groundnut" : "Maize"} /></label>
+            <label>{t.code === "te" ? "విత్తిన తేదీ" : t.code === "hi" ? "बुवाई की तारीख" : "Sowing date"}<input type="date" value={profile.sowing_date || ""} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setProfile({ ...profile, sowing_date: e.target.value })} /></label>
             <label className="check"><input type="checkbox" checked={profile.owns_land} onChange={(e) => setProfile({ ...profile, owns_land: e.target.checked })} />{t.land}</label>
             <label className="check"><input type="checkbox" checked={big} onChange={(e) => setBig(e.target.checked)} />{t.bigText}</label>
             <label className="check"><input type="checkbox" checked={autoSpeak} onChange={(e) => setAutoSpeak(e.target.checked)} />{t.autoSpeak}</label>
