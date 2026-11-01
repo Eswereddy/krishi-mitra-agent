@@ -5,7 +5,7 @@ import re
 
 import httpx
 
-from . import config, mock
+from . import config, mock, telemetry
 
 
 def _headers(key: str) -> dict:
@@ -44,6 +44,14 @@ def _retryable(e: Exception) -> bool:
 
 
 async def _post_chat(base: str, key: str, model: str, messages: list[dict], extra: dict) -> dict:
+    return await _timed_chat(model)(base, key, model, messages, extra)
+
+
+def _timed_chat(model: str):
+    return telemetry.timed(model, mark_served=True)(_raw_chat)
+
+
+async def _raw_chat(base: str, key: str, model: str, messages: list[dict], extra: dict) -> dict:
     payload = {"model": model, "messages": messages, **extra}
     async with httpx.AsyncClient(timeout=config.REQUEST_TIMEOUT) as client:
         r = await client.post(f"{base}/chat/completions", json=payload, headers=_headers(key))

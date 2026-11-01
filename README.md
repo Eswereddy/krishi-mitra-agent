@@ -197,3 +197,5 @@ The farmer enters the offers received (price, commission, transport, other costs
 ## Evaluation suite v2
 
 `python eval/suite_v2.py --out ../EVAL_V2.md` runs, without a live model, checks of: numerical verification and fabricated-figure detection, an unsafe-advice scan (no pesticide names or doses in built-in text), the Farm Doctor photo-reliability gate on synthetic images, Telugu/Hindi completeness of every built-in table, cache and data-source labelling, failure recovery (Glimmer fallback, crashing tool, weather/archive down) and compute-only latency. Each section states what it does **not** prove. `--live` adds the 28-question agent run (tool selection, verified figures, real latency) when a model key is set. The committed `EVAL_V2.md` is the offline run; live numbers are added only from a real live run.
+
+Audit and security: [docs/AUDIT.md](docs/AUDIT.md) · [docs/SECURITY.md](docs/SECURITY.md) · [docs/DEPLOY.md](docs/DEPLOY.md). `/api/status` shows which Meta model served calls, with latency and error counts; answers show a "🧠 model" line.
