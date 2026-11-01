@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, alerts, brief, cases, claim as claimmod, config, ledger, meta_extras, outcomes, twin, warning, plan as planmod, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
+from . import agent, alerts, brief, cases, claim as claimmod, config, ledger, meta_extras, outcomes, twin, warning, buyers, plan as planmod, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -171,6 +171,21 @@ async def warnings_check(payload: dict):
     if "error" in out and out["error"] == "place is needed":
         raise HTTPException(400, out["error"])
     return out
+
+
+@app.post("/api/buyers/compare")
+async def buyers_compare(payload: dict):
+    """Net income of each buyer offer (price x quantity - commission - transport - other). Verified only if in the registry."""
+    out = buyers.compare(payload.get("offers"), payload.get("quantity"), payload.get("unit") or "quintal", payload.get("reference_price"),
+                         payload.get("lang") or "en", str(payload.get("currency") or "")[:5])
+    if "error" in out:
+        raise HTTPException(400, out["error"])
+    return out
+
+
+@app.get("/api/buyers/registry")
+async def buyers_registry():
+    return {"verified": buyers.verified_list(), "note": "Only buyers marked verified in the registry are listed."}
 
 
 @app.post("/api/claim/draft")

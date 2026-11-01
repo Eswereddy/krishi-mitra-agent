@@ -1,0 +1,2 @@
+{"_note": "Registry of buyers that YOU have verified yourself (licensed trader, FPO, cooperative, mandi licence, etc.). An offer is shown as 'verified' only if it names a buyer id from this list with verified=true. Add entries with: id, name, type, region, verified (true/false), verified_by (who checked, how), verified_on (YYYY-MM-DD). Nothing is verified by default.",
+ "buyers": []}
