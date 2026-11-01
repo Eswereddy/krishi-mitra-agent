@@ -77,3 +77,7 @@ More languages, village-level weather from the farmer's location, price alerts o
 - Live app: <https://krishi-mitra-agent.onrender.com/>
 - Demo video (3 min): <PASTE VIDEO URL>
 - Code: https://github.com/Eswereddy/krishi-mitra-agent
+
+## Measured results (live, 2026-11-01)
+
+On the deployed Render service with Muse Spark Open, 28 fixed questions across India, Kenya and Brazil in 6 languages: right tool called 28/28, every figure verified against tool results 28/28, median latency 7.4s, p95 12.9s (measured server-side). These are our own questions, not a held-out set, and say nothing about answer wording or real leaf-photo accuracy. Full table and caveats: `EVAL_V2.md`.
