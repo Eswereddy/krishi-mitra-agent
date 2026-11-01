@@ -72,7 +72,7 @@ def _weather(place: str, crop: str, country: str) -> dict:
         out["rain_next_5_days_mm"] = round(sum(x.get("rain_mm") or 0 for x in wx["forecast"][:5]), 1)
         out["source"] = "open-meteo.com forecast (live)"
     dr = pestwatch.disease_risk(crop, place, country) if crop else {"error": "no crop"}
-    if "error" not in dr:
+    if "error" not in dr and dr.get("worst_risk"):
         out["disease_weather_risk"] = dr["worst_risk"]
     return out
 

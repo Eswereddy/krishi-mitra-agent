@@ -191,3 +191,7 @@ One living record of the field on the phone: place, area, soil, crop, variety, s
 ## Buyer offer comparison
 
 The farmer enters the offers received (price, commission, transport, other costs, payment delay, advance asked). `POST /api/buyers/compare` computes the **net income** of each, ranks them, and flags risky terms (advance asked, payment after more than 7 days, price 25% or more above the farmer's reference price). A buyer is shown as **verified only** if the offer names an id in `backend/app/data/buyers.json` marked `verified: true` with who verified it and when; the shipped registry is empty, so nobody is verified by default, and name-only matches never count. Offers stay on the phone. Tests: `python tests/test_buyers.py`.
+
+## Evaluation suite v2
+
+`python eval/suite_v2.py --out ../EVAL_V2.md` runs, without a live model, checks of: numerical verification and fabricated-figure detection, an unsafe-advice scan (no pesticide names or doses in built-in text), the Farm Doctor photo-reliability gate on synthetic images, Telugu/Hindi completeness of every built-in table, cache and data-source labelling, failure recovery (Glimmer fallback, crashing tool, weather/archive down) and compute-only latency. Each section states what it does **not** prove. `--live` adds the 28-question agent run (tool selection, verified figures, real latency) when a model key is set. The committed `EVAL_V2.md` is the offline run; live numbers are added only from a real live run.
