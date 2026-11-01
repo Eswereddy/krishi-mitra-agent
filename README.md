@@ -175,3 +175,7 @@ When the agent or the SAM leaf scan is unsure, or damage is severe, the farmer c
 - `GET /api/expert/contacts` returns experts from the optional `EXPERT_CONTACTS` env (JSON list of `{name, type: whatsapp|email|phone, value, languages}`); otherwise the local extension office / helpline fallback.
 - The photo stays on the phone and is shared via the Web Share API only if the farmer ticks it. Case history with status and the expert's reply note is kept on the device.
 - Tests: `python tests/test_cases.py`.
+
+## Outcome tracking ("My results")
+
+Farmers log a recommendation (or save one straight from an agent answer), mark it done, enter the actual cost, yield and price, and say whether it helped. `POST /api/outcomes/report` computes the followed-rate, usefulness and **predicted vs actual** error (only where both were entered; nothing is invented) plus season spend, harvest value and net, in Telugu, Hindi or English. Records stay on the phone; the server is stateless. Tests: `python tests/test_outcomes.py`.

@@ -5,6 +5,7 @@ import { Markdown, ToolCards, StepChips, LiveSteps, SourcesLine, I } from "./com
 import { ExtraSheet, ex, leafScan, adviceCard, secondOpinion } from "./extras";
 import { KhataSheet, ClaimSheet, kx } from "./khata";
 import { CaseSheet, ax } from "./expert";
+import { OutcomesSheet, ox } from "./outcomes";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
 // quick questions that only make sense in India (MSP, KCC, Indian schemes, quintals)
@@ -71,6 +72,7 @@ export default function App() {
   const [showAttach, setShowAttach] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [toast, setToast] = useState("");
+  const [outSeed, setOutSeed] = useState("");
   const [panel, setPanel] = useState(null); // "khata" | "claim"
   const [extra, setExtra] = useState(null); // { kind: "scan" | "card", loading, data, error, run }
   const [big, setBig] = useState(() => load("km-big", false));
@@ -618,6 +620,7 @@ export default function App() {
             <div className="duo">
               <button className="talk-cta mini" onClick={() => setPanel("khata")}><span className="talk-ico">📒</span><span><b>{kx(t.code).khata}</b><small>{kx(t.code).khataSub}</small></span></button>
               <button className="talk-cta mini" style={{ gridColumn: "1 / -1" }} onClick={() => setPanel("expert")}><span className="talk-ico">🧑‍🌾</span><span><b>{ax(t.code).title}</b><small>{ax(t.code).sub}</small></span></button>
+              <button className="talk-cta mini" onClick={() => { setOutSeed(""); setPanel("outcomes"); }}><span className="talk-ico">📈</span><span><b>{ox(t.code).title}</b><small>{ox(t.code).sub}</small></span></button>
               <button className="talk-cta mini" onClick={() => setPanel("claim")}><span className="talk-ico">🌧️</span><span><b>{kx(t.code).claim}</b><small>{kx(t.code).claimSub}</small></span></button>
             </div>
             {installEvt && <button className="pill" onClick={installApp}>{t.install}</button>}
@@ -669,6 +672,7 @@ export default function App() {
                           </button>
                           <button className="pill" onClick={() => shareWhatsApp(m)}><I.whatsapp />{t.share}</button>
                           <button className="pill" onClick={() => copyText(m)}><I.copy />{t.copy}</button>
+                          <button className="pill" onClick={() => { setOutSeed(m.text.slice(0, 300)); setPanel("outcomes"); }}>📈 {ox(t.code).add}</button>
                           <button className="pill" onClick={() => makeCard(m)}>🖼️ {ex(t.code).cardBtn}</button>
                           {m.steps?.some((x) => x.result && !x.result.error) && <button className="pill" onClick={() => audit(m)}>🔍 {ex(t.code).audit}</button>}
                         </div>
@@ -753,6 +757,7 @@ export default function App() {
 
       {panel === "khata" && <KhataSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
       {panel === "expert" && <CaseSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
+      {panel === "outcomes" && <OutcomesSheet lang={t.code} profile={profile} seed={outSeed} onClose={() => setPanel(null)} />}
       {panel === "claim" && <ClaimSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
       <ExtraSheet extra={extra} lang={t.code} onExpert={() => { setExtra(null); setPanel("expert"); }} onClose={() => setExtra(null)} onRetry={() => extra?.run && runExtra(extra.kind, extra.run)} />
 
