@@ -207,3 +207,10 @@ Audit and security: [docs/AUDIT.md](docs/AUDIT.md) · [docs/SECURITY.md](docs/SE
 ## Insurance evidence file and claim tracker
 
 From the crop-loss kit, the farmer opens a **claim file** on the phone: ticks the document checklist, adds photos (shrunk, stored on the device) and notes, records the claim's progress (reported, documents submitted, survey, waiting, paid or rejected, with dates and who said what) and downloads a **printable evidence report** (`POST /api/claim/evidence`, HTML you can save as PDF; everything is HTML-escaped, only real small JPEG/PNG/WebP data URLs are embedded, at most 6). The only judgement it computes is arithmetic on the entered dates: was the loss reported within 72 hours (for localized calamities in India). It never estimates approval and every report says the insurer decides. Tests: `python tests/test_evidence.py`.
+
+## Agent controls: confirm before acting, consented memory, tool router
+
+- **Confirm first.** After an answer the app may *offer* to save the advice to "My results" or set a price alert (proposals built in code from tool results, e.g. alert at 5% above today's modal price). Nothing runs until the farmer taps Yes on the phone; No changes nothing. The server and the model never execute actions.
+- **Memory with consent.** "My farm memory" is off by default. When switched on, a short list of facts the farmer keeps (editable, deletable, "forget everything") is sent with questions as quoted data (never as instructions, never as verified figures). The server stores nothing; the request must carry `memory_consent: true`.
+- **Tool router.** Only tools relevant to the question (price, weather and water, crop care, money) plus three general ones are offered to the model; unclear questions get all 28, so routing narrows but never blocks. In `EVAL_V2.md`: offered tools carry about 43% of the full spec size, with in-sample and held-out recall reported separately.
+- Answers carry `served_by`, `tools_offered` and `proposed_actions`. Tests: `python tests/test_agent_controls.py`.

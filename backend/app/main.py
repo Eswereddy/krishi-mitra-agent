@@ -257,7 +257,8 @@ async def run_agent(payload: dict):
     try:
         return await agent.run_agent(question, bool(payload.get("use_open_model")), payload.get("lang") or "auto",
                                       payload.get("profile") if isinstance(payload.get("profile"), dict) else None,
-                                      payload.get("history") if isinstance(payload.get("history"), list) else None)
+                                      payload.get("history") if isinstance(payload.get("history"), list) else None,
+                                      None, None, payload.get("memory") if payload.get("memory_consent") is True else None)
     except httpx.HTTPStatusError as e:
         raise HTTPException(502, f"Meta API error: {e.response.text[:300]}")
 
@@ -301,8 +302,9 @@ async def agent_stream(payload: dict):
         raise HTTPException(503, "API key for the selected PROVIDER not set in backend/.env")
     profile = payload.get("profile") if isinstance(payload.get("profile"), dict) else None
     history = payload.get("history") if isinstance(payload.get("history"), list) else None
+    memory = payload.get("memory") if payload.get("memory_consent") is True else None
     return _ndjson(lambda emit: agent.run_agent(question, False, payload.get("lang") or "auto", profile, history,
-                                                None, emit))
+                                                None, emit, memory))
 
 
 @app.post("/api/diagnose/stream")
