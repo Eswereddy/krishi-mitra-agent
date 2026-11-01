@@ -9,6 +9,7 @@ import { OutcomesSheet, ox } from "./outcomes";
 import { TwinSheet, wx as twx } from "./twin";
 import { WarningsSheet, useWarnings, wn } from "./warnings";
 import { BuyersSheet, bx } from "./buyers";
+import { ConsentSheet, consentGiven } from "./consent";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
 // quick questions that only make sense in India (MSP, KCC, Indian schemes, quintals)
@@ -76,6 +77,7 @@ export default function App() {
   const [dragging, setDragging] = useState(false);
   const [toast, setToast] = useState("");
   const [outSeed, setOutSeed] = useState("");
+  const [showConsent, setShowConsent] = useState(() => !consentGiven());
   const [warnDismissed, setWarnDismissed] = useState(false);
   const [panel, setPanel] = useState(null); // "khata" | "claim"
   const [extra, setExtra] = useState(null); // { kind: "scan" | "card", loading, data, error, run }
@@ -773,6 +775,7 @@ export default function App() {
       {panel === "expert" && <CaseSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
       {panel === "outcomes" && <OutcomesSheet lang={t.code} profile={profile} seed={outSeed} onClose={() => setPanel(null)} />}
       {panel === "warnings" && <WarningsSheet lang={t.code} ready={warn.ready} data={warn.data} error={warn.error} check={warn.check} onClose={() => setPanel(null)} />}
+      {showConsent && <ConsentSheet lang={t.code} onDone={() => setShowConsent(false)} />}
       {panel === "buyers" && <BuyersSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "twin" && <TwinSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "claim" && <ClaimSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
