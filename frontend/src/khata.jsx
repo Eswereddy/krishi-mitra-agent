@@ -60,7 +60,7 @@ async function hearOnce() {
   return r.ok ? (await r.json()).text : "";
 }
 
-function Sheet({ title, onClose, close, children }) {
+export function Sheet({ title, onClose, close, children }) {
   return (
     <div className="sheet-bg" onClick={onClose}>
       <div className="sheet tall" onClick={(e) => e.stopPropagation()}>
@@ -72,7 +72,7 @@ function Sheet({ title, onClose, close, children }) {
   );
 }
 
-function shareText(text) { window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank"); }
+export function shareText(text) { window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank"); }
 
 export function KhataSheet({ lang, profile, onClose, toast }) {
   const t = kx(lang);

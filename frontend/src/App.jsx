@@ -4,6 +4,7 @@ import { startListening, speak, stopSpeaking, extFor, unlockAudio } from "./lib/
 import { Markdown, ToolCards, StepChips, LiveSteps, SourcesLine, I } from "./components";
 import { ExtraSheet, ex, leafScan, adviceCard, secondOpinion } from "./extras";
 import { KhataSheet, ClaimSheet, kx } from "./khata";
+import { CaseSheet, ax } from "./expert";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
 // quick questions that only make sense in India (MSP, KCC, Indian schemes, quintals)
@@ -616,6 +617,7 @@ export default function App() {
             </button>
             <div className="duo">
               <button className="talk-cta mini" onClick={() => setPanel("khata")}><span className="talk-ico">📒</span><span><b>{kx(t.code).khata}</b><small>{kx(t.code).khataSub}</small></span></button>
+              <button className="talk-cta mini" style={{ gridColumn: "1 / -1" }} onClick={() => setPanel("expert")}><span className="talk-ico">🧑‍🌾</span><span><b>{ax(t.code).title}</b><small>{ax(t.code).sub}</small></span></button>
               <button className="talk-cta mini" onClick={() => setPanel("claim")}><span className="talk-ico">🌧️</span><span><b>{kx(t.code).claim}</b><small>{kx(t.code).claimSub}</small></span></button>
             </div>
             {installEvt && <button className="pill" onClick={installApp}>{t.install}</button>}
@@ -750,8 +752,9 @@ export default function App() {
       )}
 
       {panel === "khata" && <KhataSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
+      {panel === "expert" && <CaseSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
       {panel === "claim" && <ClaimSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
-      <ExtraSheet extra={extra} lang={t.code} onClose={() => setExtra(null)} onRetry={() => extra?.run && runExtra(extra.kind, extra.run)} />
+      <ExtraSheet extra={extra} lang={t.code} onExpert={() => { setExtra(null); setPanel("expert"); }} onClose={() => setExtra(null)} onRetry={() => extra?.run && runExtra(extra.kind, extra.run)} />
 
       {/* ---------- price alerts sheet ---------- */}
       {showAlerts && (
