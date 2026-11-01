@@ -21,6 +21,7 @@ LIMITS = {
     "/api/ask": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/plan": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/ledger/parse": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
+    "/api/admin": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/case": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/twin": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/warnings": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
