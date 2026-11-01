@@ -41,6 +41,7 @@ jobs:
           python tests/test_seasonality.py
           python tests/test_doctor.py
           python tests/test_cases.py
+          python tests/test_outcomes.py
           python tests/test_eval.py
           python tests/test_khata.py
 
