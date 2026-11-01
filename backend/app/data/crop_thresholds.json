@@ -1,0 +1,7 @@
+{"_note": "INDICATIVE crop stress thresholds from general agronomy (damaging daytime maximum, night minimum, heavy daily rain, strong wind). Varieties, stage and local practice shift them. They trigger a 'watch the crop' alert, not a damage prediction. Confirm with your agriculture extension officer.",
+ "heat_c": {"maize": 38, "rice": 37, "wheat": 32, "sorghum": 40, "millet": 42, "beans": 32, "soybean": 35, "groundnut": 38, "chickpea": 35, "lentil": 32, "pigeonpea": 38, "cotton": 39, "sunflower": 38, "potato": 30, "tomato": 35, "cassava": 40},
+ "cold_c": {"maize": 4, "rice": 15, "wheat": -2, "sorghum": 6, "millet": 8, "beans": 4, "soybean": 4, "groundnut": 8, "chickpea": 0, "lentil": -2, "pigeonpea": 8, "cotton": 10, "sunflower": 2, "potato": 2, "tomato": 5, "cassava": 10},
+ "rain_mm": {"maize": 40, "rice": 100, "wheat": 40, "sorghum": 40, "millet": 40, "beans": 35, "soybean": 40, "groundnut": 35, "chickpea": 30, "lentil": 30, "pigeonpea": 40, "cotton": 40, "sunflower": 40, "potato": 30, "tomato": 30, "cassava": 50},
+ "wind_kmh": {"maize": 35, "rice": 40, "wheat": 40, "sorghum": 40, "millet": 40, "beans": 45, "soybean": 45, "groundnut": 50, "chickpea": 45, "lentil": 45, "pigeonpea": 40, "cotton": 45, "sunflower": 35, "potato": 50, "tomato": 30, "cassava": 40},
+ "default": {"heat_c": 40, "cold_c": 2, "rain_mm": 40, "wind_kmh": 40},
+ "sensitive_stages": ["flowering", "filling"], "harvest_rain_mm": 15}
