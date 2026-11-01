@@ -16,6 +16,7 @@ import { ConsentSheet, consentGiven } from "./consent";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
 // quick questions that only make sense in India (MSP, KCC, Indian schemes, quintals)
+const moreTools = { en: "More tools", te: "మరిన్ని సాధనాలు", hi: "और उपकरण" };
 const INDIA_ONLY = /KCC|MSP|పథక|योजना|scheme|క్వింటా|क्विंटल|quintal|వరి|రబీ|రబీ/i;
 const DEFAULT_PROFILE = { country: "IN", state: "Andhra Pradesh", district: "", owns_land: false, main_crop: "", sowing_date: "" };
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -633,16 +634,17 @@ export default function App() {
               <span className="talk-ico">📅</span>
               <span><b>{ex(t.code).week}</b><small>{ex(t.code).weekSub}</small></span>
             </button>
-            <div className="duo">
-              <button className="talk-cta mini" onClick={() => setPanel("khata")}><span className="talk-ico">📒</span><span><b>{kx(t.code).khata}</b><small>{kx(t.code).khataSub}</small></span></button>
-              <button className="talk-cta mini" style={{ gridColumn: "1 / -1" }} onClick={() => setPanel("expert")}><span className="talk-ico">🧑‍🌾</span><span><b>{ax(t.code).title}</b><small>{ax(t.code).sub}</small></span></button>
-              <button className="talk-cta mini" onClick={() => setPanel("warnings")}><span className="talk-ico">⚠️</span><span><b>{wn(t.code).title}</b><small>{wn(t.code).sub}</small></span></button>
-              <button className="talk-cta mini" onClick={() => setPanel("buyers")}><span className="talk-ico">🤝</span><span><b>{bx(t.code).title}</b><small>{bx(t.code).sub}</small></span></button>
-              <button className="talk-cta mini" onClick={() => setPanel("water")}><span className="talk-ico">💧</span><span><b>{ix(t.code).title}</b><small>{ix(t.code).sub}</small></span></button>
-              <button className="talk-cta mini" onClick={() => setPanel("memory")}><span className="talk-ico">🧠</span><span><b>{au(t.code).mem}</b><small>{au(t.code).memSub}</small></span></button>
-              <button className="talk-cta mini" onClick={() => setPanel("twin")}><span className="talk-ico">🌾</span><span><b>{twx(t.code).title}</b><small>{twx(t.code).sub}</small></span></button>
-              <button className="talk-cta mini" onClick={() => { setOutSeed(""); setPanel("outcomes"); }}><span className="talk-ico">📈</span><span><b>{ox(t.code).title}</b><small>{ox(t.code).sub}</small></span></button>
-              <button className="talk-cta mini" onClick={() => setPanel("claim")}><span className="talk-ico">🌧️</span><span><b>{kx(t.code).claim}</b><small>{kx(t.code).claimSub}</small></span></button>
+            <h4>{moreTools[t.code] || moreTools.en}</h4>
+            <div className="tools-grid">
+              <button className="tool-tile" onClick={() => setPanel("khata")}><span className="talk-ico">📒</span><span><b>{kx(t.code).khata}</b><small>{kx(t.code).khataSub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("expert")}><span className="talk-ico">🧑‍🌾</span><span><b>{ax(t.code).title}</b><small>{ax(t.code).sub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("warnings")}><span className="talk-ico">⚠️</span><span><b>{wn(t.code).title}</b><small>{wn(t.code).sub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("buyers")}><span className="talk-ico">🤝</span><span><b>{bx(t.code).title}</b><small>{bx(t.code).sub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("water")}><span className="talk-ico">💧</span><span><b>{ix(t.code).title}</b><small>{ix(t.code).sub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("memory")}><span className="talk-ico">🧠</span><span><b>{au(t.code).mem}</b><small>{au(t.code).memSub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("twin")}><span className="talk-ico">🌾</span><span><b>{twx(t.code).title}</b><small>{twx(t.code).sub}</small></span></button>
+              <button className="tool-tile" onClick={() => { setOutSeed(""); setPanel("outcomes"); }}><span className="talk-ico">📈</span><span><b>{ox(t.code).title}</b><small>{ox(t.code).sub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("claim")}><span className="talk-ico">🌧️</span><span><b>{kx(t.code).claim}</b><small>{kx(t.code).claimSub}</small></span></button>
             </div>
             {installEvt && <button className="pill" onClick={installApp}>{t.install}</button>}
             <h4>{t.tryAsk}</h4>
