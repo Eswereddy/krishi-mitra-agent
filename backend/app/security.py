@@ -10,6 +10,8 @@ from fastapi.responses import JSONResponse
 log = logging.getLogger("krishi.access")
 MAX_JSON_BYTES = 1 * 1024 * 1024
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+LARGE_JSON_PATHS = ("/api/claim/evidence",)          # carries a few small embedded photos
+LARGE_JSON_BYTES = 2 * 1024 * 1024
 UPLOAD_PATHS = ("/api/transcribe", "/api/asr", "/api/diagnose", "/api/leaf-scan", "/api/whatsapp")
 HEADERS = {
     "X-Content-Type-Options": "nosniff",
@@ -24,7 +26,7 @@ def too_big(path: str, length: str | None) -> bool:
         n = int(length) if length is not None else 0
     except ValueError:
         return True
-    return n > (MAX_UPLOAD_BYTES if path.startswith(UPLOAD_PATHS) else MAX_JSON_BYTES)
+    return n > (MAX_UPLOAD_BYTES if path.startswith(UPLOAD_PATHS) else LARGE_JSON_BYTES if path in LARGE_JSON_PATHS else MAX_JSON_BYTES)
 
 
 async def middleware(request: Request, call_next):

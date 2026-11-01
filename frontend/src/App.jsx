@@ -10,6 +10,7 @@ import { TwinSheet, wx as twx } from "./twin";
 import { WarningsSheet, useWarnings, wn } from "./warnings";
 import { BuyersSheet, bx } from "./buyers";
 import { IrrigationSheet, ix } from "./irrigation";
+import { ClaimFileSheet } from "./claimfile";
 import { ConsentSheet, consentGiven } from "./consent";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
@@ -782,7 +783,8 @@ export default function App() {
       {panel === "buyers" && <BuyersSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "water" && <IrrigationSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "twin" && <TwinSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
-      {panel === "claim" && <ClaimSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
+      {panel === "claimfile" && <ClaimFileSheet lang={t.code} profile={profile} onClose={() => setPanel("claim")} />}
+      {panel === "claim" && <ClaimSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} onFile={() => setPanel("claimfile")} />}
       <ExtraSheet extra={extra} lang={t.code} onExpert={() => { setExtra(null); setPanel("expert"); }} onClose={() => setExtra(null)} onRetry={() => extra?.run && runExtra(extra.kind, extra.run)} />
 
       {/* ---------- price alerts sheet ---------- */}

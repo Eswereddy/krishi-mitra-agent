@@ -48,6 +48,7 @@ jobs:
           python tests/test_eval_v2.py
           python tests/test_security.py
           python tests/test_irrigation.py
+          python tests/test_evidence.py
           python tests/test_eval.py
           python tests/test_khata.py
 

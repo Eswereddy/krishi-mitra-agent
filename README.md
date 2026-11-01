@@ -203,3 +203,7 @@ Audit and security: [docs/AUDIT.md](docs/AUDIT.md) · [docs/SECURITY.md](docs/SE
 ## Water and pump cost
 
 `POST /api/irrigation/report` turns the irrigation log (mm, optional pump hours) into water volume (1 mm on 1 acre = 4,047 litres), pumping cost (electric kW or diesel litres per hour, price, hours or pump flow), cost per mm and per acre, and **savings against the farmer's own entered baseline** (it can show "more used"; with no baseline it says so instead of inventing a saving). This week's recommended water (FAO-56 forecast, indicative) is priced at the farmer's own cost per mm. The log is shared with My field and stays on the phone. Tests: `python tests/test_irrigation.py`.
+
+## Insurance evidence file and claim tracker
+
+From the crop-loss kit, the farmer opens a **claim file** on the phone: ticks the document checklist, adds photos (shrunk, stored on the device) and notes, records the claim's progress (reported, documents submitted, survey, waiting, paid or rejected, with dates and who said what) and downloads a **printable evidence report** (`POST /api/claim/evidence`, HTML you can save as PDF; everything is HTML-escaped, only real small JPEG/PNG/WebP data URLs are embedded, at most 6). The only judgement it computes is arithmetic on the entered dates: was the loss reported within 72 hours (for localized calamities in India). It never estimates approval and every report says the insurer decides. Tests: `python tests/test_evidence.py`.

@@ -181,7 +181,9 @@ export function KhataSheet({ lang, profile, onClose, toast }) {
   );
 }
 
-export function ClaimSheet({ lang, profile, onClose, toast }) {
+const fileBtn = { en: "Evidence file and claim tracker", te: "ఆధారాల ఫైల్, క్లెయిమ్ ట్రాకర్", hi: "साक्ष्य फ़ाइल और क्लेम ट्रैकर" };
+
+export function ClaimSheet({ lang, profile, onClose, toast, onFile }) {
   const t = kx(lang);
   const saved = load("km-claim", null);
   const nowLocal = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -212,6 +214,7 @@ export function ClaimSheet({ lang, profile, onClose, toast }) {
         <input type="number" inputMode="decimal" value={form.acres} onChange={(e) => setForm({ ...form, acres: e.target.value })} placeholder={t.acres} aria-label={t.acres} />
       </div>
       <button className="primary" onClick={run}>{res ? t.redo : t.getKit}</button>
+      {res && onFile && <button className="pill" onClick={onFile}>📁 {fileBtn[lang] || fileBtn.en}</button>}
       {res && (
         <div className="claim-out">
           {hoursLeft != null && (
