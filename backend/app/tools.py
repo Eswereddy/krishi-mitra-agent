@@ -401,3 +401,5 @@ def run_tool(name: str, args: dict) -> dict:
         return fn(**args)
     except TypeError as e:
         return {"error": str(e)}
+    except Exception as e:                      # a broken tool must not crash the agent: the model sees the error and says so
+        return {"error": f"tool {name} failed ({type(e).__name__})"}
