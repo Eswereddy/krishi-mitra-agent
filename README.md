@@ -179,3 +179,7 @@ When the agent or the SAM leaf scan is unsure, or damage is severe, the farmer c
 ## Outcome tracking ("My results")
 
 Farmers log a recommendation (or save one straight from an agent answer), mark it done, enter the actual cost, yield and price, and say whether it helped. `POST /api/outcomes/report` computes the followed-rate, usefulness and **predicted vs actual** error (only where both were entered; nothing is invented) plus season spend, harvest value and net, in Telugu, Hindi or English. Records stay on the phone; the server is stateless. Tests: `python tests/test_outcomes.py`.
+
+## Farm digital twin ("My field")
+
+One living record of the field on the phone: place, area, soil, crop, variety, sowing date, irrigation log, spend and yield. `POST /api/twin/report` adds the crop calendar (stage, expected harvest) and the weather the field has actually lived through since sowing (live Open-Meteo archive: rain, wet days, longest dry spell, longest stretch with neither rain nor irrigation) and returns an **explainable** report: every line says its basis (farmer-entered, computed, live archive, indicative table). If the archive is down it says so instead of guessing. Stateless server. Tests: `python tests/test_twin.py`.
