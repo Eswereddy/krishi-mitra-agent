@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, alerts, brief, cases, claim as claimmod, config, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
+from . import agent, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -204,6 +204,15 @@ async def buyers_registry():
 async def irrigation_report(payload: dict):
     """Water volume, pumping cost and savings against the farmer's own baseline; this week's need priced at their cost per mm."""
     out = await irrigation.report(payload, payload.get("lang") or "en")
+    if "error" in out:
+        raise HTTPException(400, out["error"])
+    return out
+
+
+@app.post("/api/claim/evidence")
+async def claim_evidence(payload: dict):
+    """Printable evidence file (HTML, save as PDF) from the farmer's own evidence, checklist and claim timeline. No approval promises."""
+    out = evidence.build(payload, payload.get("lang") or "en")
     if "error" in out:
         raise HTTPException(400, out["error"])
     return out
