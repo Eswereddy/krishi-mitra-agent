@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, alerts, brief, cases, claim as claimmod, config, ledger, meta_extras, outcomes, twin, plan as planmod, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
+from . import agent, alerts, brief, cases, claim as claimmod, config, ledger, meta_extras, outcomes, twin, warning, plan as planmod, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -159,6 +159,16 @@ async def twin_report(payload: dict):
     """Explainable field progress report from the on-device farm twin + the weather it has lived through. Stateless."""
     out = await twin.report(payload.get("twin"), payload.get("lang") or "en")
     if "error" in out:
+        raise HTTPException(400, out["error"])
+    return out
+
+
+@app.post("/api/warnings/check")
+async def warnings_check(payload: dict):
+    """Crop-specific early warnings (heat, cold, heavy rain, wind, disease weather) with preventive actions. Live forecast."""
+    out = await warning.check(payload.get("crop") or "", payload.get("place") or "", str(payload.get("country") or "").upper()[:3],
+                              payload.get("sowing_date") or "", payload.get("lang") or "en")
+    if "error" in out and out["error"] == "place is needed":
         raise HTTPException(400, out["error"])
     return out
 

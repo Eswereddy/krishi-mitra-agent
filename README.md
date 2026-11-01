@@ -183,3 +183,7 @@ Farmers log a recommendation (or save one straight from an agent answer), mark i
 ## Farm digital twin ("My field")
 
 One living record of the field on the phone: place, area, soil, crop, variety, sowing date, irrigation log, spend and yield. `POST /api/twin/report` adds the crop calendar (stage, expected harvest) and the weather the field has actually lived through since sowing (live Open-Meteo archive: rain, wet days, longest dry spell, longest stretch with neither rain nor irrigation) and returns an **explainable** report: every line says its basis (farmer-entered, computed, live archive, indicative table). If the archive is down it says so instead of guessing. Stateless server. Tests: `python tests/test_twin.py`.
+
+## Village early warning
+
+`POST /api/warnings/check` turns the live forecast for the farmer's place into **crop-specific** alerts: heat, cold, heavy rain and strong wind (indicative per-crop thresholds in `data/crop_thresholds.json`, stricter in flowering/grain-filling, and rain limit drops near harvest) plus fungal-disease *weather* conditions (humid and warm hours; no disease is predicted). Each alert has its value, threshold, a watch/warning level and non-chemical preventive actions in te/hi/en; it always ends with "no spraying without advice". The app checks on the phone every 3 hours, shows a banner, keeps the last result for offline, and can send a browser notification if the farmer allows it. Tests: `python tests/test_warning.py`.

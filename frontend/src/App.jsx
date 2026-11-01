@@ -7,6 +7,7 @@ import { KhataSheet, ClaimSheet, kx } from "./khata";
 import { CaseSheet, ax } from "./expert";
 import { OutcomesSheet, ox } from "./outcomes";
 import { TwinSheet, wx as twx } from "./twin";
+import { WarningsSheet, useWarnings, wn } from "./warnings";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
 // quick questions that only make sense in India (MSP, KCC, Indian schemes, quintals)
@@ -74,6 +75,7 @@ export default function App() {
   const [dragging, setDragging] = useState(false);
   const [toast, setToast] = useState("");
   const [outSeed, setOutSeed] = useState("");
+  const [warnDismissed, setWarnDismissed] = useState(false);
   const [panel, setPanel] = useState(null); // "khata" | "claim"
   const [extra, setExtra] = useState(null); // { kind: "scan" | "card", loading, data, error, run }
   const [big, setBig] = useState(() => load("km-big", false));
@@ -86,6 +88,7 @@ export default function App() {
   const [draft, setDraft] = useState({ crop: "", target: "", direction: "above" });
 
   const t = T[lang === "auto" ? "te" : lang];
+  const warn = useWarnings(profile, t.code);
   const langRef = useRef(lang);
   langRef.current = lang;
   const tRef = useRef(t);
@@ -592,6 +595,12 @@ export default function App() {
         </div>
       </header>
       {!online && <div className="offline" role="status">📡 {t.offline}</div>}
+      {warn.data?.warnings > 0 && !warnDismissed && (
+        <div className="alert-banner" role="alert">
+          <span onClick={() => setPanel("warnings")} style={{ cursor: "pointer" }}>⚠️ {wn(t.code).banner}: {warn.data.alerts.find((a) => a.severity === "warning")?.text}</span>
+          <button className="icon-btn sm" aria-label="Close" onClick={() => setWarnDismissed(true)}><I.x /></button>
+        </div>
+      )}
       {Object.values(alertRes).filter((x) => x.triggered && !dismissed.includes(x.id)).map((x) => (
         <div className="alert-banner" role="status" key={x.id}>
           <span>{t.al.banner}: <b>{x.crop}</b> ₹{Number(x.current).toLocaleString("en-IN")} · {x.market || x.district} ({x.direction === "above" ? "≥" : "≤"} ₹{x.target.toLocaleString("en-IN")})</span>
@@ -621,6 +630,7 @@ export default function App() {
             <div className="duo">
               <button className="talk-cta mini" onClick={() => setPanel("khata")}><span className="talk-ico">📒</span><span><b>{kx(t.code).khata}</b><small>{kx(t.code).khataSub}</small></span></button>
               <button className="talk-cta mini" style={{ gridColumn: "1 / -1" }} onClick={() => setPanel("expert")}><span className="talk-ico">🧑‍🌾</span><span><b>{ax(t.code).title}</b><small>{ax(t.code).sub}</small></span></button>
+              <button className="talk-cta mini" onClick={() => setPanel("warnings")}><span className="talk-ico">⚠️</span><span><b>{wn(t.code).title}</b><small>{wn(t.code).sub}</small></span></button>
               <button className="talk-cta mini" onClick={() => setPanel("twin")}><span className="talk-ico">🌾</span><span><b>{twx(t.code).title}</b><small>{twx(t.code).sub}</small></span></button>
               <button className="talk-cta mini" onClick={() => { setOutSeed(""); setPanel("outcomes"); }}><span className="talk-ico">📈</span><span><b>{ox(t.code).title}</b><small>{ox(t.code).sub}</small></span></button>
               <button className="talk-cta mini" onClick={() => setPanel("claim")}><span className="talk-ico">🌧️</span><span><b>{kx(t.code).claim}</b><small>{kx(t.code).claimSub}</small></span></button>
@@ -760,6 +770,7 @@ export default function App() {
       {panel === "khata" && <KhataSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
       {panel === "expert" && <CaseSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
       {panel === "outcomes" && <OutcomesSheet lang={t.code} profile={profile} seed={outSeed} onClose={() => setPanel(null)} />}
+      {panel === "warnings" && <WarningsSheet lang={t.code} ready={warn.ready} data={warn.data} error={warn.error} check={warn.check} onClose={() => setPanel(null)} />}
       {panel === "twin" && <TwinSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "claim" && <ClaimSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
       <ExtraSheet extra={extra} lang={t.code} onExpert={() => { setExtra(null); setPanel("expert"); }} onClose={() => setExtra(null)} onRetry={() => extra?.run && runExtra(extra.kind, extra.run)} />
