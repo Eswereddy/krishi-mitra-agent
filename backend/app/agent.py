@@ -2,7 +2,7 @@
 import asyncio
 import json
 
-from . import config, lang as langmod, meta_client, mock, telemetry, tools, verify
+from . import actions, config, lang as langmod, memory as memmod, meta_client, mock, router, telemetry, tools, verify
 
 SYSTEM = (
     "You are Krishi Mitra, an assistant for small farmers anywhere in the world (India by default; the farmer profile may give another country). "
@@ -54,7 +54,7 @@ MAX_REWRITES = 2
 
 async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "auto",
                     profile: dict | None = None, history: list | None = None,
-                    image: tuple[bytes, str] | None = None, on_event=None) -> dict:
+                    image: tuple[bytes, str] | None = None, on_event=None, memory: list | None = None) -> dict:
     code = langmod.resolve(lang, user_text)
     steps: list[dict] = []
 
@@ -69,13 +69,14 @@ async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "a
         return {"answer": mock.ANSWER, "steps": steps, "mock": True,
                 "verification": verify.verify_answer(mock.ANSWER, steps)}
 
-    messages = [{"role": "system", "content": SYSTEM.format(lang_instruction=langmod.instruction(code, mirror=(lang not in langmod.NAMES and code == "en"))) + _profile_text(profile)}]
+    messages = [{"role": "system", "content": SYSTEM.format(lang_instruction=langmod.instruction(code, mirror=(lang not in langmod.NAMES and code == "en"))) + _profile_text(profile) + memmod.context(memmod.sanitize(memory))}]
     messages += _clean_history(history)
     messages.append({"role": "user", "content": _user_content(user_text, image)})
     rewrites = 0
+    offered = router.select(tools.TOOL_SPECS, user_text, image is not None)
     for _ in range(MAX_STEPS):
         msg = await meta_client.chat_message(
-            messages, use_open_model=use_open_model, tools=tools.TOOL_SPECS
+            messages, use_open_model=use_open_model, tools=offered
         )
         calls = msg.get("tool_calls") or []
         if not calls:
@@ -93,7 +94,8 @@ async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "a
             if not v["passed"]:
                 answer += verify.warning(v["unverified"], code)
             v["rewrites"] = rewrites
-            return {"answer": answer, "steps": steps, "mock": False, "verification": v, "served_by": telemetry.served.get()}
+            return {"answer": answer, "steps": steps, "mock": False, "verification": v, "served_by": telemetry.served.get(),
+                    "tools_offered": len(offered), "proposed_actions": actions.propose(steps, answer, code, profile)}
         messages.append(msg)
         parsed = []
         for c in calls:

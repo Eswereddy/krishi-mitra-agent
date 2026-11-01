@@ -11,6 +11,7 @@ import { WarningsSheet, useWarnings, wn } from "./warnings";
 import { BuyersSheet, bx } from "./buyers";
 import { IrrigationSheet, ix } from "./irrigation";
 import { ClaimFileSheet } from "./claimfile";
+import { ActionCards, MemorySheet, applyAction, au, getMemoryPayload } from "./agentui";
 import { ConsentSheet, consentGiven } from "./consent";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
@@ -299,7 +300,7 @@ export default function App() {
         r = await fetch("/api/agent/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question: q, lang, profile, history }),
+          body: JSON.stringify({ question: q, lang, profile, history, ...getMemoryPayload() }),
         });
       }
       if (!r.ok) {
@@ -308,7 +309,7 @@ export default function App() {
         throw new Error(d || `Error ${r.status}`);
       }
       const data = await readResult(r, bid);
-      setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", text: data.answer, steps: data.steps || [], verification: data.verification, mock: data.mock, servedBy: data.served_by } : x)));
+      setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", text: data.answer, steps: data.steps || [], verification: data.verification, mock: data.mock, servedBy: data.served_by, actions: data.proposed_actions || [] } : x)));
       if (!noSpeak && (speakReply || autoSpeakRef.current)) speakMessage(bid, data.answer);
       return { id: bid, answer: data.answer };
     } catch (e) {
@@ -638,6 +639,7 @@ export default function App() {
               <button className="talk-cta mini" onClick={() => setPanel("warnings")}><span className="talk-ico">⚠️</span><span><b>{wn(t.code).title}</b><small>{wn(t.code).sub}</small></span></button>
               <button className="talk-cta mini" onClick={() => setPanel("buyers")}><span className="talk-ico">🤝</span><span><b>{bx(t.code).title}</b><small>{bx(t.code).sub}</small></span></button>
               <button className="talk-cta mini" onClick={() => setPanel("water")}><span className="talk-ico">💧</span><span><b>{ix(t.code).title}</b><small>{ix(t.code).sub}</small></span></button>
+              <button className="talk-cta mini" onClick={() => setPanel("memory")}><span className="talk-ico">🧠</span><span><b>{au(t.code).mem}</b><small>{au(t.code).memSub}</small></span></button>
               <button className="talk-cta mini" onClick={() => setPanel("twin")}><span className="talk-ico">🌾</span><span><b>{twx(t.code).title}</b><small>{twx(t.code).sub}</small></span></button>
               <button className="talk-cta mini" onClick={() => { setOutSeed(""); setPanel("outcomes"); }}><span className="talk-ico">📈</span><span><b>{ox(t.code).title}</b><small>{ox(t.code).sub}</small></span></button>
               <button className="talk-cta mini" onClick={() => setPanel("claim")}><span className="talk-ico">🌧️</span><span><b>{kx(t.code).claim}</b><small>{kx(t.code).claimSub}</small></span></button>
@@ -684,6 +686,10 @@ export default function App() {
                         )}
                         <SourcesLine steps={m.steps} t={t} />
                         {m.servedBy && <p className="hint">🧠 {m.servedBy}</p>}
+                        <ActionCards lang={t.code} actions={m.actions} done={m.actionsDone} onChoose={(act, yes) => {
+                          const res = yes ? applyAction(act, setAlerts) : "skipped";
+                          setMessages((ms) => ms.map((x) => (x.id === m.id ? { ...x, actionsDone: { ...(x.actionsDone || {}), [act.id]: res } } : x)));
+                        }} />
                         <StepChips steps={m.steps} t={t} />
                         <div className="actions">
                           <button className={"pill" + (speakingId === m.id ? " live" : "")} onClick={() => toggleSpeak(m)}>
@@ -782,6 +788,7 @@ export default function App() {
       {showConsent && <ConsentSheet lang={t.code} onDone={() => setShowConsent(false)} />}
       {panel === "buyers" && <BuyersSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "water" && <IrrigationSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
+      {panel === "memory" && <MemorySheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "twin" && <TwinSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "claimfile" && <ClaimFileSheet lang={t.code} profile={profile} onClose={() => setPanel("claim")} />}
       {panel === "claim" && <ClaimSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} onFile={() => setPanel("claimfile")} />}

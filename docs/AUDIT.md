@@ -14,7 +14,7 @@ Audit date: 2026-11-01. Method: read the code paths, grep for controls, run all 
 - **Meta model integrations**: calls exist for Spark Open, Voice, SAM 3.1, Wonder, Image, Glimmer; unverified live. `meta_client.transcribe` still carries a "confirm field names against the API reference" note.
 - **Smart irrigation**: crop water need and irrigate-by date exist (`water_plan`); no pumping-cost or water-saving tracking.
 - **Crop insurance**: deadline, checklist and drafted message exist; no evidence organiser, claim-progress tracker or downloadable report.
-- **Agent**: no confirmation step before consequential actions, no consent-based long-term memory (history is on the device), no per-answer confidence score beyond verification.
+- **Agent**: confirm-before-action proposals, consented on-device memory and a tool router were added after this audit (see README). Still no per-answer confidence score beyond verification, and no server-side memory by design.
 - **Authentication**: none by design (device-first, stateless server). Public endpoints are protected only by rate limits.
 - **Glimmer**: needs the owner's own server (`GLIMMER_BASE_URL`).
 

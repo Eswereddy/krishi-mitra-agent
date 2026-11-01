@@ -24,7 +24,7 @@ import httpx  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 from PIL import Image, ImageFilter  # noqa: E402
 import random  # noqa: E402
-from app import (buyers, cases, claim, climate, coach, config, doctor, meta_client, outcomes, pestwatch, tools, twin, verify, warning)  # noqa: E402
+from app import (buyers, cases, claim, router, climate, coach, config, doctor, meta_client, outcomes, pestwatch, tools, twin, verify, warning)  # noqa: E402
 from app.main import app  # noqa: E402
 
 REPORT: list[dict] = []
@@ -286,7 +286,51 @@ def latency():
             "and is measured only in the live section.", [("all endpoints answered 200 during timing", ok)], rows)
 
 
-SECTIONS = [numerical, no_chemicals, images, multilingual, freshness, failures, latency]
+def routing():
+    import json as _json
+    import run_eval
+    full = len(_json.dumps(tools.TOOL_SPECS))
+    rows, hit, narrowed, ratios, misses = [], 0, 0, [], []
+    for q, profile, lang, expected in run_eval.CASES:
+        offered = router.select(tools.TOOL_SPECS, q)
+        names = {s["function"]["name"] for s in offered}
+        ok = bool(expected & names)
+        hit += ok
+        narrowed += len(offered) < len(tools.TOOL_SPECS)
+        ratios.append(len(_json.dumps(offered)) / full)
+        if not ok:
+            misses.append(f"MISS: '{q}' needs one of {sorted(expected)} but offered {len(offered)} tools without it")
+    n = len(run_eval.CASES)
+    section("Tool router (offline recall)",
+            "For each of the 28 evaluation questions: is at least one expected tool among the tools offered to the model? Keywords were written while looking "
+            "at these same questions, so this is IN-SAMPLE recall and will be lower on new questions; unclear questions get all tools. Does not measure which tool the model picks.",
+            [(f"expected tool offered: {hit}/{n}", hit == n)],
+            [f"questions narrowed below all {len(tools.TOOL_SPECS)} tools: {narrowed}/{n}", f"average prompt size for tool specs: {100 * statistics.mean(ratios):.0f}% of sending everything"] + misses)
+
+
+HELD_OUT = [  # written AFTER the keywords, never used to tune them
+    ("My tomato leaves have brown spots", {"lookup_problem"}), ("What is the rate for cotton in Adoni?", {"get_mandi_price"}),
+    ("Is my farm too dry this month compared to other years?", {"season_check"}), ("How much urea should I buy? What does a kg of nitrogen cost me?", {"compare_inputs"}),
+    ("Can I get a bank loan at 2% interest?", {"loan_compare", "kcc_interest"}), ("When to sow sorghum in Nakuru?", {"planting_window"}),
+    ("Bei ya maharage ni ngapi?", {"get_market_price"}), ("Cuanta agua necesita mi maiz?", {"water_plan"}),
+    ("Is it safe to keep my groundnut at 12% moisture?", {"storage_check"}), ("Heat stress for my buffalo tomorrow?", {"livestock_heat"}),
+    ("How many days until my cotton is ready?", {"crop_guide"}), ("Tell me something useful", {"get_expert_help"}),
+]
+
+
+def routing_heldout():
+    hits, notes = 0, []
+    for q, exp in HELD_OUT:
+        offered = {s["function"]["name"] for s in router.select(tools.TOOL_SPECS, q)}
+        ok = bool(exp & offered)
+        hits += ok
+        notes.append(f"{'ok' if ok else 'MISS'}: '{q}' -> {len(offered)} tools offered")
+    section("Tool router (held-out questions)",
+            f"{len(HELD_OUT)} questions written after the keywords and never used to tune them. A better estimate of recall on new questions, but still a small hand-written set.",
+            [(f"expected tool offered: {hits}/{len(HELD_OUT)}", hits == len(HELD_OUT))], notes)
+
+
+SECTIONS = [numerical, routing, routing_heldout, no_chemicals, images, multilingual, freshness, failures, latency]
 
 
 def render(live_report: str | None) -> str:
