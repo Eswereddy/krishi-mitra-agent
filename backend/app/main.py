@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, alerts, brief, cases, claim as claimmod, config, ledger, meta_extras, outcomes, plan as planmod, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
+from . import agent, alerts, brief, cases, claim as claimmod, config, ledger, meta_extras, outcomes, twin, plan as planmod, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -152,6 +152,15 @@ async def ledger_report(payload: dict):
 async def outcomes_report(payload: dict):
     """Followed-rate, usefulness and predicted-vs-actual accuracy from records kept on the device (arithmetic only)."""
     return outcomes.report(payload.get("records"), payload.get("lang") or "en", str(payload.get("currency") or "")[:5])
+
+
+@app.post("/api/twin/report")
+async def twin_report(payload: dict):
+    """Explainable field progress report from the on-device farm twin + the weather it has lived through. Stateless."""
+    out = await twin.report(payload.get("twin"), payload.get("lang") or "en")
+    if "error" in out:
+        raise HTTPException(400, out["error"])
+    return out
 
 
 @app.post("/api/claim/draft")
