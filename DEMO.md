@@ -7,16 +7,19 @@
 - Fill the farmer profile first (state, district, "I own farmland", main crop).
 - Do one full dry run. Keep a typed-question fallback ready in case a voice take fails.
 
-## Script
+## Script (3 minutes, one story: a farmer's day, end to end)
 | Time | Show | Say (short) |
 |---|---|---|
-| 0:00-0:20 | Farmer in a field / phone in hand | "Small farmers cannot easily find prices, weather, schemes or expert help, and most apps need typing in English. Krishi Mitra works by voice in Telugu, Hindi and English." |
-| 0:20-0:55 | Tap **Talk** (voice mode). Ask in Telugu: "వేరుశనగ ఇప్పుడే అమ్మాలా లేక వేచి ఉండాలా?" Watch the **live steps** appear, then the answer is spoken | "Muse Spark Open on Baseten transcribes the speech. The agent decides which tools to call, and you can watch each step happen. It answers out loud, then listens again, hands-free." |
-| 0:55-1:30 | Scroll the answer: price-trend chart, best markets, weather cards, ✓ verified + sources line | "Prices come from Agmarknet, weather from Open-Meteo. Every figure must come from a tool result, so it cannot make up numbers." |
-| 1:30-2:00 | Take or drop a crop photo, add a voice question | "Muse Spark vision looks at the leaf, says what it may be and how sure it is, checks the weather for spraying. No pesticide doses. If unsure it shows the Kisan Call Centre call button." |
-| 2:00-2:20 | Switch to Hindi, ask a question; tap 🔊 Listen | "Same agent in Hindi and English. If the phone has no Telugu voice, the server speaks for it." |
-| 2:20-2:40 | Turn on airplane mode: offline banner, open a saved answer, tap Listen | "Rural networks drop. The app opens offline and saved answers still work." |
-| 2:40-3:00 | Repo page + README | "Built during the hackathon on open-weight Muse Spark Open. Open source on GitHub." |
+| 0:00-0:15 | Phone in a field. First-run notice, tap OK | "Krishi Mitra: an AI agent for small farmers, in their language. Their data stays on their phone." |
+| 0:15-0:50 | **Talk** in Telugu: sell groundnut now or wait? Live steps appear, answer is spoken, price chart, "verified" tick, sources | "Muse Voice transcribes, Muse Spark Open picks the tools, and every figure is checked against tool results. It cannot invent a price." |
+| 0:50-1:25 | Farm Doctor: take a leaf photo. Show the overlay, damage %, confidence, reliability, safe non-chemical steps. Then retake with a blurry photo to show "retake" | "SAM 3.1 finds the damage; the percentage is computed from pixels. A bad photo is refused, not guessed. No pesticide names or doses." |
+| 1:25-1:45 | Tap **Send to an expert**: symptoms, consent ticks, case preview, WhatsApp share | "When it is serious or unsure, the farmer sends one clear case to a human, with the weather and the measurement." |
+| 1:45-2:10 | **Early warning** banner for the crop, then **My field**: report with "basis" under each line | "Crop-specific alerts with preventive actions. Every line of the field report says where it came from." |
+| 2:10-2:30 | **Compare buyers**: two offers, net income, "Unverified" label and the advance warning | "The highest price is not always the best deal. We show net income and never call a buyer verified unless it is in our registry." |
+| 2:30-2:45 | **My results**: mark advice done, enter actual cost, predicted vs actual | "It learns whether advice helped." |
+| 2:45-3:00 | Switch country to Kenya, Kiswahili: maize price card, Indian schemes gone. End on repo and `EVAL_V2.md` | "Global by design. Open weights, open source, and an evaluation we publish, including what it does not prove." |
+
+Optional 15-second beats if time allows: **Second opinion** (Muse Wonder audits an answer), **airplane mode** (saved brief and plan open offline), **Glimmer fallback** (only if you run your own Glimmer server).
 
 ## What to state clearly (judges look for this)
 - New work only: the repository was created on Oct 27-28, 2026; every commit is during the event.
