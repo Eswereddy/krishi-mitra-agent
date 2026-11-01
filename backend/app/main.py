@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 from pathlib import Path
 
 import httpx
@@ -8,13 +9,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, alerts, brief, cases, claim as claimmod, config, ledger, meta_extras, outcomes, twin, warning, buyers, plan as planmod, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
+from . import agent, alerts, brief, cases, claim as claimmod, config, ledger, meta_extras, outcomes, twin, warning, buyers, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 
 app = FastAPI(title="Krishi Mitra Agent")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
+logging.getLogger("httpx").setLevel(logging.WARNING)     # outbound URLs can contain a farmer's place name: keep them out of logs
 app.middleware("http")(ratelimit.middleware)
+app.middleware("http")(security.middleware)
 app.include_router(whatsapp.router)
 app.include_router(meta_extras.router)
 
@@ -43,6 +47,8 @@ async def _read_image(image: UploadFile) -> tuple[bytes, str]:
     data = await image.read(MAX_IMAGE_BYTES + 1)
     if len(data) > MAX_IMAGE_BYTES:
         raise HTTPException(413, "Image too large (max 8MB)")
+    if not security.is_real_image(data):
+        raise HTTPException(415, "That file is not a JPEG, PNG or WebP photo")
     return data, mime
 
 
@@ -50,6 +56,12 @@ def _require_debug() -> None:
     """Debug endpoints are off in production unless DEBUG_ENDPOINTS=1 (they expose upstream error details)."""
     if not config.DEBUG_ENDPOINTS:
         raise HTTPException(404, "Not found")
+
+
+@app.get("/api/status")
+async def status():
+    """Aggregate model-call telemetry (counts, latency, error TYPES) for monitoring. No prompts, answers, keys or farmer data."""
+    return {"models": telemetry.summary(), "note": "In-memory since the last restart; one row per model that has been called."}
 
 
 @app.get("/api/health")

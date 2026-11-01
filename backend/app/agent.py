@@ -2,7 +2,7 @@
 import asyncio
 import json
 
-from . import config, lang as langmod, meta_client, mock, tools, verify
+from . import config, lang as langmod, meta_client, mock, telemetry, tools, verify
 
 SYSTEM = (
     "You are Krishi Mitra, an assistant for small farmers anywhere in the world (India by default; the farmer profile may give another country). "
@@ -93,7 +93,7 @@ async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "a
             if not v["passed"]:
                 answer += verify.warning(v["unverified"], code)
             v["rewrites"] = rewrites
-            return {"answer": answer, "steps": steps, "mock": False, "verification": v}
+            return {"answer": answer, "steps": steps, "mock": False, "verification": v, "served_by": telemetry.served.get()}
         messages.append(msg)
         parsed = []
         for c in calls:
@@ -119,7 +119,7 @@ async def run_agent(user_text: str, use_open_model: bool = False, lang: str = "a
             messages.append({"role": "tool", "tool_call_id": c["id"],
                              "content": json.dumps(result, ensure_ascii=False)})
     return {"answer": GIVE_UP.get(code, GIVE_UP["en"]),
-            "steps": steps, "mock": False,
+            "steps": steps, "mock": False, "served_by": telemetry.served.get(),
             "verification": {"passed": False, "unverified": [], "rewrites": rewrites}}
 
 

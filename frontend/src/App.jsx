@@ -306,7 +306,7 @@ export default function App() {
         throw new Error(d || `Error ${r.status}`);
       }
       const data = await readResult(r, bid);
-      setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", text: data.answer, steps: data.steps || [], verification: data.verification, mock: data.mock } : x)));
+      setMessages((m) => m.map((x) => (x.id === bid ? { id: bid, role: "bot", text: data.answer, steps: data.steps || [], verification: data.verification, mock: data.mock, servedBy: data.served_by } : x)));
       if (!noSpeak && (speakReply || autoSpeakRef.current)) speakMessage(bid, data.answer);
       return { id: bid, answer: data.answer };
     } catch (e) {
@@ -680,6 +680,7 @@ export default function App() {
                           </p>
                         )}
                         <SourcesLine steps={m.steps} t={t} />
+                        {m.servedBy && <p className="hint">🧠 {m.servedBy}</p>}
                         <StepChips steps={m.steps} t={t} />
                         <div className="actions">
                           <button className={"pill" + (speakingId === m.id ? " live" : "")} onClick={() => toggleSpeak(m)}>

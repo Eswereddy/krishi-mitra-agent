@@ -46,6 +46,7 @@ jobs:
           python tests/test_warning.py
           python tests/test_buyers.py
           python tests/test_eval_v2.py
+          python tests/test_security.py
           python tests/test_eval.py
           python tests/test_khata.py
 

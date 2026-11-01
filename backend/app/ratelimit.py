@@ -25,6 +25,10 @@ LIMITS = {
     "/api/twin": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/warnings": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/buyers": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
+    "/api/claim": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
+    "/api/outcomes": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
+    "/api/ledger/report": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
+    "/api/expert": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/alerts": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
 }
 _hits: dict[tuple[str, str], deque] = defaultdict(deque)

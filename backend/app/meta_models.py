@@ -15,6 +15,10 @@ import os
 import httpx
 from PIL import Image, ImageChops, ImageDraw
 
+from . import telemetry
+
+Image.MAX_IMAGE_PIXELS = 40_000_000     # decompression-bomb guard: larger images raise instead of eating memory
+
 BASE = os.getenv("META_BASE_URL", "https://api.meta.ai/v1").rstrip("/")
 ASR_MODEL = "muse-voice-transcribe-1.0"
 SAM_MODEL = "sam-3.1"
@@ -60,6 +64,7 @@ def _auth() -> dict:
 
 # ---------------------------------------------------------------- Muse Voice Transcribe
 
+@telemetry.timed("muse-voice-transcribe")
 async def asr_transcribe(wav: bytes, languages: tuple[str, ...] = ("Telugu", "Hindi", "English")) -> str:
     """Transcribe a 16 kHz mono WAV recording. Returns "" when nothing was heard."""
     req = {"model": ASR_MODEL, "audioEncoding": "PCM_16KHZ", "mode": "PUSH_TO_TALK", "languageBias": list(languages)}
@@ -85,6 +90,7 @@ def _output_text(body: dict) -> str:
     return "".join(parts).strip()
 
 
+@telemetry.timed("muse-wonder")
 async def wonder(instructions: str, text: str, effort: str = "medium", max_tokens: int = 1500) -> str:
     """One call to Muse Wonder (reasoning model) through the Responses API. Returns its text."""
     body = {"model": WONDER_MODEL, "instructions": instructions, "input": text,
@@ -97,6 +103,7 @@ async def wonder(instructions: str, text: str, effort: str = "medium", max_token
 
 # ---------------------------------------------------------------- Muse Image
 
+@telemetry.timed("muse-image")
 async def generate_image(prompt: str, size: str = "1024x1024") -> bytes:
     body = {"model": IMAGE_MODEL, "prompt": prompt, "n": 1, "size": size, "response_format": "b64_json",
             "output_format": "png"}
@@ -111,6 +118,7 @@ async def generate_image(prompt: str, size: str = "1024x1024") -> bytes:
 
 # ---------------------------------------------------------------- SAM 3.1
 
+@telemetry.timed("sam-3.1")
 async def segment(jpeg: bytes, prompt: str) -> str:
     """Ask SAM 3.1 for every instance of a short noun phrase; returns its raw special-token output text."""
     body = {"model": SAM_MODEL, "stream": True, "metadata": {"include_confidence": "true"},
