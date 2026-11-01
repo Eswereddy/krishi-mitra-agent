@@ -29,6 +29,7 @@ LIMITS = {
     "/api/outcomes": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/ledger/report": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/expert": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
+    "/api/irrigation": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/alerts": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
 }
 _hits: dict[tuple[str, str], deque] = defaultdict(deque)
