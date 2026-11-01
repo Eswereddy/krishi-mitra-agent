@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import agent, alerts, brief, claim as claimmod, config, ledger, meta_extras, plan as planmod, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
+from . import agent, alerts, brief, cases, claim as claimmod, config, ledger, meta_extras, plan as planmod, lang as langmod, meta_client, ratelimit, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -153,6 +153,20 @@ async def claim_draft(payload: dict):
     """Crop-loss kit: 72-hour deadline, checklist, helplines and a ready message (PMFBY)."""
     return claimmod.build_claim(payload.get("profile") if isinstance(payload.get("profile"), dict) else {},
                                 payload.get("loss") if isinstance(payload.get("loss"), dict) else {}, payload.get("lang") or "en")
+
+
+@app.post("/api/case/build")
+async def case_build(payload: dict):
+    """Structured expert case from scan + symptoms + weather + profile. Needs the farmer's consent; nothing is stored here."""
+    cons = payload.get("consent")
+    if not isinstance(cons, dict) or not cons.get("share_details"):
+        raise HTTPException(400, "consent.share_details is required to build a case")
+    return await cases.build_case(payload, payload.get("lang") or "en")
+
+
+@app.get("/api/expert/contacts")
+async def expert_contacts(lang: str = "en", country: str = "", text: str = ""):
+    return cases.contacts(lang, country, text[:3000])
 
 
 @app.post("/api/alerts/check")

@@ -66,8 +66,14 @@ export async function leafScan(file, unavailable, lang = "en") {
   form.append("image", await shrink(file), "leaf.jpg");
   const r = await fetch("/api/leaf-scan", { method: "POST", body: form });
   if (!r.ok) await fail(r, unavailable);
-  return r.json();
+  const data = await r.json();
+  lastScan = { file, data, at: Date.now() };
+  return data;
 }
+
+// The most recent leaf scan (photo stays on the device) so the expert case can use it, if the farmer agrees.
+let lastScan = null;
+export const getLastScan = () => lastScan;
 
 export async function secondOpinion(answer, steps, lang, unavailable) {
   const slim = (steps || []).filter((x) => x?.result && !x.result.error).map((x) => ({ tool: x.tool, result: x.result }));
@@ -94,7 +100,9 @@ function Sheet({ title, onClose, close, children }) {
   );
 }
 
-export function ExtraSheet({ extra, lang, onClose, onRetry }) {
+const expertBtn = { en: "Send to an expert", te: "నిపుణుడికి పంపండి", hi: "विशेषज्ञ को भेजें" };
+
+export function ExtraSheet({ extra, lang, onClose, onRetry, onExpert }) {
   const t = ex(lang);
   if (!extra) return null;
   const { kind, loading, data, error } = extra;
@@ -141,6 +149,7 @@ export function ExtraSheet({ extra, lang, onClose, onRetry }) {
           {data.photo && <p className="hint">📷 {t.photoQ}: {t.sharp} {data.photo.sharpness} · {t.light} {data.photo.brightness}</p>}
           {data.reason_texts?.length > 0 && <><b>{t.why}</b><ul className="plain">{data.reason_texts.map((r) => <li key={r.code}>{r.text}</li>)}</ul></>}
           {data.escalation?.needed && <p className="warn-note">☎️ {t.escalate}{data.escalation_texts?.length ? `: ${data.escalation_texts.join(" ")}` : ""}</p>}
+          {onExpert && data.leaf_found !== undefined && <button className="primary" onClick={onExpert}>🧑‍🌾 {expertBtn[lang] || expertBtn.en}</button>}
           {data.steps?.length > 0 && <><b>{t.safe}</b><ul className="plain">{data.steps.map((x) => <li key={x.code}>{x.text}</li>)}</ul></>}
           {!data.reliability && data.needs_expert && <p className="warn-note">☎️ {t.expert}</p>}
           <p className="hint">{t.note}</p>

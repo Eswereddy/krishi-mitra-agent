@@ -166,3 +166,12 @@ The WhatsApp channel (the app farmers already use) works worldwide: `/country KE
 - Day 2 (Oct 28): agent loop with tools, mock mode, Baseten provider switch, answer verification layer, Docker deploy.
 - Day 3 (Oct 29): photo-to-action-plan through the agent, multi-turn, best markets, revenue calculator, scheme documents, WhatsApp share, quick-ask buttons, transcription guard, image shrinking. Also: Telugu/English/Hindi, typed input, WebM→WAV audio fix for Baseten, weather + expert-help + live mandi tools, farmer profile, listen button.
 - Day 4 (Oct 30): sell_plan, compare_crops, price alerts, weather risk warnings, rate-limit and upload hardening.
+
+## Expert escalation (human in the loop)
+
+When the agent or the SAM leaf scan is unsure, or damage is severe, the farmer can send **one structured case** to a human expert: symptom checklist, scan evidence (severity, confidence, reliability), live weather and disease-weather risk, crop day and stage, and a note, written in Telugu, Hindi or English.
+
+- `POST /api/case/build` needs `consent.share_details`; the place is included only with `share_location`; no name or phone is ever sent. Urgency (high/medium/low) is computed by rules, not by a model. Nothing is stored on the server.
+- `GET /api/expert/contacts` returns experts from the optional `EXPERT_CONTACTS` env (JSON list of `{name, type: whatsapp|email|phone, value, languages}`); otherwise the local extension office / helpline fallback.
+- The photo stays on the phone and is shared via the Web Share API only if the farmer ticks it. Case history with status and the expert's reply note is kept on the device.
+- Tests: `python tests/test_cases.py`.

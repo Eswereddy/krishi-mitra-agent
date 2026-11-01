@@ -267,3 +267,8 @@ html[data-size="lg"] .welcome > p, html[data-size="lg"] .voice-answer, html[data
 .top-actions { min-width: 0; }
 .sheet ul.plain { margin: 6px 0 10px; padding-left: 18px; font-size: 14px; line-height: 1.45; }
 .row-price b.neg { color: var(--red); } .row-price b.pos { color: var(--green); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips label.chip { display: inline-flex; align-items: center; gap: 6px; width: auto; flex: 0 0 auto; padding: 8px 12px; }
+.chips label.chip input, label.check input { width: auto; margin: 0; }
+label.check { display: flex; align-items: center; gap: 10px; }
