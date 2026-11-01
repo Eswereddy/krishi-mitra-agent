@@ -187,3 +187,7 @@ One living record of the field on the phone: place, area, soil, crop, variety, s
 ## Village early warning
 
 `POST /api/warnings/check` turns the live forecast for the farmer's place into **crop-specific** alerts: heat, cold, heavy rain and strong wind (indicative per-crop thresholds in `data/crop_thresholds.json`, stricter in flowering/grain-filling, and rain limit drops near harvest) plus fungal-disease *weather* conditions (humid and warm hours; no disease is predicted). Each alert has its value, threshold, a watch/warning level and non-chemical preventive actions in te/hi/en; it always ends with "no spraying without advice". The app checks on the phone every 3 hours, shows a banner, keeps the last result for offline, and can send a browser notification if the farmer allows it. Tests: `python tests/test_warning.py`.
+
+## Buyer offer comparison
+
+The farmer enters the offers received (price, commission, transport, other costs, payment delay, advance asked). `POST /api/buyers/compare` computes the **net income** of each, ranks them, and flags risky terms (advance asked, payment after more than 7 days, price 25% or more above the farmer's reference price). A buyer is shown as **verified only** if the offer names an id in `backend/app/data/buyers.json` marked `verified: true` with who verified it and when; the shipped registry is empty, so nobody is verified by default, and name-only matches never count. Offers stay on the phone. Tests: `python tests/test_buyers.py`.
