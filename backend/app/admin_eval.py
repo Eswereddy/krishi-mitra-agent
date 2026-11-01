@@ -77,3 +77,20 @@ async def start(background: BackgroundTasks, token: str = Query("")):
 def status(token: str = Query("")):
     _authorised(token)
     return STATE
+
+
+@router.get("/api/admin/live-eval-ui")
+def ui(token: str = Query("")):
+    """Tiny phone-friendly page: a Start button and the live status/report (a browser address bar can only GET)."""
+    _authorised(token)
+    import json as _json
+    from fastapi.responses import HTMLResponse
+    page = """<!doctype html><meta name=viewport content="width=device-width,initial-scale=1"><title>Live eval</title>
+<body style="font-family:system-ui;margin:16px"><h3>Live eval</h3><button id=b style="font-size:18px;padding:10px 16px">Start run</button>
+<p id=s>loading…</p><pre id=r style="white-space:pre-wrap;font-size:12px"></pre>
+<script>const T=%s,U='/api/admin/live-eval?token='+encodeURIComponent(T);
+async function poll(){try{const d=await (await fetch(U)).json();
+s.textContent=d.status+(d.total?` (${d.done}/${d.total})`:'')+(d.error?' - '+d.error:'');r.textContent=d.report||'';}catch(e){s.textContent='error '+e}}
+b.onclick=async()=>{const x=await fetch(U,{method:'POST'});if(!x.ok){s.textContent='start failed: '+x.status+' '+await x.text()}poll()};
+poll();setInterval(poll,4000)</script>""" % _json.dumps(token).replace("<", "\\u003c")
+    return HTMLResponse(page)

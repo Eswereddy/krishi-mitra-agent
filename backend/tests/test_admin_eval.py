@@ -27,3 +27,11 @@ sys.modules["run_eval"] = None  # makes `import run_eval` raise
 asyncio.run(admin_eval._run())
 assert admin_eval.STATE["status"] == "failed" and "Error" in admin_eval.STATE["error"] and admin_eval.STATE["report"] is None
 print("test_admin_eval OK")
+os.environ["ADMIN_TOKEN"] = "secret"
+assert c.get("/api/admin/live-eval-ui?token=nope").status_code == 404
+page = c.get("/api/admin/live-eval-ui?token=secret")
+assert page.status_code == 200 and "Start run" in page.text
+tok = '</script><script>alert(1)</script>'
+os.environ["ADMIN_TOKEN"] = tok
+assert "</script><script>alert" not in c.get("/api/admin/live-eval-ui", params={"token": tok}).text, "token must not break out of the script"
+print("ui OK")
