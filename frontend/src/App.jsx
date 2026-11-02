@@ -11,7 +11,8 @@ import { WarningsSheet, useWarnings, wn } from "./warnings";
 import { BuyersSheet, bx } from "./buyers";
 import { IrrigationSheet, ix } from "./irrigation";
 import { ClaimFileSheet } from "./claimfile";
-import { ActionCards, MemorySheet, applyAction, au, getMemoryPayload } from "./agentui";
+import { ActionCards, MemorySheet, applyAction, au, getMemoryPayload, rememberTurn } from "./agentui";
+import { ExplainSheet, RotationSheet, GraphSheet, CoachSheet, ResearchSheet, FieldReportSheet, FollowUps, kn } from "./knowledge";
 import { ConsentSheet, consentGiven } from "./consent";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
@@ -81,6 +82,7 @@ export default function App() {
   const [dragging, setDragging] = useState(false);
   const [toast, setToast] = useState("");
   const [outSeed, setOutSeed] = useState("");
+  const [explainMsg, setExplainMsg] = useState(null);
   const [showConsent, setShowConsent] = useState(() => !consentGiven());
   const [warnDismissed, setWarnDismissed] = useState(false);
   const [panel, setPanel] = useState(null); // "khata" | "claim"
@@ -274,6 +276,7 @@ export default function App() {
     }
     busyRef.current = true;
     setBusy(true);
+    rememberTurn(q);
     stopSpeaking();
     setSpeakingId(null);
     const bid = uid();
@@ -634,6 +637,7 @@ export default function App() {
               <span className="talk-ico">📅</span>
               <span><b>{ex(t.code).week}</b><small>{ex(t.code).weekSub}</small></span>
             </button>
+            <FollowUps lang={t.code} toast={setToast} />
             <h4>{moreTools[t.code] || moreTools.en}</h4>
             <div className="tools-grid">
               <button className="tool-tile" onClick={() => setPanel("khata")}><span className="talk-ico">📒</span><span><b>{kx(t.code).khata}</b><small>{kx(t.code).khataSub}</small></span></button>
@@ -645,6 +649,11 @@ export default function App() {
               <button className="tool-tile" onClick={() => setPanel("twin")}><span className="talk-ico">🌾</span><span><b>{twx(t.code).title}</b><small>{twx(t.code).sub}</small></span></button>
               <button className="tool-tile" onClick={() => { setOutSeed(""); setPanel("outcomes"); }}><span className="talk-ico">📈</span><span><b>{ox(t.code).title}</b><small>{ox(t.code).sub}</small></span></button>
               <button className="tool-tile" onClick={() => setPanel("claim")}><span className="talk-ico">🌧️</span><span><b>{kx(t.code).claim}</b><small>{kx(t.code).claimSub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("rotation")}><span className="talk-ico">🔄</span><span><b>{kn(t.code).rot}</b><small>{kn(t.code).rotSub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("graph")}><span className="talk-ico">🕸️</span><span><b>{kn(t.code).kg}</b><small>{kn(t.code).kgSub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("coach")}><span className="talk-ico">🎓</span><span><b>{kn(t.code).coach}</b><small>{kn(t.code).coachSub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("research")}><span className="talk-ico">📚</span><span><b>{kn(t.code).res}</b><small>{kn(t.code).resSub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("fieldreport")}><span className="talk-ico">📋</span><span><b>{kn(t.code).fr}</b><small>{kn(t.code).frSub}</small></span></button>
             </div>
             {installEvt && <button className="pill" onClick={installApp}>{t.install}</button>}
             <h4>{t.tryAsk}</h4>
@@ -703,6 +712,7 @@ export default function App() {
                           <button className="pill" onClick={() => { setOutSeed(m.text.slice(0, 300)); setPanel("outcomes"); }}>📈 {ox(t.code).add}</button>
                           <button className="pill" onClick={() => makeCard(m)}>🖼️ {ex(t.code).cardBtn}</button>
                           {m.steps?.some((x) => x.result && !x.result.error) && <button className="pill" onClick={() => audit(m)}>🔍 {ex(t.code).audit}</button>}
+                          {m.steps && <button className="pill" onClick={() => setExplainMsg(m)}>🔎 {kn(t.code).why}</button>}
                         </div>
                       </>
                     )}
@@ -791,6 +801,12 @@ export default function App() {
       {panel === "buyers" && <BuyersSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "water" && <IrrigationSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "memory" && <MemorySheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
+      {panel === "rotation" && <RotationSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
+      {panel === "graph" && <GraphSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
+      {panel === "coach" && <CoachSheet lang={t.code} profile={profile} seed={[...messages].reverse().find((x) => x.role === "user")?.text || ""} onClose={() => setPanel(null)} />}
+      {panel === "research" && <ResearchSheet lang={t.code} onClose={() => setPanel(null)} toast={setToast} />}
+      {panel === "fieldreport" && <FieldReportSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
+      {explainMsg && <ExplainSheet lang={t.code} answer={explainMsg.text} steps={explainMsg.steps} onClose={() => setExplainMsg(null)} />}
       {panel === "twin" && <TwinSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "claimfile" && <ClaimFileSheet lang={t.code} profile={profile} onClose={() => setPanel("claim")} />}
       {panel === "claim" && <ClaimSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} onFile={() => setPanel("claimfile")} />}

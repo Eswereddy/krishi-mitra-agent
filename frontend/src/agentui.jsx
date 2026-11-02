@@ -15,10 +15,20 @@ export const au = (lang) => S[lang] || S.en;
 const load = (k, fb) => { try { const v = localStorage.getItem(k); return v == null ? fb : JSON.parse(v); } catch { return fb; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } };
 
+// Farm voice memory: while memory is ON, the last few questions and saved decisions go along as short quoted notes (never instructions).
+export function rememberTurn(question) {
+  if (!load("km-memory-on", false)) return;
+  const q = String(question || "").trim().slice(0, 90);
+  if (q) save("km-convo", [...load("km-convo", []), { date: new Date().toISOString().slice(0, 10), q }].slice(-10));
+}
+
 export function getMemoryPayload() {
   if (!load("km-memory-on", false)) return {};
-  const facts = load("km-memory", []);
-  return facts.length ? { memory_consent: true, memory: facts.slice(0, 12) } : {};
+  const facts = load("km-memory", []).slice(0, 6);
+  const convo = load("km-convo", []).slice(-3).map((c) => `Asked on ${c.date}: ${c.q}`);
+  const decisions = load("km-outcomes", []).slice(0, 3).map((o) => `Saved on ${o.date}: ${String(o.text || "").slice(0, 70)} (followed: ${o.done ? "yes" : "not yet"})${o.followup_note ? " - " + String(o.followup_note).slice(0, 40) : ""}`);
+  const all = [...facts, ...decisions, ...convo].slice(0, 12);
+  return all.length ? { memory_consent: true, memory: all } : {};
 }
 
 // Runs an accepted proposal on the device. Returns a short status key.
