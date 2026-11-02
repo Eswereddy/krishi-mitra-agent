@@ -16,26 +16,26 @@ _Scope: Our verification layer on hand-written (answer, tool result) pairs. Prov
 _Scope: For each of the 28 evaluation questions: is at least one expected tool among the tools offered to the model? Keywords were written while looking at these same questions, so this is IN-SAMPLE recall and will be lower on new questions; unclear questions get all tools. Does not measure which tool the model picks._
 
 - PASS: expected tool offered: 28/28
-- questions narrowed below all 28 tools: 28/28
-- average prompt size for tool specs: 43% of sending everything
+- questions narrowed below all 30 tools: 28/28
+- average prompt size for tool specs: 41% of sending everything
 
 ## Tool router (held-out questions)
 
 _Scope: 12 questions written after the keywords and never used to tune them. A better estimate of recall on new questions, but still a small hand-written set._
 
 - PASS: expected tool offered: 12/12
-- ok: 'My tomato leaves have brown spots' -> 10 tools offered
+- ok: 'My tomato leaves have brown spots' -> 12 tools offered
 - ok: 'What is the rate for cotton in Adoni?' -> 15 tools offered
 - ok: 'Is my farm too dry this month compared to other years?' -> 9 tools offered
-- ok: 'How much urea should I buy? What does a kg of nitrogen cost me?' -> 10 tools offered
+- ok: 'How much urea should I buy? What does a kg of nitrogen cost me?' -> 12 tools offered
 - ok: 'Can I get a bank loan at 2% interest?' -> 7 tools offered
-- ok: 'When to sow sorghum in Nakuru?' -> 10 tools offered
+- ok: 'When to sow sorghum in Nakuru?' -> 12 tools offered
 - ok: 'Bei ya maharage ni ngapi?' -> 15 tools offered
 - ok: 'Cuanta agua necesita mi maiz?' -> 9 tools offered
 - ok: 'Is it safe to keep my groundnut at 12% moisture?' -> 15 tools offered
 - ok: 'Heat stress for my buffalo tomorrow?' -> 9 tools offered
-- ok: 'How many days until my cotton is ready?' -> 28 tools offered
-- ok: 'Tell me something useful' -> 28 tools offered
+- ok: 'How many days until my cotton is ready?' -> 30 tools offered
+- ok: 'Tell me something useful' -> 30 tools offered
 
 ## Unsafe-advice scan of built-in advice text
 
@@ -87,12 +87,12 @@ _Scope: Injected failures in the model call, a tool and the weather/archive serv
 _Scope: Time inside our endpoints with the network STUBBED, so this is our code's cost only. Real latency is dominated by the model and weather calls and is measured only in the live section._
 
 - PASS: all endpoints answered 200 during timing
-- /api/case/build: median 3.0 ms, p95 3.6 ms (25 runs)
-- /api/outcomes/report: median 3.3 ms, p95 4.3 ms (25 runs)
-- /api/twin/report: median 4.8 ms, p95 5.2 ms (25 runs)
-- /api/warnings/check: median 4.6 ms, p95 5.6 ms (25 runs)
-- /api/buyers/compare: median 3.1 ms, p95 3.9 ms (25 runs)
-- /api/claim/draft: median 3.4 ms, p95 4.2 ms (25 runs)
+- /api/case/build: median 3.2 ms, p95 3.6 ms (25 runs)
+- /api/outcomes/report: median 3.0 ms, p95 3.6 ms (25 runs)
+- /api/twin/report: median 3.9 ms, p95 5.1 ms (25 runs)
+- /api/warnings/check: median 4.8 ms, p95 5.6 ms (25 runs)
+- /api/buyers/compare: median 2.9 ms, p95 3.2 ms (25 runs)
+- /api/claim/draft: median 2.9 ms, p95 3.6 ms (25 runs)
 
 ## Not measured here
 
@@ -101,7 +101,7 @@ _Scope: Time inside our endpoints with the network STUBBED, so this is our code'
 
 ## Live agent run
 
-Run on 2026-11-01 on the deployed Render service (free plan, Oregon) with the real model `meta-models/muse-spark-open-1026`, mock mode off, via the ADMIN_TOKEN-gated `/api/admin/live-eval` endpoint. Numbers below are pasted from that run's output.
+Run on 2026-11-01 on the deployed Render service **with the then 28 tools (the two tools added on 2026-11-02, `rotation_compare` and `crop_knowledge`, were not offered in this run; re-run before quoting it for the 30-tool build)** (free plan, Oregon) with the real model `meta-models/muse-spark-open-1026`, mock mode off, via the ADMIN_TOKEN-gated `/api/admin/live-eval` endpoint. Numbers below are pasted from that run's output.
 
 - Right tool called (tool selection): **28/28**
 - Every figure verified, no India-only terms abroad: **28/28**

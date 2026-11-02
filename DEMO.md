@@ -62,3 +62,11 @@ Ask "A trader offers me a loan at 3% a month for 12 months, flat. Is that fair?"
 - **This week:** tap 📅 This week. Show the 🔴 Do first items and the 7-day strip; say it decides and ranks the actions itself and every figure is verified.
 - **Khata:** tap 📒, say "sold 8 quintals groundnut at 7000", confirm, then "urea 1500"; tap Season report. Say the records stay on the phone and the model only extracts, code does the maths.
 - **Crop loss:** tap 🌧️, choose Hailstorm, tap Get deadline: the 72-hour countdown, checklist, helpline and message. Then switch the cause to Drought to show it does not invent a deadline.
+
+## Knowledge beat (30 seconds, shows trust and depth)
+1. Ask any question, then tap **Why this answer?**: show the "SAMPLE data" / "indicative" labels and where each number came from.
+2. Open **Crop rotation**: last crop groundnut, soil black: show the ranked next crops and tap one to show its reasons. Say it is rule-based, not a yield forecast.
+3. Open **Research assistant**: upload an ICAR PDF you prepared beforehand, ask a question, point at the [1] citation and the passage. Then ask something the document does not cover and show that it says "not found".
+4. Open **Field report**: speak a short note about spots on leaves, build the report, show urgency and the expert questions.
+Do NOT claim the tables are expert-reviewed, and do not show the research assistant without a real document you uploaded yourself.
+

@@ -81,3 +81,7 @@ More languages, village-level weather from the farmer's location, price alerts o
 ## Measured results (live, 2026-11-01)
 
 On the deployed Render service with Muse Spark Open, 28 fixed questions across India, Kenya and Brazil in 6 languages: right tool called 28/28, every figure verified against tool results 28/28, median latency 7.4s, p95 12.9s (measured server-side). These are our own questions, not a held-out set, and say nothing about answer wording or real leaf-photo accuracy. Full table and caveats: `EVAL_V2.md`.
+
+## Also built (Nov 2)
+Why-this-answer evidence cards, a crop rotation simulator, a knowledge graph the agent can query, a learning coach with quizzes that adapt to the farmer, a research assistant that answers only from documents the farmer uploads (with citation checks), field reports from voice notes and photos, and follow-ups on saved decisions. All are rule-based or document-grounded and labelled as not reviewed by an agronomist; the research assistant ships with no documents. The live evaluation above was run before two of these added tools (28 tools then, 30 now) and should be re-run before quoting it for the final build.
+
