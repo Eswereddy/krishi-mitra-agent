@@ -1,0 +1,236 @@
+{
+  "_note": "General agronomic guidance for crop rotation, written for this project and NOT yet reviewed by an agronomist. It is rule data for comparing scenarios, not a yield forecast. A soil test and local KVK advice override it. Crops that share a pest or disease are read from problems.json.",
+  "reviewed": false,
+  "soils": [
+    "sandy",
+    "loam",
+    "clay",
+    "black",
+    "red",
+    "alluvial",
+    "other"
+  ],
+  "crops": {
+    "paddy": {
+      "name": "Paddy (rice)",
+      "aliases": [
+        "rice",
+        "vari",
+        "dhan",
+        "paddy"
+      ],
+      "family": "cereal",
+      "n_role": "heavy",
+      "te": "వరి",
+      "hi": "धान"
+    },
+    "maize": {
+      "name": "Maize",
+      "aliases": [
+        "corn",
+        "mokkajonna",
+        "makka",
+        "maize"
+      ],
+      "family": "cereal",
+      "n_role": "heavy",
+      "te": "మొక్కజొన్న",
+      "hi": "मक्का"
+    },
+    "jowar": {
+      "name": "Jowar (sorghum)",
+      "aliases": [
+        "sorghum",
+        "jonna",
+        "jowar"
+      ],
+      "family": "cereal",
+      "n_role": "heavy",
+      "te": "జొన్న",
+      "hi": "ज्वार"
+    },
+    "groundnut": {
+      "name": "Groundnut",
+      "aliases": [
+        "peanut",
+        "verusenaga",
+        "groundnut"
+      ],
+      "family": "legume",
+      "n_role": "fixes",
+      "te": "వేరుశనగ",
+      "hi": "मूंगफली"
+    },
+    "redgram": {
+      "name": "Red gram (tur)",
+      "aliases": [
+        "tur",
+        "arhar",
+        "kandi",
+        "pigeonpea",
+        "redgram"
+      ],
+      "family": "legume",
+      "n_role": "fixes",
+      "te": "కందులు",
+      "hi": "अरहर (तूर)"
+    },
+    "bengalgram": {
+      "name": "Bengal gram (chana)",
+      "aliases": [
+        "chana",
+        "chickpea",
+        "senaga",
+        "bengalgram"
+      ],
+      "family": "legume",
+      "n_role": "fixes",
+      "te": "శనగలు",
+      "hi": "चना"
+    },
+    "blackgram": {
+      "name": "Black gram (urad)",
+      "aliases": [
+        "urad",
+        "minumulu",
+        "blackgram"
+      ],
+      "family": "legume",
+      "n_role": "fixes",
+      "te": "మినుములు",
+      "hi": "उड़द"
+    },
+    "cotton": {
+      "name": "Cotton",
+      "aliases": [
+        "patti",
+        "kapas",
+        "cotton"
+      ],
+      "family": "cotton",
+      "n_role": "heavy",
+      "te": "పత్తి",
+      "hi": "कपास"
+    },
+    "chilli": {
+      "name": "Chilli",
+      "aliases": [
+        "mirchi",
+        "mirapa",
+        "chilli"
+      ],
+      "family": "solanaceae",
+      "n_role": "heavy",
+      "te": "మిరప",
+      "hi": "मिर्च"
+    },
+    "tomato": {
+      "name": "Tomato",
+      "aliases": [
+        "tamata",
+        "tomato"
+      ],
+      "family": "solanaceae",
+      "n_role": "heavy",
+      "te": "టమాటా",
+      "hi": "टमाटर"
+    }
+  },
+  "soil_fit": {
+    "paddy": {
+      "suits": [
+        "clay",
+        "alluvial"
+      ],
+      "caution": [
+        "sandy"
+      ]
+    },
+    "maize": {
+      "suits": [
+        "loam",
+        "alluvial",
+        "red"
+      ],
+      "caution": [
+        "clay"
+      ]
+    },
+    "jowar": {
+      "suits": [
+        "black",
+        "loam",
+        "red"
+      ],
+      "caution": []
+    },
+    "groundnut": {
+      "suits": [
+        "sandy",
+        "red",
+        "loam"
+      ],
+      "caution": [
+        "clay",
+        "black"
+      ]
+    },
+    "redgram": {
+      "suits": [
+        "black",
+        "red",
+        "loam"
+      ],
+      "caution": []
+    },
+    "bengalgram": {
+      "suits": [
+        "black",
+        "loam"
+      ],
+      "caution": [
+        "sandy"
+      ]
+    },
+    "blackgram": {
+      "suits": [
+        "loam",
+        "black",
+        "red"
+      ],
+      "caution": [
+        "sandy"
+      ]
+    },
+    "cotton": {
+      "suits": [
+        "black",
+        "alluvial",
+        "loam"
+      ],
+      "caution": [
+        "sandy"
+      ]
+    },
+    "chilli": {
+      "suits": [
+        "loam",
+        "red",
+        "black"
+      ],
+      "caution": [
+        "clay"
+      ]
+    },
+    "tomato": {
+      "suits": [
+        "loam",
+        "red"
+      ],
+      "caution": [
+        "clay"
+      ]
+    }
+  },
+  "soil_note": "Broad textbook tendencies (drainage and water holding). Not a recommendation for a particular field."
+}

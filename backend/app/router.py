@@ -1,4 +1,4 @@
-"""Tool router: send the model only the tools that can matter for THIS question, instead of all 28 on every call.
+"""Tool router: send the model only the tools that can matter for THIS question, instead of all of them (30) on every call.
 That cuts prompt size and latency. Safety rules: a few general tools are always offered; when no topic matches (a short follow-up,
 an unusual language, anything unclear) ALL tools are offered, so routing can only narrow, never block, a question it does not
 understand. Keywords are a plain list per topic (English, Telugu, Hindi plus Swahili, Spanish, Portuguese hints). Router recall
@@ -15,8 +15,8 @@ TOPICS = {
     "weather_water": (("get_weather", "spray_window", "irrigation_advice", "water_plan", "season_check", "livestock_heat", "disease_risk"),
                       r"weather|rain|forecast|water|irrigat|spray|dry|drought|heat|hot\b|humid|season|wind|cow|cattle|buffalo|goat|poultry|livestock|"
                       r"मौसम|बारिश|पानी|सिंचाई|गर्मी|छिड़काव|పశు|వర్ష|వాతావరణ|నీరు|తడి|వేడి|పిచికారీ|mvua|maji|lluvia|agua|riego|chuva|água|clima"),
-    "crop_care": (("lookup_problem", "disease_risk", "crop_guide", "planting_window", "spray_window", "storage_check", "compare_inputs", "get_weather"),
-                  r"disease|pest|leaf|leaves|spot|yellow|wilt|insect|worm|mould|mold|fung|plant|sow|seed|grow|stage|fertili[sz]|urea|dap|manure|harvest|crop|"
+    "crop_care": (("lookup_problem", "disease_risk", "crop_guide", "planting_window", "spray_window", "storage_check", "compare_inputs", "get_weather", "rotation_compare", "crop_knowledge"),
+                  r"rotation|rotate|next crop|after (the )?(harvest|crop)|what to grow|which crop|soil|disease|pest|leaf|leaves|spot|yellow|wilt|insect|worm|mould|mold|fung|plant|sow|seed|grow|stage|fertili[sz]|urea|dap|manure|harvest|crop|"
                   r"पत्त|कीट|रोग|बुवाई|खाद|फसल|कटाई|ఆకు|మచ్చ|తెగులు|పురుగు|విత్త|ఎరువు|పంట|కోత|ugonjwa|mbegu|plaga|plantar|siembra|praga|doen|plantio"),
     "money": (("check_schemes", "kcc_interest", "loan_compare", "calculate_revenue", "compare_inputs"),
               r"scheme|loan|kcc|credit|interest|insurance|subsid|pm.?kisan|pmfby|bank|emi|borrow|lend|"

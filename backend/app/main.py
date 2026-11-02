@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import admin_eval, agent, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
+from . import admin_eval, agent, explain as explainmod, fieldreport, kg, lessons, memory as memmod2, research, rotation, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -174,6 +174,71 @@ async def twin_report(payload: dict):
     if "error" in out:
         raise HTTPException(400, out["error"])
     return out
+
+
+# ---------------------------------------------------------------- explainability, rotation, knowledge graph, lessons, research, field report
+@app.post("/api/explain")
+async def explain_answer(payload: dict):
+    """Why this answer: evidence per tool, figure trace, re-run verification. Pure code over the answer and tool results the phone already holds."""
+    return explainmod.build(str(payload.get("answer") or "")[:6000], payload.get("steps") if isinstance(payload.get("steps"), list) else [], payload.get("lang") or "en")
+
+
+@app.post("/api/rotation/simulate")
+def rotation_simulate(payload: dict):
+    return rotation.simulate(payload, payload.get("lang") or "en")
+
+
+@app.get("/api/kg/node")
+def kg_node(node: str = "", q: str = "", lang: str = "en"):
+    nid = node if node in kg.NODES else kg.find(q or node)
+    if not nid:
+        raise HTTPException(404, "Nothing found for that")
+    return kg.neighbors(nid, lang)
+
+
+@app.get("/api/kg/crops")
+def kg_crops(lang: str = "en"):
+    return {"crops": [{"id": n["id"], "display": (n.get("te") if lang == "te" else n.get("hi") if lang == "hi" else None) or n["label"]} for n in kg.NODES.values() if n["kind"] == "crop"],
+            "nodes": len(kg.NODES), "edges": len(kg.EDGES)}
+
+
+@app.post("/api/lessons/build")
+def lessons_build(payload: dict):
+    out = lessons.build(payload, payload.get("lang") or "en")
+    if "error" in out:
+        raise HTTPException(404, out["error"])
+    return out
+
+
+@app.post("/api/research/ingest")
+async def research_ingest(document: UploadFile = File(...)):
+    """Split an uploaded PDF/text into passages for the phone to keep. Nothing is stored on the server."""
+    data = await document.read(research.MAX_UPLOAD + 1)
+    out = await asyncio.to_thread(research.ingest, data, document.filename or "document")
+    if "error" in out:
+        raise HTTPException(422, out["error"])
+    return out
+
+
+@app.post("/api/research/ask")
+async def research_ask(payload: dict):
+    q = str(payload.get("question") or "").strip()[:400]
+    if not q:
+        raise HTTPException(400, "Empty question")
+    return await research.ask(q, payload.get("chunks"), payload.get("lang") or "en")
+
+
+@app.post("/api/fieldreport/build")
+async def fieldreport_build(payload: dict):
+    out = await fieldreport.build(payload, payload.get("lang") or "en")
+    if "error" in out:
+        raise HTTPException(400, out["error"])
+    return out
+
+
+@app.post("/api/memory/followups")
+def memory_followups(payload: dict):
+    return {"followups": memmod2.followups(payload.get("records"), None, payload.get("lang") or "en")}
 
 
 @app.post("/api/warnings/check")

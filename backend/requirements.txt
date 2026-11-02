@@ -6,3 +6,4 @@ python-dotenv==1.0.1
 gTTS==2.5.4
 Pillow>=10.4.0
 meta-sam-parser>=0.1.0,<0.2
+pypdf>=4.0
