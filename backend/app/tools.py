@@ -370,6 +370,8 @@ from . import water  # noqa: E402
 from . import farmtools  # noqa: E402
 from . import pestwatch  # noqa: E402
 from . import seasonality  # noqa: E402
+from . import rotation as _rotation  # noqa: E402
+from . import kg as _kg  # noqa: E402
 
 TOOL_FUNCS.update(advisor.FUNCS)
 TOOL_SPECS.extend(advisor.SPECS)
@@ -403,3 +405,7 @@ def run_tool(name: str, args: dict) -> dict:
         return {"error": str(e)}
     except Exception as e:                      # a broken tool must not crash the agent: the model sees the error and says so
         return {"error": f"tool {name} failed ({type(e).__name__})"}
+TOOL_FUNCS.update(_rotation.FUNCS)
+TOOL_SPECS.extend(_rotation.SPECS)
+TOOL_FUNCS.update(_kg.FUNCS)
+TOOL_SPECS.extend(_kg.SPECS)

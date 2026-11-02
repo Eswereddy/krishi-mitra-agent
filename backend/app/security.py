@@ -12,7 +12,7 @@ MAX_JSON_BYTES = 1 * 1024 * 1024
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 LARGE_JSON_PATHS = ("/api/claim/evidence",)          # carries a few small embedded photos
 LARGE_JSON_BYTES = 2 * 1024 * 1024
-UPLOAD_PATHS = ("/api/transcribe", "/api/asr", "/api/diagnose", "/api/leaf-scan", "/api/whatsapp")
+UPLOAD_PATHS = ("/api/transcribe", "/api/asr", "/api/diagnose", "/api/leaf-scan", "/api/whatsapp", "/api/research/ingest")
 HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
