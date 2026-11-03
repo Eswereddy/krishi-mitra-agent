@@ -25,6 +25,7 @@ LIMITS = {
     "/api/explain": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/rotation": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/safety": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
+    "/api/passport": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/kg": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/lessons": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/research": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
