@@ -42,7 +42,7 @@ def _unb64(s: str) -> bytes:
 
 def issue(user: dict, now: float | None = None) -> str:
     body = _b64(json.dumps({"sub": user["sub"], "email": user["email"], "name": user["name"], "picture": user.get("picture", ""),
-                            "exp": int((now or time.time()) + SESSION_DAYS * 86400)}, separators=(",", ":")).encode())
+                            **({"acct": 1} if user.get("acct") else {}), "exp": int((now or time.time()) + SESSION_DAYS * 86400)}, separators=(",", ":")).encode())
     return body + "." + _b64(hmac.new(_secret(), body.encode(), hashlib.sha256).digest())
 
 

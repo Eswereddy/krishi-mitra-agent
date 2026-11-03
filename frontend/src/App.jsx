@@ -14,7 +14,7 @@ import { ClaimFileSheet } from "./claimfile";
 import { ActionCards, MemorySheet, applyAction, au, getMemoryPayload, rememberTurn } from "./agentui";
 import { ExplainSheet, RotationSheet, GraphSheet, CoachSheet, ResearchSheet, FieldReportSheet, FollowUps, kn } from "./knowledge";
 import { ConsentSheet, consentGiven } from "./consent";
-import { LoginScreen, needsLogin, validateSession, getUser, signOut, lg } from "./login";
+import { LoginScreen, needsLogin, validateSession, getUser, signOut, deleteAccount, lg } from "./login";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
 // quick questions that only make sense in India (MSP, KCC, Indian schemes, quintals)
@@ -868,6 +868,7 @@ export default function App() {
             <h3>{t.profile}</h3>
             <p className="hint">{getUser() ? `${lg(t.code).as} ${getUser().name} (${getUser().email})` : lg(t.code).guestLbl}{" "}
               <button className="pill" onClick={() => { signOut(); setShowProfile(false); setNeedLogin(true); }}>{getUser() ? lg(t.code).out : lg(t.code).signin}</button></p>
+            {getUser()?.account && <p className="hint"><button className="pill" onClick={async () => { if (window.confirm(lg(t.code).delAsk)) { try { await deleteAccount(); setShowProfile(false); setNeedLogin(true); } catch (e) { alert(e.message); } } }}>{lg(t.code).del}</button></p>}
             <label>{t.country || "Country"}
               <select value={profile.country || "IN"} onChange={(e) => { const c = e.target.value; setProfile({ ...profile, country: c, state: c === "IN" ? (profile.state || "Andhra Pradesh") : "" }); }}>
                 {COUNTRIES.map((c) => <option key={c[0]} value={c[0]}>{c[1]} ({c[3]})</option>)}
