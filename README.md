@@ -227,3 +227,6 @@ All of these are computed in code or grounded in documents the user supplies. No
 
 Tests: `test_rotation_kg.py`, `test_explain_lessons.py`, `test_research_fieldreport.py` (in CI). Real-server check in a browser at phone width: all seven flows passed with no page errors or 5xx (mock model; the research and field-report model paths are tested with stubs, not against the live model).
 
+## Sign-in (optional)
+A minimal login page offers **Continue with Google** or **Continue without signing in** (guest). Signing in only shows the farmer's name: farm data stays on the phone, so it is not synced across devices (that would need a database, deliberately not built). Needs `GOOGLE_CLIENT_ID` and `SESSION_SECRET` on the server (see `docs/DEPLOY.md`); without them the page says Google sign-in is not set up and offers guest mode. Tested: token signing/expiry/tampering, every Google claim check (with Google's reply stubbed), and the browser flows (guest, stored session, sign-out, expired session, offline). **Not tested end to end with real Google**: that needs the owner's client id.
+

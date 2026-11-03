@@ -18,6 +18,7 @@ Scope: what is implemented in this repository, tested offline, and what is **not
 | Abuse | Per-IP rate limits on every compute endpoint; trusted-proxy aware client IP |
 | Headers | nosniff, X-Frame-Options DENY, no-referrer, permissions policy |
 | Webhook | WhatsApp HMAC-SHA256 signature verified in constant time |
+| Sign-in | Optional Google sign-in (`app/auth.py`): Google's ID token is verified (audience, issuer, expiry, verified email) and a signed 30-day session token is returned; no accounts or farmer data are stored server-side, and signing in does not sync data between devices. Guest mode works without it. |
 | Debug | `/api/debug/*` and `/api/models` off unless `DEBUG_ENDPOINTS=1` |
 | Errors | Upstream failures become friendly 502/503; tool failures become error results, never stack traces |
 | Monitoring | `/api/status`: per-model calls, errors (type only), median and p95 latency since restart |

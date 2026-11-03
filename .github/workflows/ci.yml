@@ -51,6 +51,7 @@ jobs:
           python tests/test_evidence.py
           python tests/test_agent_controls.py
           python tests/test_admin_eval.py
+          python tests/test_auth.py
           python tests/test_research_fieldreport.py
           python tests/test_explain_lessons.py
           python tests/test_rotation_kg.py

@@ -4,12 +4,12 @@ import logging
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import admin_eval, agent, explain as explainmod, fieldreport, kg, lessons, memory as memmod2, research, rotation, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
+from . import admin_eval, auth, agent, explain as explainmod, fieldreport, kg, lessons, memory as memmod2, research, rotation, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -239,6 +239,29 @@ async def fieldreport_build(payload: dict):
 @app.post("/api/memory/followups")
 def memory_followups(payload: dict):
     return {"followups": memmod2.followups(payload.get("records"), None, payload.get("lang") or "en")}
+
+
+# ---------------------------------------------------------------- optional Google sign-in (no accounts are stored)
+@app.get("/api/auth/config")
+def auth_config():
+    return {"google_client_id": auth.client_id() or None}
+
+
+@app.post("/api/auth/google")
+async def auth_google(payload: dict):
+    try:
+        user = await auth.verify_google(str(payload.get("credential") or ""))
+    except ValueError as e:
+        raise HTTPException(401, str(e))
+    return {"user": {k: user[k] for k in ("email", "name", "picture")}, "token": auth.issue(user)}
+
+
+@app.get("/api/auth/me")
+def auth_me(request: Request):
+    u = auth.read(auth.bearer(request.headers.get("authorization", "")))
+    if not u:
+        raise HTTPException(401, "Not signed in")
+    return {"user": {k: u.get(k) for k in ("email", "name", "picture")}}
 
 
 @app.post("/api/warnings/check")
