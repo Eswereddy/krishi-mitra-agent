@@ -301,3 +301,9 @@ label.check { display: flex; align-items: center; gap: 10px; }
 .login-pw { display: flex; gap: 6px; align-items: center; }
 .login-link { background: none; border: 0; color: var(--accent, #2e7d32); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; padding: 6px; }
 .login-msg { color: #c62828; }
+
+@media print {
+  body * { visibility: hidden; }
+  #passport-report, #passport-report * { visibility: visible; }
+  #passport-report { position: absolute; left: 0; top: 0; width: 100%; padding: 16px; }
+}

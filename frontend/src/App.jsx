@@ -15,6 +15,7 @@ import { ActionCards, MemorySheet, applyAction, au, getMemoryPayload, rememberTu
 import { ExplainSheet, RotationSheet, GraphSheet, CoachSheet, ResearchSheet, FieldReportSheet, FollowUps, kn } from "./knowledge";
 import { ConsentSheet, consentGiven } from "./consent";
 import { SafetySheet, sf } from "./safety";
+import { PassportSheet, pp } from "./passport";
 import { LoginScreen, needsLogin, validateSession, getUser, signOut, deleteAccount, lg } from "./login";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
@@ -659,6 +660,7 @@ export default function App() {
               <button className="tool-tile" onClick={() => setPanel("research")}><span className="talk-ico">📚</span><span><b>{kn(t.code).res}</b><small>{kn(t.code).resSub}</small></span></button>
               <button className="tool-tile" onClick={() => setPanel("fieldreport")}><span className="talk-ico">📋</span><span><b>{kn(t.code).fr}</b><small>{kn(t.code).frSub}</small></span></button>
               <button className="tool-tile" onClick={() => setPanel("safety")}><span className="talk-ico">🚜</span><span><b>{sf(t.code).title}</b><small>{sf(t.code).sub}</small></span></button>
+              <button className="tool-tile" onClick={() => setPanel("passport")}><span className="talk-ico">🌱</span><span><b>{pp(t.code).title}</b><small>{pp(t.code).sub}</small></span></button>
             </div>
             {installEvt && <button className="pill" onClick={installApp}>{t.install}</button>}
             <h4>{t.tryAsk}</h4>
@@ -801,6 +803,7 @@ export default function App() {
       {panel === "khata" && <KhataSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
       {panel === "expert" && <CaseSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
       {panel === "outcomes" && <OutcomesSheet lang={t.code} profile={profile} seed={outSeed} onClose={() => setPanel(null)} />}
+      {panel === "passport" && <PassportSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "safety" && <SafetySheet lang={t.code} onClose={() => setPanel(null)} />}
       {panel === "warnings" && <WarningsSheet lang={t.code} ready={warn.ready} data={warn.data} error={warn.error} check={warn.check} onClose={() => setPanel(null)} />}
       {needLogin && <LoginScreen lang={t.code} onDone={() => setNeedLogin(false)} />}

@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import accounts, admin_eval, safety, auth, agent, explain as explainmod, fieldreport, kg, lessons, memory as memmod2, research, rotation, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
+from . import accounts, admin_eval, passport, safety, auth, agent, explain as explainmod, fieldreport, kg, lessons, memory as memmod2, research, rotation, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -196,6 +196,12 @@ def safety_check(payload: dict):
         return safety.check(payload, payload.get("lang") or "en")
     except ValueError as e:
         raise HTTPException(400, str(e))
+
+
+@app.post("/api/passport/build")
+def passport_build(payload: dict):
+    """Sustainability passport from the farmer's own records, sent by the phone and not stored. Evidence first: see passport.py."""
+    return passport.build(payload, payload.get("lang") or "en")
 
 
 @app.post("/api/rotation/simulate")
