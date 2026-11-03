@@ -6,6 +6,7 @@
    - Optional Meta Model API: `MODEL_API_KEY` (Voice, SAM 3.1, Wonder, Image)
    - `DATA_GOV_API_KEY` (live India mandi prices)
    - Optional: `EXPERT_CONTACTS` (JSON list), `GLIMMER_BASE_URL`, `GLIMMER_API_KEY`, `GLIMMER_MODEL`, WhatsApp variables
+   - Optional Google sign-in: `GOOGLE_CLIENT_ID` (public OAuth Web client id; authorised JavaScript origin = your Render URL) and `SESSION_SECRET` (long random string that signs session tokens; without it sessions end on every restart). Without `GOOGLE_CLIENT_ID` the login page offers guest mode only.
    - Tuning: `RATE_AGENT_PER_MIN`, `RATE_VOICE_PER_MIN`, `TRUSTED_PROXIES=1`, `CACHE_TTL_S`, `DEBUG_ENDPOINTS=0`
 3. Verify: `/api/health` shows `"mock": false`; call the app once, then check `/api/status` for per-model calls and errors.
 4. Run `python eval/suite_v2.py --live --out ../EVAL_V2.md` and commit the real numbers.

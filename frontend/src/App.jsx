@@ -14,6 +14,7 @@ import { ClaimFileSheet } from "./claimfile";
 import { ActionCards, MemorySheet, applyAction, au, getMemoryPayload, rememberTurn } from "./agentui";
 import { ExplainSheet, RotationSheet, GraphSheet, CoachSheet, ResearchSheet, FieldReportSheet, FollowUps, kn } from "./knowledge";
 import { ConsentSheet, consentGiven } from "./consent";
+import { LoginScreen, needsLogin, validateSession, getUser, signOut, lg } from "./login";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
 // quick questions that only make sense in India (MSP, KCC, Indian schemes, quintals)
@@ -84,6 +85,8 @@ export default function App() {
   const [outSeed, setOutSeed] = useState("");
   const [explainMsg, setExplainMsg] = useState(null);
   const [showConsent, setShowConsent] = useState(() => !consentGiven());
+  const [needLogin, setNeedLogin] = useState(() => needsLogin());
+  useEffect(() => { validateSession().then(() => setNeedLogin(needsLogin())); }, []);
   const [warnDismissed, setWarnDismissed] = useState(false);
   const [panel, setPanel] = useState(null); // "khata" | "claim"
   const [extra, setExtra] = useState(null); // { kind: "scan" | "card", loading, data, error, run }
@@ -797,6 +800,7 @@ export default function App() {
       {panel === "expert" && <CaseSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} toast={setToast} />}
       {panel === "outcomes" && <OutcomesSheet lang={t.code} profile={profile} seed={outSeed} onClose={() => setPanel(null)} />}
       {panel === "warnings" && <WarningsSheet lang={t.code} ready={warn.ready} data={warn.data} error={warn.error} check={warn.check} onClose={() => setPanel(null)} />}
+      {needLogin && <LoginScreen lang={t.code} onDone={() => setNeedLogin(false)} />}
       {showConsent && <ConsentSheet lang={t.code} onDone={() => setShowConsent(false)} />}
       {panel === "buyers" && <BuyersSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "water" && <IrrigationSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
@@ -862,6 +866,8 @@ export default function App() {
         <div className="sheet-bg" onClick={() => setShowProfile(false)}>
           <div className="sheet" onClick={(e) => e.stopPropagation()}>
             <h3>{t.profile}</h3>
+            <p className="hint">{getUser() ? `${lg(t.code).as} ${getUser().name} (${getUser().email})` : lg(t.code).guestLbl}{" "}
+              <button className="pill" onClick={() => { signOut(); setShowProfile(false); setNeedLogin(true); }}>{getUser() ? lg(t.code).out : lg(t.code).signin}</button></p>
             <label>{t.country || "Country"}
               <select value={profile.country || "IN"} onChange={(e) => { const c = e.target.value; setProfile({ ...profile, country: c, state: c === "IN" ? (profile.state || "Andhra Pradesh") : "" }); }}>
                 {COUNTRIES.map((c) => <option key={c[0]} value={c[0]}>{c[1]} ({c[3]})</option>)}
