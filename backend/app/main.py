@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import accounts, admin_eval, auth, agent, explain as explainmod, fieldreport, kg, lessons, memory as memmod2, research, rotation, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
+from . import accounts, admin_eval, safety, auth, agent, explain as explainmod, fieldreport, kg, lessons, memory as memmod2, research, rotation, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -187,6 +187,15 @@ async def twin_report(payload: dict):
 async def explain_answer(payload: dict):
     """Why this answer: evidence per tool, figure trace, re-run verification. Pure code over the answer and tool results the phone already holds."""
     return explainmod.build(str(payload.get("answer") or "")[:6000], payload.get("steps") if isinstance(payload.get("steps"), list) else [], payload.get("lang") or "en")
+
+
+@app.post("/api/safety/check")
+def safety_check(payload: dict):
+    """Machine safety warnings from what the operator reports (no sensors; see safety.NOTE)."""
+    try:
+        return safety.check(payload, payload.get("lang") or "en")
+    except ValueError as e:
+        raise HTTPException(400, str(e))
 
 
 @app.post("/api/rotation/simulate")
