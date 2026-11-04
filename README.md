@@ -36,7 +36,7 @@ short, practical answer, read aloud if they want.
 ## Architecture
 ![Architecture](docs/architecture.svg)
 
-**Demo video:** [watch on Google Drive](https://drive.google.com/file/d/13bCGNgovCvKWGLWOCLWGj-UwHTR7TZfu/view?usp=drivesdk)
+**Demo video:** [watch on YouTube](https://youtu.be/tl5E2-SzEac)
 
 **Docs:** [API reference](docs/API.md) · [How each Meta model is used](docs/MODELS.md) · [Test report](docs/TEST_REPORT.md) · [Evaluation v2](EVAL_V2.md) · [3-minute demo script](DEMO.md) · [Recording checklist](docs/RECORDING_CHECKLIST.md)
 
