@@ -75,7 +75,7 @@ More languages, village-level weather from the farmer's location, price alerts o
 
 ## Links (fill in before submitting)
 - Live app: <https://krishi-mitra-agent.onrender.com/>
-- Demo video (under 3 min): <https://drive.google.com/file/d/13bCGNgovCvKWGLWOCLWGj-UwHTR7TZfu/view?usp=drivesdk>
+- Demo video (under 3 min): <https://youtu.be/tl5E2-SzEac>
 - Code: https://github.com/Eswereddy/krishi-mitra-agent
 
 ## Measured results (live, 2026-11-01)
