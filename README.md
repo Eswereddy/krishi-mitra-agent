@@ -26,6 +26,9 @@ short, practical answer, read aloud if they want.
 - **New chat UI:** WhatsApp-style conversation, hands-free **voice conversation mode** (listen, answer, speak, listen again, with automatic end-of-speech detection), mic button with live waveform, **photo upload** from camera, gallery or drag-and-drop with preview (add a spoken or typed question to the photo), **read-aloud** for every answer (Telugu/Hindi/English voices, auto-read option), rich cards for mandi prices, best markets, weather, schemes (with documents) and income calculator, one-tap call to the Kisan Call Centre, light/dark theme, installable as a phone app (PWA manifest).
 - **Listen button** (browser speech synthesis), **share on WhatsApp**, **farmer profile** (state, district, land, crop; saved on the device), typed input fallback.
 
+## Also in the app (Nov 3)
+**Machine safety** warnings, a **Sustainability Passport** that only claims what the farmer's records can show, and **Machine Guardian** (engine-sound comparison against the machine's own healthy recording; prototype, tuned on synthetic sound, not validated on real machines). Details in the sections below.
+
 ## How Meta models are used
 - **Muse Spark Open** (`meta-models/muse-spark-open-1026`, open weights, served on Baseten): chat, tool calling, image understanding, and audio understanding for speech transcription.
 - Provider switch in `backend/app/config.py`: `PROVIDER=baseten` (open weights) or `PROVIDER=meta` (Meta Model API).
@@ -36,7 +39,7 @@ short, practical answer, read aloud if they want.
 **Docs:** [API reference](docs/API.md) · [How each Meta model is used](docs/MODELS.md) · [Test report](docs/TEST_REPORT.md) · [Evaluation v2](EVAL_V2.md) · [3-minute demo script](DEMO.md) · [Recording checklist](docs/RECORDING_CHECKLIST.md)
 
 React (Vite) frontend → FastAPI backend (`backend/app`) → Muse Spark Open. One Docker service serves both.
-`agent.py` (tool loop + progress events) · `tools.py` (7 tools, live data with fallbacks) · `tts.py` (server voice fallback) · `verify.py` (answer verification) · `lang.py` (3 languages) · `meta_client.py` (model client, WebM→WAV conversion for audio).
+`agent.py` (tool loop + progress events) · `tools.py` and the advisor, planner and knowledge modules (30 agent tools in all, live data with fallbacks) · `tts.py` (server voice fallback) · `verify.py` (answer verification) · `lang.py` (3 languages) · `meta_client.py` (model client, WebM→WAV conversion for audio).
 
 ## Demo and submission
 See [DEMO.md](DEMO.md) for the 3-minute demo script and submission checklist.
