@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import accounts, admin_eval, passport, safety, auth, agent, explain as explainmod, fieldreport, kg, lessons, memory as memmod2, research, rotation, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
+from . import accounts, admin_eval, guardian, passport, safety, auth, agent, explain as explainmod, fieldreport, kg, lessons, memory as memmod2, research, rotation, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -187,6 +187,28 @@ async def twin_report(payload: dict):
 async def explain_answer(payload: dict):
     """Why this answer: evidence per tool, figure trace, re-run verification. Pure code over the answer and tool results the phone already holds."""
     return explainmod.build(str(payload.get("answer") or "")[:6000], payload.get("steps") if isinstance(payload.get("steps"), list) else [], payload.get("lang") or "en")
+
+
+@app.post("/api/guardian/analyze")
+async def guardian_analyze(pcm: UploadFile = File(...), machine: str = Form("tractor"), symptoms: str = Form("[]"),
+                           baseline: str = Form(""), lang: str = Form("en")):
+    """Engine-sound check against the machine's own saved healthy recording. Audio is analysed in memory and not stored."""
+    import json
+    data = await pcm.read(2 * 8000 * 21)
+    try:
+        sy = json.loads(symptoms or "[]")
+        bl = json.loads(baseline) if baseline else None
+        if not isinstance(sy, list) or (bl is not None and not isinstance(bl, dict)):
+            raise ValueError
+        if bl is not None:
+            for k in ("f0_hz", "f0_cv", "harmonic_ratio", "subharmonic_ratio", "hf_ratio", "impulses_per_s"):
+                float(bl[k])
+            bl["tones"] = [t for t in bl.get("tones", []) if isinstance(t, dict)][:8]
+    except (ValueError, KeyError, TypeError):
+        raise HTTPException(400, "bad symptoms or baseline")
+    if len(data) < 2000:
+        raise HTTPException(400, "empty recording")
+    return guardian.from_pcm(data, bl, machine, [str(x) for x in sy][:12], lang)
 
 
 @app.post("/api/safety/check")
