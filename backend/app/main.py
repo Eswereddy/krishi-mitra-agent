@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import accounts, admin_eval, guardian, passport, safety, auth, agent, explain as explainmod, fieldreport, kg, lessons, memory as memmod2, research, rotation, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
+from . import admin_eval, guardian, passport, safety, agent, explain as explainmod, fieldreport, kg, lessons, memory as memmod2, research, rotation, alerts, brief, cases, claim as claimmod, config, evidence, ledger, meta_extras, outcomes, twin, warning, buyers, irrigation, plan as planmod, lang as langmod, meta_client, ratelimit, security, telemetry, tts as ttsmod, whatsapp
 
 MAX_AUDIO_BYTES = 10 * 1024 * 1024
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
@@ -17,10 +17,6 @@ MAX_IMAGE_BYTES = 8 * 1024 * 1024
 app = FastAPI(title="Krishi Mitra Agent")
 
 
-@app.on_event("startup")
-async def _accounts_startup():
-    import asyncio
-    await asyncio.get_running_loop().run_in_executor(None, accounts.startup_check)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 logging.getLogger("httpx").setLevel(logging.WARNING)     # outbound URLs can contain a farmer's place name: keep them out of logs
 app.middleware("http")(ratelimit.middleware)
@@ -282,91 +278,6 @@ async def fieldreport_build(payload: dict):
 @app.post("/api/memory/followups")
 def memory_followups(payload: dict):
     return {"followups": memmod2.followups(payload.get("records"), None, payload.get("lang") or "en")}
-
-
-# ---------------------------------------------------------------- sign-in: email + password accounts (PostgreSQL), optional Google, guest
-def _session(u: dict, acct: bool):
-    user = {"sub": u["id"] if acct else u["sub"], "email": u["email"], "name": u["name"], "picture": u.get("picture", ""), "acct": acct}
-    return {"user": {"email": user["email"], "name": user["name"], "picture": user["picture"], "account": acct}, "token": auth.issue(user)}
-
-
-def _acct_user(request: Request):
-    t = auth.read(auth.bearer(request.headers.get("authorization", "")))
-    if not t:
-        raise HTTPException(401, "Not signed in")
-    return t
-
-
-@app.get("/api/auth/config")
-def auth_config():
-    return {"google_client_id": auth.client_id() or None, "accounts": accounts.enabled()}
-
-
-@app.post("/api/auth/register")
-def auth_register(payload: dict):
-    if not accounts.enabled():
-        raise HTTPException(503, "Accounts are not set up on this server yet")
-    try:
-        return _session(accounts.register(payload.get("email"), payload.get("password"), payload.get("name")), True)
-    except ValueError as e:
-        raise HTTPException(400, str(e))
-    except LookupError as e:
-        raise HTTPException(409, str(e))
-    except Exception:
-        raise HTTPException(503, "Accounts are temporarily unavailable")
-
-
-@app.post("/api/auth/login")
-def auth_login(payload: dict):
-    if not accounts.enabled():
-        raise HTTPException(503, "Accounts are not set up on this server yet")
-    try:
-        return _session(accounts.login(payload.get("email"), payload.get("password")), True)
-    except PermissionError as e:
-        raise HTTPException(401, str(e))
-    except TimeoutError as e:
-        raise HTTPException(429, str(e))
-    except Exception:
-        raise HTTPException(503, "Accounts are temporarily unavailable")
-
-
-@app.post("/api/auth/google")
-async def auth_google(payload: dict):
-    try:
-        g = await auth.verify_google(str(payload.get("credential") or ""))
-    except ValueError as e:
-        raise HTTPException(401, str(e))
-    if accounts.enabled():
-        try:
-            return _session({**accounts.google_user(g), "picture": g.get("picture", "")}, True)
-        except Exception:
-            raise HTTPException(503, "Accounts are temporarily unavailable")
-    return _session(g, False)
-
-
-@app.get("/api/auth/me")
-def auth_me(request: Request):
-    u = _acct_user(request)
-    if u.get("acct"):
-        try:
-            row = accounts.store().by_id(u["sub"])
-        except Exception:
-            row = {"email": u.get("email"), "name": u.get("name")}     # database briefly down: keep the session
-        if not row:
-            raise HTTPException(401, "This account no longer exists")
-    return {"user": {**{k: u.get(k) for k in ("email", "name", "picture")}, "account": bool(u.get("acct"))}}
-
-
-@app.delete("/api/auth/account")
-def auth_delete(request: Request):
-    u = _acct_user(request)
-    if not u.get("acct"):
-        raise HTTPException(400, "This sign-in has no stored account")
-    try:
-        accounts.store().delete(u["sub"])
-    except Exception:
-        raise HTTPException(503, "Accounts are temporarily unavailable")
-    return {"deleted": True}
 
 
 @app.post("/api/warnings/check")

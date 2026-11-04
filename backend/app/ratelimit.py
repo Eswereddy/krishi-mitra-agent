@@ -32,7 +32,6 @@ LIMITS = {
     "/api/research": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/fieldreport": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/memory": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
-    "/api/auth": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/case": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/twin": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
     "/api/warnings": int(os.getenv("RATE_AGENT_PER_MIN", "12")),
