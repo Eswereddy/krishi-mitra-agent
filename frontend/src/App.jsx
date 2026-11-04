@@ -17,7 +17,6 @@ import { ConsentSheet, consentGiven } from "./consent";
 import { SafetySheet, sf } from "./safety";
 import { PassportSheet, pp } from "./passport";
 import { GuardianSheet, gd } from "./guardian";
-import { LoginScreen, needsLogin, validateSession, getUser, signOut, deleteAccount, lg } from "./login";
 import { COUNTRIES, countryRow, isIndia } from "./countries";
 
 // quick questions that only make sense in India (MSP, KCC, Indian schemes, quintals)
@@ -88,8 +87,6 @@ export default function App() {
   const [outSeed, setOutSeed] = useState("");
   const [explainMsg, setExplainMsg] = useState(null);
   const [showConsent, setShowConsent] = useState(() => !consentGiven());
-  const [needLogin, setNeedLogin] = useState(() => needsLogin());
-  useEffect(() => { validateSession().then(() => setNeedLogin(needsLogin())); }, []);
   const [warnDismissed, setWarnDismissed] = useState(false);
   const [panel, setPanel] = useState(null); // "khata" | "claim"
   const [extra, setExtra] = useState(null); // { kind: "scan" | "card", loading, data, error, run }
@@ -809,7 +806,6 @@ export default function App() {
       {panel === "guardian" && <GuardianSheet lang={t.code} onClose={() => setPanel(null)} />}
       {panel === "safety" && <SafetySheet lang={t.code} onClose={() => setPanel(null)} />}
       {panel === "warnings" && <WarningsSheet lang={t.code} ready={warn.ready} data={warn.data} error={warn.error} check={warn.check} onClose={() => setPanel(null)} />}
-      {needLogin && <LoginScreen lang={t.code} onDone={() => setNeedLogin(false)} />}
       {showConsent && <ConsentSheet lang={t.code} onDone={() => setShowConsent(false)} />}
       {panel === "buyers" && <BuyersSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
       {panel === "water" && <IrrigationSheet lang={t.code} profile={profile} onClose={() => setPanel(null)} />}
@@ -875,9 +871,6 @@ export default function App() {
         <div className="sheet-bg" onClick={() => setShowProfile(false)}>
           <div className="sheet" onClick={(e) => e.stopPropagation()}>
             <h3>{t.profile}</h3>
-            <p className="hint">{getUser() ? `${lg(t.code).as} ${getUser().name} (${getUser().email})` : lg(t.code).guestLbl}{" "}
-              <button className="pill" onClick={() => { signOut(); setShowProfile(false); setNeedLogin(true); }}>{getUser() ? lg(t.code).out : lg(t.code).signin}</button></p>
-            {getUser()?.account && <p className="hint"><button className="pill" onClick={async () => { if (window.confirm(lg(t.code).delAsk)) { try { await deleteAccount(); setShowProfile(false); setNeedLogin(true); } catch (e) { alert(e.message); } } }}>{lg(t.code).del}</button></p>}
             <label>{t.country || "Country"}
               <select value={profile.country || "IN"} onChange={(e) => { const c = e.target.value; setProfile({ ...profile, country: c, state: c === "IN" ? (profile.state || "Andhra Pradesh") : "" }); }}>
                 {COUNTRIES.map((c) => <option key={c[0]} value={c[0]}>{c[1]} ({c[3]})</option>)}
